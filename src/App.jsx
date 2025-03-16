@@ -26,6 +26,7 @@ const App = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(API_URL);
+      // console.log({data})
       setTables(data);
     } catch (error) {
       message.error("Ошибка загрузки столиков");
@@ -82,19 +83,20 @@ const App = () => {
   return (
     <>
       <Button
-  type="primary"
-  style={{ margin: 21 }}
-  onClick={() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-    if (isAuthenticated) {
-      navigate("/admin"); // Если уже вошли, сразу перекидываем в админку
-    } else {
-      setAdminModalVisible(true); // Иначе открываем модалку с вводом пароля
-    }
-  }}
->
-  Админ панель
-</Button>
+        type="primary"
+        style={{ margin: 21 }}
+        onClick={() => {
+          const isAuthenticated =
+            localStorage.getItem("isAuthenticated") === "true";
+          if (isAuthenticated) {
+            navigate("/admin"); // Если уже вошли, сразу перекидываем в админку
+          } else {
+            setAdminModalVisible(true); // Иначе открываем модалку с вводом пароля
+          }
+        }}
+      >
+        Админ панель
+      </Button>
 
       <div className="grid-container">
         {tables.map((table) => (
@@ -111,7 +113,10 @@ const App = () => {
             }}
             onClick={() => openModal(table)}
           >
-            Столик {table.id}
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div>Столик {table.id}</div>
+              <div>{table.time !== "" ? table.time : null}</div>
+            </div>
           </Button>
         ))}
 
