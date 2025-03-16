@@ -14,9 +14,9 @@ const Admin = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
 
-  const tablesFilter = tables.filter((el) => el.name !== '')
+  const tablesFilter = tables.filter((el) => el.name !== "");
 
-  console.log({tablesFilter})
+  console.log({ tablesFilter });
 
   const navigate = useNavigate();
 
@@ -31,6 +31,34 @@ const Admin = () => {
   useEffect(() => {
     fetchTables();
   }, []);
+
+  const clearAllReservations = async (tablesFilter, fetchTables) => {
+    Modal.confirm({
+      title: "Вы уверены?",
+      content: "Все брони будут удалены!",
+      okText: "Да, удалить",
+      cancelText: "Отмена",
+      onOk: async () => {
+        try {
+          for (const table of tablesFilter) {
+            await axios.patch(`${API_URL}/${table.id}`, {
+              name: "",
+              phone: "",
+              time: "",
+              people: "",
+              reserved: false,
+              pending: false,
+            });
+          }
+          message.success("Все брони удалены!");
+          fetchTables(); // Обновляем таблицу
+        } catch (error) {
+          message.error("Ошибка удаления броней!");
+        }
+      },
+    });
+  };
+  
 
   const fetchTables = async () => {
     setLoading(true);
@@ -144,26 +172,30 @@ const Admin = () => {
 
   return (
     <div className="admin-container">
-     <div style={{ position: "relative", width: "100%", padding: "10px" }}>
-  <Button fill="none" style={{ marginLeft: -8 }} onClick={() => navigate("/")}>
-    <ArrowLeftOutlined /> Назад
-  </Button>
+      <div style={{ position: "relative", width: "100%", padding: "10px" }}>
+        <Button
+          fill="none"
+          style={{ marginLeft: -8 }}
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeftOutlined /> Назад
+        </Button>
 
-  <Button 
-    type="primary" 
-    style={{ 
-      position: "absolute", 
-      top: 10, 
-      right: 20 
-    }} 
-    onClick={() => {
-      localStorage.removeItem("isAuthenticated");
-      navigate("/");
-    }}
-  >
-    Выйти
-  </Button>
-</div>
+        <Button
+          type="primary"
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 20,
+          }}
+          onClick={() => {
+            localStorage.removeItem("isAuthenticated");
+            navigate("/");
+          }}
+        >
+          Выйти
+        </Button>
+      </div>
       <div className="table-wrapper">
         <Table
           scroll={{ x: "max-content" }}
@@ -178,6 +210,15 @@ const Admin = () => {
             responsive: true,
           }}
         />
+      </div>
+      <div>
+      <Button 
+  type="dashed" 
+  onClick={() => clearAllReservations(tablesFilter, fetchTables)} // Передаём tablesFilter!
+>
+  ❌ Удалить все брони
+</Button>
+
       </div>
 
       <div className="grid-container">
@@ -209,8 +250,9 @@ const Admin = () => {
         <Form form={form} onFinish={handleReserve}>
           <Form.Item
             name="name"
-            rules={[{ required: true, message: "Введите имя" },
-              { max: 10, message: "Имя должно содержать не более 10 символов" }
+            rules={[
+              { required: true, message: "Введите имя" },
+              { max: 10, message: "Имя должно содержать не более 10 символов" },
             ]}
           >
             <Input placeholder="Имя" />
@@ -256,17 +298,28 @@ const Admin = () => {
             </InputMask>
           </Form.Item>
           <Form.Item
-            name="people"
-            rules={[{ required: true, message: "Введите количество человек" }]}
-          >
-            <Select placeholder="Количество человек">
-              {[1, 2, 3, 4, 5, 6].map((num) => (
-                <Select.Option key={num} value={num}>
-                  {num}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
+  name="people"
+  rules={[{ required: true, message: "Введите количество человек" }]}
+>
+  <Select
+    placeholder="Количество человек"
+    showSearch
+    filterOption={false} // Позволяет вводить любое значение
+    onSearch={(value) => {
+      if (!isNaN(value) && value > 0) {
+        form.setFieldsValue({ people: Number(value) });
+      }
+    }}
+    onChange={(value) => form.setFieldsValue({ people: value })}
+  >
+    {[1, 2, 3, 4, 5, 6].map((num) => (
+      <Select.Option key={num} value={num}>
+        {num}
+      </Select.Option>
+    ))}
+  </Select>
+</Form.Item>
+
           <Button type="primary" htmlType="submit">
             Забронировать
           </Button>

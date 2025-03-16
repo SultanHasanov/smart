@@ -164,19 +164,28 @@ const App = () => {
               </InputMask>
             </Form.Item>
             <Form.Item
-              name="people"
-              rules={[
-                { required: true, message: "Введите количество человек" },
-              ]}
-            >
-              <Select placeholder="Количество человек">
-                {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <Select.Option key={num} value={num}>
-                    {num}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
+  name="people"
+  rules={[{ required: true, message: "Введите количество человек" }]}
+>
+  <Select
+    placeholder="Количество человек"
+    showSearch
+    filterOption={false} // Позволяет вводить любое значение
+    onSearch={(value) => {
+      if (!isNaN(value) && value > 0) {
+        form.setFieldsValue({ people: Number(value) });
+      }
+    }}
+    onChange={(value) => form.setFieldsValue({ people: value })}
+  >
+    {[1, 2, 3, 4, 5, 6].map((num) => (
+      <Select.Option key={num} value={num}>
+        {num}
+      </Select.Option>
+    ))}
+  </Select>
+</Form.Item>
+
 
             <Button type="primary" htmlType="submit">
               Отправить админу
