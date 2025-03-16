@@ -129,7 +129,9 @@ const App = () => {
           <Form form={form} onFinish={sendToWhatsApp}>
             <Form.Item
               name="name"
-              rules={[{ required: true, message: "Введите имя" }]}
+              rules={[{ required: true, message: "Введите имя" },
+                { max: 10, message: "Имя должно содержать не более 10 символов" }
+              ]}
             >
               <Input placeholder="Имя" />
             </Form.Item>

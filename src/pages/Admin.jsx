@@ -14,6 +14,10 @@ const Admin = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
 
+  const tablesFilter = tables.filter((el) => el.name !== '')
+
+  console.log({tablesFilter})
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -164,7 +168,7 @@ const Admin = () => {
         <Table
           scroll={{ x: "max-content" }}
           columns={columns}
-          dataSource={tables}
+          dataSource={tablesFilter}
           rowKey="id"
           loading={loading}
           pagination={{
@@ -205,7 +209,9 @@ const Admin = () => {
         <Form form={form} onFinish={handleReserve}>
           <Form.Item
             name="name"
-            rules={[{ required: true, message: "Введите имя" }]}
+            rules={[{ required: true, message: "Введите имя" },
+              { max: 10, message: "Имя должно содержать не более 10 символов" }
+            ]}
           >
             <Input placeholder="Имя" />
           </Form.Item>
