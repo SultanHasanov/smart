@@ -14,6 +14,9 @@ const App = () => {
   const [selectedTable, setSelectedTable] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [adminModalVisible, setAdminModalVisible] = useState(false);
+  const [countdowns, setCountdowns] = useState({});
+
+
   const [form] = Form.useForm();
   const [adminForm] = Form.useForm();
   const navigate = useNavigate();
@@ -36,7 +39,7 @@ const App = () => {
   };
 
   const openModal = (table) => {
-    if (table.reserved) return;
+    if (table.reserved || table.pending) return;
     setSelectedTable(table);
     setModalVisible(true);
   };
@@ -56,6 +59,7 @@ const App = () => {
         time: values.time,
         people: values.people,
         pending: true,
+        timestamp: Date.now(), // Фиксируем время заявки
       });
 
       message.success("Запрос отправлен админу!");
@@ -79,6 +83,39 @@ const App = () => {
     setAdminModalVisible(false);
     adminForm.resetFields();
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const newCountdowns = {};
+  
+      tables.forEach((table) => {
+        if (table.pending && table.timestamp) {
+          const elapsedSeconds = Math.floor((now - table.timestamp) / 1000);
+          const remainingSeconds = 60 - elapsedSeconds;
+  
+          if (remainingSeconds > 0) {
+            newCountdowns[table.id] = remainingSeconds;
+          } else {
+            // Если время вышло, удаляем заявку
+            axios.patch(`${API_URL}/${table.id}`, {
+              name: "",
+              phone: "",
+              time: "",
+              people: "",
+              reserved: false,
+              pending: false,
+            }).then(() => fetchTables());
+          }
+        }
+      });
+  
+      setCountdowns(newCountdowns);
+    }, 1000);
+  
+    return () => clearInterval(interval);
+  }, [tables]);
+  
 
   return (
     <>
@@ -116,6 +153,11 @@ const App = () => {
             <div style={{ display: "flex", flexDirection: "column" }}>
               <div>Столик {table.id}</div>
               <div>{table.time !== "" ? table.time : null}</div>
+              {table.pending && countdowns[table.id] !== undefined && (
+      <div style={{ color: "red", fontWeight: "bold" }}>
+       ⏳ {countdowns[table.id]} сек
+      </div>
+    )}
             </div>
           </Button>
         ))}
@@ -129,8 +171,12 @@ const App = () => {
           <Form form={form} onFinish={sendToWhatsApp}>
             <Form.Item
               name="name"
-              rules={[{ required: true, message: "Введите имя" },
-                { max: 10, message: "Имя должно содержать не более 10 символов" }
+              rules={[
+                { required: true, message: "Введите имя" },
+                {
+                  max: 10,
+                  message: "Имя должно содержать не более 10 символов",
+                },
               ]}
             >
               <Input placeholder="Имя" />
@@ -164,28 +210,29 @@ const App = () => {
               </InputMask>
             </Form.Item>
             <Form.Item
-  name="people"
-  rules={[{ required: true, message: "Введите количество человек" }]}
->
-  <Select
-    placeholder="Количество человек"
-    showSearch
-    filterOption={false} // Позволяет вводить любое значение
-    onSearch={(value) => {
-      if (!isNaN(value) && value > 0) {
-        form.setFieldsValue({ people: Number(value) });
-      }
-    }}
-    onChange={(value) => form.setFieldsValue({ people: value })}
-  >
-    {[1, 2, 3, 4, 5, 6].map((num) => (
-      <Select.Option key={num} value={num}>
-        {num}
-      </Select.Option>
-    ))}
-  </Select>
-</Form.Item>
-
+              name="people"
+              rules={[
+                { required: true, message: "Введите количество человек" },
+              ]}
+            >
+              <Select
+                placeholder="Количество человек"
+                showSearch
+                filterOption={false} // Позволяет вводить любое значение
+                onSearch={(value) => {
+                  if (!isNaN(value) && value > 0) {
+                    form.setFieldsValue({ people: Number(value) });
+                  }
+                }}
+                onChange={(value) => form.setFieldsValue({ people: value })}
+              >
+                {[1, 2, 3, 4, 5, 6].map((num) => (
+                  <Select.Option key={num} value={num}>
+                    {num}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
 
             <Button type="primary" htmlType="submit">
               Отправить админу

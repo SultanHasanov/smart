@@ -92,7 +92,7 @@ const Admin = () => {
   };
 
   const openModal = (table) => {
-    if (table.reserved) return;
+    if (table.reserved || table.pending) return;
     setSelectedTable(table);
     setModalVisible(true);
   };
@@ -104,10 +104,11 @@ const Admin = () => {
         phone: values.phone,
         time: values.time,
         people: values.people,
-        reserved: true,
-        pending: false,
+        reserved: false, // Ожидание подтверждения
+        pending: true,
+        timestamp: Date.now(), // Фиксируем время заявки
       });
-      message.success("Столик забронирован!");
+      message.success("Заявка создана, ожидает подтверждения!");
       fetchTables();
     } catch (error) {
       message.error("Ошибка бронирования");
@@ -115,6 +116,7 @@ const Admin = () => {
     setModalVisible(false);
     form.resetFields();
   };
+  
 
   const columns = [
     { title: "№", dataIndex: "id", key: "id" },
