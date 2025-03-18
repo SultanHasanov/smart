@@ -58,7 +58,6 @@ const Admin = () => {
       },
     });
   };
-  
 
   const fetchTables = async () => {
     setLoading(true);
@@ -104,8 +103,8 @@ const Admin = () => {
         phone: values.phone,
         time: values.time,
         people: values.people,
-        reserved: false, // Ожидание подтверждения
-        pending: true,
+        reserved: true, // Ожидание подтверждения
+        pending: false,
         timestamp: Date.now(), // Фиксируем время заявки
       });
       message.success("Заявка создана, ожидает подтверждения!");
@@ -116,7 +115,6 @@ const Admin = () => {
     setModalVisible(false);
     form.resetFields();
   };
-  
 
   const columns = [
     { title: "№", dataIndex: "id", key: "id" },
@@ -213,15 +211,16 @@ const Admin = () => {
           }}
         />
       </div>
-      <div>
-      <Button 
-  type="dashed" 
-  onClick={() => clearAllReservations(tablesFilter, fetchTables)} // Передаём tablesFilter!
->
-  ❌ Удалить все брони
-</Button>
-
-      </div>
+      {tablesFilter.length > 0 && (
+        <div>
+          <Button
+            type="dashed"
+            onClick={() => clearAllReservations(tablesFilter, fetchTables)}
+          >
+            ❌ Удалить все брони
+          </Button>
+        </div>
+      )}
 
       <div className="grid-container">
         {tables.map((table) => (
@@ -250,82 +249,73 @@ const Admin = () => {
         footer={null}
       >
         <Form form={form} onFinish={handleReserve}>
-          <Form.Item
-            name="name"
-            rules={[
-              { required: true, message: "Введите имя" },
-              { max: 10, message: "Имя должно содержать не более 10 символов" },
-            ]}
-          >
-            <Input placeholder="Имя" />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            rules={[
-              { message: "Введите телефон" },
-              {
-                pattern: /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/,
-                message: "Введите корректный номер телефона",
-              },
-            ]}
-          >
-            <InputMask mask="+7 (999) 999-99-99" maskChar={null}>
-              {(inputProps) => (
-                <Input
-                  {...inputProps}
-                  placeholder="Телефон"
-                  inputMode="numeric"
-                />
-              )}
-            </InputMask>
-          </Form.Item>
-          <Form.Item
-            name="time"
-            rules={[
-              { required: true, message: "Введите время" },
-              {
-                pattern: /^([01]\d|2[0-3]):([0-5]\d)$/,
-                message: "Введите корректное время (чч:мм)",
-              },
-            ]}
-          >
-            <InputMask mask="99:99" maskChar={null}>
-              {(inputProps) => (
-                <Input
-                  {...inputProps}
-                  placeholder="Время (чч:мм)"
-                  inputMode="numeric"
-                />
-              )}
-            </InputMask>
-          </Form.Item>
-          <Form.Item
-  name="people"
-  rules={[{ required: true, message: "Введите количество человек" }]}
->
-  <Select
-    placeholder="Количество человек"
-    showSearch
-    filterOption={false} // Позволяет вводить любое значение
-    onSearch={(value) => {
-      if (!isNaN(value) && value > 0) {
-        form.setFieldsValue({ people: Number(value) });
-      }
-    }}
-    onChange={(value) => form.setFieldsValue({ people: value })}
-  >
-    {[1, 2, 3, 4, 5, 6].map((num) => (
-      <Select.Option key={num} value={num}>
-        {num}
-      </Select.Option>
-    ))}
-  </Select>
-</Form.Item>
-
-          <Button type="primary" htmlType="submit">
-            Забронировать
-          </Button>
-        </Form>
+               <Form.Item
+                 name="name"
+                 rules={[
+                   { required: true, message: "Введите имя" },
+                   {
+                     max: 10,
+                     message: "Имя должно содержать не более 10 символов",
+                   },
+                 ]}
+               >
+                 <Input placeholder="Имя"  size="large"/>
+               </Form.Item>
+               <Form.Item
+                 name="phone"
+                 rules={[{ required: true, message: "Введите телефон" }]}
+               >
+                 <InputMask mask="+7 (999) 999-99-99" maskChar={null}>
+                   {(inputProps) => (
+                     <Input  size="large"
+                       {...inputProps}
+                       placeholder="Телефон"
+                       inputMode="numeric"
+                     />
+                   )}
+                 </InputMask>
+               </Form.Item>
+               <Form.Item
+                 name="time"
+                 rules={[{ required: true, message: "Введите время" }]}
+               >
+                 <InputMask mask="99:99" maskChar={null}>
+                   {(inputProps) => (
+                     <Input  size="large"
+                       {...inputProps}
+                       placeholder="Время (чч:мм)"
+                       inputMode="numeric"
+                     />
+                   )}
+                 </InputMask>
+               </Form.Item>
+               <Form.Item
+                 name="people"
+                 rules={[{ required: true, message: "Введите количество человек" }]}
+               >
+                 <Select  size="large"
+                   placeholder="Количество человек"
+                   showSearch
+                   filterOption={false} // Позволяет вводить любое значение
+                   onSearch={(value) => {
+                     if (!isNaN(value) && value > 0) {
+                       form.setFieldsValue({ people: Number(value) });
+                     }
+                   }}
+                   onChange={(value) => form.setFieldsValue({ people: value })}
+                 >
+                   {[1, 2, 3, 4, 5, 6].map((num) => (
+                     <Select.Option  size="large" key={num} value={num}>
+                       {num}
+                     </Select.Option>
+                   ))}
+                 </Select>
+               </Form.Item>
+       
+               <Button  size="large" type="primary" htmlType="submit">
+                 Отправить админу
+               </Button>
+             </Form>
       </Modal>
 
       <style>
