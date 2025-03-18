@@ -3,22 +3,22 @@ import { Button, Modal, Form, Input, Select, message } from "antd";
 import axios from "axios";
 import InputMask from "react-input-mask";
 import { useNavigate } from "react-router-dom";
+import AdminPanelButton from "./component/AdminPanelButton";
+import ButtonCard from "./component/ButtonCard";
+import ReservationModal from "./component/ReservationModal";
+
+const ADMIN_PHONE = "+79667283100";
 
 const API_URL = "https://1c298a0f688767c5.mokky.dev/items";
-const ADMIN_PHONE = "+79667283100";
-const ADMIN_PASSWORD = "0000"; // Пароль для входа в админку
 
 const App = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [adminModalVisible, setAdminModalVisible] = useState(false);
   const [countdowns, setCountdowns] = useState({});
 
-
   const [form] = Form.useForm();
-  const [adminForm] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,20 +38,38 @@ const App = () => {
     }
   };
 
-  const openModal = (table) => {
-    if (table.reserved || table.pending) return;
-    setSelectedTable(table);
-    setModalVisible(true);
-  };
-
   const sendToWhatsApp = async (values) => {
-    const whatsappMessage = `Запрос на бронь\nСтолик №${selectedTable.id}\nИмя: ${values.name}\nТелефон: ${values.phone}\nВремя: ${values.time}\nЧеловек: ${values.people}`;
-    const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
-      whatsappMessage
-    )}`;
-
+    // Извлекаем корзину из localStorage
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Формируем строку с выбранными блюдами и общей суммой
+    let cartDetails = '';
+    let totalAmount = 0;
+  
+    cart.forEach(item => {
+      const itemTotal = item.price * item.quantity;
+      cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
+      totalAmount += itemTotal;
+    });
+  
+    // Формируем сообщение для WhatsApp
+    const whatsappMessage = `
+      Запрос на бронь
+      Столик №${selectedTable.id}
+      Имя: ${values.name}
+      Телефон: ${values.phone}
+      Время: ${values.time}
+      Человек: ${values.people}
+  
+      Ваши выбранные блюда:
+      ${cartDetails}
+      Общая сумма: ${totalAmount} ₽
+    `;
+  
+    const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(whatsappMessage)}`;
+  
     window.open(whatsappURL, "_blank");
-
+  
     try {
       await axios.patch(`${API_URL}/${selectedTable.id}`, {
         name: values.name,
@@ -61,204 +79,69 @@ const App = () => {
         pending: true,
         timestamp: Date.now(), // Фиксируем время заявки
       });
-
+  
       message.success("Запрос отправлен админу!");
       fetchTables();
     } catch (error) {
       message.error("Ошибка сохранения в API");
     }
-
+  
     setModalVisible(false);
     form.resetFields();
   };
-
-  const handleAdminLogin = (values) => {
-    if (values.password === ADMIN_PASSWORD) {
-      localStorage.setItem("isAuthenticated", "true"); // Запоминаем вход
-      message.success("Доступ разрешён");
-      navigate("/admin");
-    } else {
-      message.error("Неверный пароль!");
-    }
-    setAdminModalVisible(false);
-    adminForm.resetFields();
-  };
-
+  
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
       const newCountdowns = {};
-  
+
       tables.forEach((table) => {
         if (table.pending && table.timestamp) {
           const elapsedSeconds = Math.floor((now - table.timestamp) / 1000);
           const remainingSeconds = 60 - elapsedSeconds;
-  
+
           if (remainingSeconds > 0) {
             newCountdowns[table.id] = remainingSeconds;
           } else {
             // Если время вышло, удаляем заявку
-            axios.patch(`${API_URL}/${table.id}`, {
-              name: "",
-              phone: "",
-              time: "",
-              people: "",
-              reserved: false,
-              pending: false,
-            }).then(() => fetchTables());
+            axios
+              .patch(`${API_URL}/${table.id}`, {
+                name: "",
+                phone: "",
+                time: "",
+                people: "",
+                reserved: false,
+                pending: false,
+              })
+              .then(() => fetchTables());
           }
         }
       });
-  
+
       setCountdowns(newCountdowns);
     }, 1000);
-  
+
     return () => clearInterval(interval);
   }, [tables]);
-  
 
   return (
     <>
-      <Button
-        type="primary"
-        style={{ margin: 21 }}
-        onClick={() => {
-          const isAuthenticated =
-            localStorage.getItem("isAuthenticated") === "true";
-          if (isAuthenticated) {
-            navigate("/admin"); // Если уже вошли, сразу перекидываем в админку
-          } else {
-            setAdminModalVisible(true); // Иначе открываем модалку с вводом пароля
-          }
-        }}
-      >
-        Админ панель
-      </Button>
+      <AdminPanelButton navigate={navigate} />
 
       <div className="grid-container">
-        {tables.map((table) => (
-          <Button
-            key={table.id}
-            className="table-button"
-            style={{
-              backgroundColor: table.reserved
-                ? "gray"
-                : table.pending
-                ? "orange"
-                : "green",
-              color: "white",
-            }}
-            onClick={() => openModal(table)}
-          >
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div>Столик {table.id}</div>
-              <div>{table.time !== "" ? table.time : null}</div>
-              {table.pending && countdowns[table.id] !== undefined && (
-      <div style={{ color: "red", fontWeight: "bold" }}>
-       ⏳ {countdowns[table.id]} сек
-      </div>
-    )}
-            </div>
-          </Button>
-        ))}
+        <ButtonCard
+          tables={tables}
+          setSelectedTable={setSelectedTable}
+          setModalVisible={setModalVisible}
+          countdowns={countdowns}
+        />
 
-        <Modal
-          title="Запрос на бронирование"
-          open={modalVisible}
-          onCancel={() => setModalVisible(false)}
-          footer={null}
-        >
-          <Form form={form} onFinish={sendToWhatsApp}>
-            <Form.Item
-              name="name"
-              rules={[
-                { required: true, message: "Введите имя" },
-                {
-                  max: 10,
-                  message: "Имя должно содержать не более 10 символов",
-                },
-              ]}
-            >
-              <Input placeholder="Имя" />
-            </Form.Item>
-            <Form.Item
-              name="phone"
-              rules={[{ required: true, message: "Введите телефон" }]}
-            >
-              <InputMask mask="+7 (999) 999-99-99" maskChar={null}>
-                {(inputProps) => (
-                  <Input
-                    {...inputProps}
-                    placeholder="Телефон"
-                    inputMode="numeric"
-                  />
-                )}
-              </InputMask>
-            </Form.Item>
-            <Form.Item
-              name="time"
-              rules={[{ required: true, message: "Введите время" }]}
-            >
-              <InputMask mask="99:99" maskChar={null}>
-                {(inputProps) => (
-                  <Input
-                    {...inputProps}
-                    placeholder="Время (чч:мм)"
-                    inputMode="numeric"
-                  />
-                )}
-              </InputMask>
-            </Form.Item>
-            <Form.Item
-              name="people"
-              rules={[
-                { required: true, message: "Введите количество человек" },
-              ]}
-            >
-              <Select
-                placeholder="Количество человек"
-                showSearch
-                filterOption={false} // Позволяет вводить любое значение
-                onSearch={(value) => {
-                  if (!isNaN(value) && value > 0) {
-                    form.setFieldsValue({ people: Number(value) });
-                  }
-                }}
-                onChange={(value) => form.setFieldsValue({ people: value })}
-              >
-                {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <Select.Option key={num} value={num}>
-                    {num}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            <Button type="primary" htmlType="submit">
-              Отправить админу
-            </Button>
-          </Form>
-        </Modal>
-
-        <Modal
-          title="Введите пароль"
-          open={adminModalVisible}
-          onCancel={() => setAdminModalVisible(false)}
-          footer={null}
-        >
-          <Form form={adminForm} onFinish={handleAdminLogin}>
-            <Form.Item
-              name="password"
-              rules={[{ required: true, message: "Введите пароль" }]}
-            >
-              <Input.Password placeholder="Пароль" />
-            </Form.Item>
-
-            <Button type="primary" htmlType="submit">
-              Войти
-            </Button>
-          </Form>
-        </Modal>
+        <ReservationModal
+        selectedTable={selectedTable}
+          sendToWhatsApp={sendToWhatsApp}
+          setModalVisible={setModalVisible}
+          modalVisible={modalVisible}
+        />
 
         <style>
           {`
