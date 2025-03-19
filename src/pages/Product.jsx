@@ -1,4 +1,4 @@
-import { Typography } from "antd";
+import { Button, Typography } from "antd";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css"
@@ -65,8 +65,8 @@ const Product = () => {
   };
 
   return (
-    <div >
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "15px", justifyContent: "center" }}>
+    <div style={{padding: 10}}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", justifyContent: "center" }}>
         {dishes.map((dish) => {
           const currentDish = cart.find((item) => item.id === dish.id);
           const quantity = currentDish ? currentDish.quantity : 0;
@@ -89,20 +89,7 @@ const Product = () => {
               <span><b>{dish.name}</b></span>
               <p>Цена: {dish.price} ₽</p>
               <div className="btn-product">
-                <button
-                  onClick={() => handleAddToCart(dish.id)}
-                  style={{
-                    padding: "8px 16px",
-                    margin: "0 4px",
-                    backgroundColor: "#4CAF50",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  +
-                </button>
+               
                 <button
                   onClick={() => handleRemoveFromCart(dish.id)}
                   style={{
@@ -116,6 +103,20 @@ const Product = () => {
                   }}
                 >
                   -
+                </button>
+                <button
+                  onClick={() => handleAddToCart(dish.id)}
+                  style={{
+                    padding: "8px 16px",
+                    margin: "0 4px",
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  +
                 </button>
               </div>
               {quantity > 0 && (
@@ -158,7 +159,8 @@ const Product = () => {
           <Text strong>Итоговая стоимость: {calculateTotal()} ₽</Text>
         </div>
 
-        <button
+        <Button
+        size="large"
           onClick={handleReserveTable}
           style={{
             padding: "12px 24px",
@@ -172,7 +174,7 @@ const Product = () => {
           }}
         >
           Забронировать столик
-        </button>
+        </Button>
       </div>
     </div>
   );
