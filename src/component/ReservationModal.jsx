@@ -24,6 +24,20 @@ const ReservationModal = ({ modalVisible, setModalVisible, sendToWhatsApp, selec
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+  const handleFinish = async (values) => {
+    await sendToWhatsApp(values);
+    
+    // Очистка localStorage и состояния корзины
+    localStorage.removeItem("cart");
+    setCart([]);
+    
+    // Очистка формы
+    form.resetFields();
+    
+    // Закрытие модального окна
+    setModalVisible(false);
+  };
+
   return (
     <Modal
       title={`Запрос на бронь столика №${selectedTable?.id}`}
@@ -31,7 +45,7 @@ const ReservationModal = ({ modalVisible, setModalVisible, sendToWhatsApp, selec
       onCancel={() => setModalVisible(false)}
       footer={null}
     >
-      <Form form={form} onFinish={sendToWhatsApp}>
+      <Form form={form} onFinish={handleFinish}>
         <Form.Item
           name="name"
           rules={[

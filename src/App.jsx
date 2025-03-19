@@ -38,21 +38,70 @@ const App = () => {
     }
   };
 
-  const sendToWhatsApp = async (values) => {
-    // Извлекаем корзину из localStorage
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+  // const sendToWhatsApp = async (values) => {
+  //   // Извлекаем корзину из localStorage
+  //   const cart = JSON.parse(localStorage.getItem('cart')) || [];
     
-    // Формируем строку с выбранными блюдами и общей суммой
-    let cartDetails = '';
+  //   // Формируем строку с выбранными блюдами и общей суммой
+  //   let cartDetails = '';
+  //   let totalAmount = 0;
+  
+  //   cart.forEach(item => {
+  //     const itemTotal = item.price * item.quantity;
+  //     cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
+  //     totalAmount += itemTotal;
+  //   });
+  
+  //   // Формируем сообщение для WhatsApp
+  //   const whatsappMessage = `
+  //     Запрос на бронь
+  //     Столик №${selectedTable.id}
+  //     Имя: ${values.name}
+  //     Телефон: ${values.phone}
+  //     Время: ${values.time}
+  //     Человек: ${values.people}
+  
+  //     Ваши выбранные блюда:
+  //     ${cartDetails}
+  //     Общая сумма: ${totalAmount} ₽
+  //   `;
+  
+  //   const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(whatsappMessage)}`;
+  
+  //   window.open(whatsappURL, "_blank");
+  
+  //   try {
+  //     await axios.patch(`${API_URL}/${selectedTable.id}`, {
+  //       name: values.name,
+  //       phone: values.phone,
+  //       time: values.time,
+  //       people: values.people,
+  //       pending: true,
+  //       timestamp: Date.now(), // Фиксируем время заявки
+  //     });
+  
+  //     message.success("Запрос отправлен админу!");
+  //     fetchTables();
+  //   } catch (error) {
+  //     message.error("Ошибка сохранения в API");
+  //   }
+  
+  //   setModalVisible(false);
+  //   form.resetFields();
+  // };
+  
+  const sendToWhatsApp = async (values) => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+    
+    let cartDetails = "";
     let totalAmount = 0;
   
-    cart.forEach(item => {
+    cart.forEach((item) => {
       const itemTotal = item.price * item.quantity;
       cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
       totalAmount += itemTotal;
     });
   
-    // Формируем сообщение для WhatsApp
     const whatsappMessage = `
       Запрос на бронь
       Столик №${selectedTable.id}
@@ -67,7 +116,7 @@ const App = () => {
     `;
   
     const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(whatsappMessage)}`;
-  
+    
     window.open(whatsappURL, "_blank");
   
     try {
@@ -77,7 +126,7 @@ const App = () => {
         time: values.time,
         people: values.people,
         pending: true,
-        timestamp: Date.now(), // Фиксируем время заявки
+        timestamp: Date.now(),
       });
   
       message.success("Запрос отправлен админу!");
@@ -85,11 +134,9 @@ const App = () => {
     } catch (error) {
       message.error("Ошибка сохранения в API");
     }
-  
-    setModalVisible(false);
-    form.resetFields();
   };
   
+
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
