@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Form, Input, Select, Button, message, Typography } from "antd";
+import { Modal, Form, Input, Button, Typography } from "antd";
 import InputMask from "react-input-mask";
 import { useNavigate } from "react-router-dom";
+import { PlusOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
-const ReservationModal = ({ modalVisible, setModalVisible, sendToWhatsApp, selectedTable }) => {
+const ReservationModal = ({
+  modalVisible,
+  setModalVisible,
+  sendToWhatsApp,
+  selectedTable,
+}) => {
   const [form] = Form.useForm();
   const [cart, setCart] = useState([]);
 
@@ -26,14 +32,14 @@ const ReservationModal = ({ modalVisible, setModalVisible, sendToWhatsApp, selec
 
   const handleFinish = async (values) => {
     await sendToWhatsApp(values);
-    
+
     // Очистка localStorage и состояния корзины
     localStorage.removeItem("cart");
     setCart([]);
-    
+
     // Очистка формы
     form.resetFields();
-    
+
     // Закрытие модального окна
     setModalVisible(false);
   };
@@ -57,23 +63,17 @@ const ReservationModal = ({ modalVisible, setModalVisible, sendToWhatsApp, selec
         </Form.Item>
 
         <Form.Item
-          name="phone"
-          rules={[{ required: true, message: "Введите телефон" }]}
-        >
-          <InputMask mask="+7 (999) 999-99-99" maskChar={null}>
-            {(inputProps) => (
-              <Input {...inputProps} size="large" placeholder="Телефон" inputMode="numeric" />
-            )}
-          </InputMask>
-        </Form.Item>
-
-        <Form.Item
           name="time"
           rules={[{ required: true, message: "Введите время" }]}
         >
           <InputMask mask="99:99" maskChar={null}>
             {(inputProps) => (
-              <Input {...inputProps} size="large" placeholder="Время (чч:мм)" inputMode="numeric" />
+              <Input
+                {...inputProps}
+                size="large"
+                placeholder="Время (чч:мм)"
+                inputMode="numeric"
+              />
             )}
           </InputMask>
         </Form.Item>
@@ -82,37 +82,62 @@ const ReservationModal = ({ modalVisible, setModalVisible, sendToWhatsApp, selec
           name="people"
           rules={[{ required: true, message: "Введите количество человек" }]}
         >
-          <Select size="large" placeholder="Количество человек" showSearch filterOption={false}>
-            {[1, 2, 3, 4, 5, 6].map((num) => (
-              <Select.Option key={num} value={num}>
-                {num}
-              </Select.Option>
-            ))}
-          </Select>
+          <Input
+            placeholder="Количество человек"
+            size="large"
+            inputMode="numeric"
+          />
         </Form.Item>
 
         {/* Отображение выбранных товаров и их стоимости */}
-        <div style={{ marginTop: '10px' }}>
+        <div style={{ marginTop: "10px" }}>
           <h3>Выбранные блюда:</h3>
           {cart.length > 0 ? (
             cart.map((item) => (
-              <div key={item.id} >
-                <Text style={{fontSize: 13}}>{item.name} x{item.quantity} = {item.price * item.quantity} ₽</Text>
+              <div key={item.id}>
+                <Text style={{ fontSize: 13 }}>
+                  {item.name} x{item.quantity} = {item.price * item.quantity} ₽
+                </Text>
               </div>
             ))
           ) : (
             <Text>Корзина пуста</Text>
           )}
-
-          <div style={{ marginTop: '10px', display: "flex", justifyContent: "space-between" }}>
+          <Button
+            danger
+            onClick={() => navigate("/")}
+            style={{ border: "none", padding: "0px" }}
+          >
+            <PlusOutlined />
+            Добавить еще
+          </Button>
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
             <Text strong>Итоговая стоимость: {calculateTotal()} ₽</Text>
-          <Button danger onClick={() => navigate("/")}>Добавить еще товар</Button>
           </div>
         </div>
 
-        <Button size="large" type="primary" htmlType="submit" style={{ marginTop: '20px' }}>
-          Отправить админу
-        </Button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginTop: "20px",
+          }}
+        >
+          <Button
+            size="large"
+            type="primary"
+            htmlType="submit"
+            style={{ width: "auto" }}
+          >
+            Отправить заявку
+          </Button>
+        </div>
       </Form>
     </Modal>
   );

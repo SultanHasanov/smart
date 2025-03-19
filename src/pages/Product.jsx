@@ -1,7 +1,8 @@
 import { Button, Typography } from "antd";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../App.css"
+import "../App.css";
+import { DeleteFilled, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 
@@ -42,13 +43,14 @@ const Product = () => {
     localStorage.setItem("cart", JSON.stringify(newCart));
   };
 
-  const handleRemoveFromCart = (dishId) => {
+  const handleDecreaseQuantity = (dishId) => {
     const newCart = [...cart];
     const dishIndex = newCart.findIndex((item) => item.id === dishId);
 
     if (dishIndex > -1 && newCart[dishIndex].quantity > 1) {
       newCart[dishIndex].quantity -= 1;
     } else {
+      // Если количество товара меньше или равно 1, удаляем его из корзины
       newCart.splice(dishIndex, 1);
     }
 
@@ -64,9 +66,22 @@ const Product = () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
+  const handleRemoveFromCart = (dishId) => {
+    const newCart = cart.filter((item) => item.id !== dishId); // Убираем элемент по id
+    setCart(newCart);
+    localStorage.setItem("cart", JSON.stringify(newCart));
+  };
+
   return (
-    <div style={{padding: 10}}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", justifyContent: "center" }}>
+    <div style={{ padding: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "10px",
+          justifyContent: "center",
+        }}
+      >
         {dishes.map((dish) => {
           const currentDish = cart.find((item) => item.id === dish.id);
           const quantity = currentDish ? currentDish.quantity : 0;
@@ -75,7 +90,7 @@ const Product = () => {
             <div
               key={dish.id}
               style={{
-                
+                width: "117px",
                 boxSizing: "border-box",
                 padding: "5px",
                 border: "1px solid #ccc",
@@ -85,16 +100,25 @@ const Product = () => {
                 backgroundColor: "#f9f9f9",
               }}
             >
-              <div style={{ fontSize: "40px" }}>{dish.emoji}</div>
-              <span><b>{dish.name}</b></span>
-              <p>Цена: {dish.price} ₽</p>
+              <div onClick={() => handleAddToCart(dish.id)}>
+                <div style={{ fontSize: "40px", marginBottom: "10px" }}>
+                  {dish.emoji}
+                </div>
+                <span>
+                  <b style={{ fontSize: "20px", fontWeight: "bold" }}>
+                    {dish.name}
+                  </b>
+                </span>
+                <div style={{ margin: "10px 0 10px" }}>
+                  <b style={{ fontSize: "16px", fontWeight: "bold" }}>Цена:</b>{" "}
+                  {dish.price} ₽
+                </div>
+              </div>
               <div className="btn-product">
-               
                 <button
-                  onClick={() => handleRemoveFromCart(dish.id)}
+                  onClick={() => handleDecreaseQuantity(dish.id)}
                   style={{
-                    padding: "8px 16px",
-                    margin: "0 4px",
+                    padding: "8px 15px",
                     backgroundColor: "#f44336",
                     color: "white",
                     border: "none",
@@ -102,13 +126,12 @@ const Product = () => {
                     cursor: "pointer",
                   }}
                 >
-                  -
+                  <MinusOutlined />
                 </button>
                 <button
                   onClick={() => handleAddToCart(dish.id)}
                   style={{
-                    padding: "8px 16px",
-                    margin: "0 4px",
+                    padding: "10px 15px",
                     backgroundColor: "#4CAF50",
                     color: "white",
                     border: "none",
@@ -116,7 +139,7 @@ const Product = () => {
                     cursor: "pointer",
                   }}
                 >
-                  +
+                  <PlusOutlined />
                 </button>
               </div>
               {quantity > 0 && (
@@ -141,13 +164,33 @@ const Product = () => {
         })}
       </div>
 
-      <div style={{ textAlign: "left"}}>
-        <h3>Ваши выбранные блюда:</h3>
+      <div style={{ textAlign: "left", margin: "40px 0 10px 0" }}>
         {cart.length > 0 ? (
           cart.map((item) => (
-            <div key={item.id} style={{ marginBottom: "10px" }}>
-              <Text>
+            <div
+              key={item.id}
+              style={{ marginBottom: "5px", position: "relative" }}
+            >
+              <Text
+                strong
+                style={{
+                  fontSize: "16px",
+                  margin: 0,
+                }}
+              >
                 {item.name} x{item.quantity} = {item.price * item.quantity} ₽
+                <DeleteFilled
+                  onClick={() => handleRemoveFromCart(item.id)}
+                  style={{
+                    position: "absolute",
+                    right: "0", // Иконка будет располагаться справа
+                    top: "50%", // По центру по вертикали
+                    transform: "translateY(-50%)",
+                    color: "#f44336",
+                    cursor: "pointer",
+                    fontSize: "20px",
+                  }}
+                />
               </Text>
             </div>
           ))
@@ -160,7 +203,7 @@ const Product = () => {
         </div>
 
         <Button
-        size="large"
+          size="large"
           onClick={handleReserveTable}
           style={{
             padding: "12px 24px",
