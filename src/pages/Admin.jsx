@@ -5,11 +5,12 @@ import InputMask from "react-input-mask";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftOutlined,
+  CheckOutlined,
+  CloseOutlined,
   DeleteFilled,
   SettingFilled,
 } from "@ant-design/icons";
 import TimeSelect from "../TimeSelect";
-import { useTimeContext } from "../TimeContext";
 
 const API_URL = "https://1c298a0f688767c5.mokky.dev/items";
 
@@ -20,21 +21,11 @@ const Admin = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const tablesFilter = tables.filter((el) => el.name !== "");
-    const {  countdowns} = useTimeContext();
-  
+
   // console.log({ tablesFilter });
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTables([...tables]); // Обновляем состояние
-    }, 1000);
-  
-    return () => clearInterval(interval);
-  }, [tables]);
-  
- 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
     if (isAuthenticated !== "true") {
@@ -133,27 +124,23 @@ const Admin = () => {
     { title: "№", dataIndex: "id", key: "id" },
     { title: "Имя", dataIndex: "name", key: "name" },
     { title: "Время", dataIndex: "time", key: "time" },
-    { title: "Человек", dataIndex: "people", key: "people" },
+    { title: "Кол-во", dataIndex: "people", key: "people" },
     {
       title: <SettingFilled />,
       key: "action",
       render: (_, record) =>
         record.pending ? (
           <>
-            <Button
-              type="primary"
-              onClick={() =>
-                updateTableWithConfirm(
-                  record.id,
-                  { reserved: true, pending: false },
-                  "подтвердить бронь"
-                )
-              }
-            >
-              ✅ Подтвердить
-            </Button>
-            <Button
-              danger
+            <button
+              style={{
+                padding: "8px 15px",
+                backgroundColor: "transparent",
+                marginRight: 10,
+                color: "#f44336",
+                border: "1px solid #f44336",
+                borderRadius: "7px",
+                cursor: "pointer",
+              }}
               onClick={() =>
                 updateTableWithConfirm(
                   record.id,
@@ -162,8 +149,27 @@ const Admin = () => {
                 )
               }
             >
-              ❌ Отклонить
-            </Button>
+              <CloseOutlined />
+            </button>
+            <button
+              style={{
+                padding: "8px 15px",
+                backgroundColor: "transparent",
+                color: "#4CAF50",
+                border: "1px solid #4CAF50",
+                borderRadius: "7px",
+                cursor: "pointer",
+              }}
+              onClick={() =>
+                updateTableWithConfirm(
+                  record.id,
+                  { reserved: true, pending: false },
+                  "подтвердить бронь"
+                )
+              }
+            >
+              <CheckOutlined />
+            </button>
           </>
         ) : record.reserved ? (
           <DeleteFilled
@@ -212,7 +218,10 @@ const Admin = () => {
           Выйти
         </Button>
       </div>
-      <div className="table-wrapper">
+      <div
+        className="table-wrapper"
+        style={tablesFilter.length === 0 ? { marginBottom: 10 } : undefined}
+      >
         <Table
           scroll={{ x: "max-content" }}
           columns={columns}
@@ -228,16 +237,19 @@ const Admin = () => {
         />
       </div>
       {tablesFilter.length > 0 && (
-          <Button
-            type="dashed"
-            onClick={() => clearAllReservations(tablesFilter, fetchTables)}
-          >
-            ❌ Удалить все брони
-          </Button>
+        <Button
+          type="dashed"
+          onClick={() => clearAllReservations(tablesFilter, fetchTables)}
+        >
+          ❌ Удалить все брони
+        </Button>
       )}
       <TimeSelect />
 
-      <div className="grid-container">
+      <div
+        className="grid-container"
+        style={tablesFilter.length === 0 ? { marginTop: 50 } : undefined}
+      >
         {tables.map((table) => (
           <Button
             key={table.id}
@@ -253,36 +265,31 @@ const Admin = () => {
             onClick={() => openModal(table)}
           >
             <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              fontSize: 12,
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <b>Столик: </b> №{table.id}
-            </div>
-            <div>
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                fontSize: 12,
+                justifyContent: "space-between",
+              }}
+            >
               <div>
-                {table.reserved && <b>Время: </b>}
-                {table.time !== "" ? table.time : null}
+                <b>Столик: </b> №{table.id}
               </div>
               <div>
-                {table.reserved && <b>Имя: </b>}
-                {table.reserved && table.name}
-              </div>
-              <div>
-                {table.reserved && <b>Кол-во: </b>}
-                {table.reserved && table.people}
-              </div>
-              {table.pending && countdowns[table.id] !== undefined && (
-                <div style={{ color: "red", fontWeight: "bold", fontSize: 14 }}>
-                  ⏳ {formatTime(countdowns[table.id])}
+                <div>
+                  {table.reserved && <b>Время: </b>}
+                  {table.time !== "" ? table.time : null}
                 </div>
-              )}
+                <div>
+                  {table.reserved && <b>Имя: </b>}
+                  {table.reserved && table.name}
+                </div>
+                <div>
+                  {table.reserved && <b>Кол-во: </b>}
+                  {table.reserved && table.people}
+                </div>
+              </div>
             </div>
-          </div>
           </Button>
         ))}
       </div>
@@ -333,9 +340,22 @@ const Admin = () => {
             />
           </Form.Item>
 
-          <Button size="large" type="primary" htmlType="submit">
-            Отправить админу
-          </Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: "20px",
+            }}
+          >
+            <Button
+              size="large"
+              type="primary"
+              htmlType="submit"
+              style={{ width: "auto" }}
+            >
+              Отправить заявку
+            </Button>
+          </div>
         </Form>
       </Modal>
 

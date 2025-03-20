@@ -92,24 +92,21 @@ const ReservationModal = ({
         {/* Отображение выбранных товаров и их стоимости */}
         <div style={{ marginTop: "10px" }}>
           <h3>Выбранные блюда:</h3>
-          {cart.length > 0 ? (
-            cart.map((item) => (
-              <div key={item.id}>
-                <Text style={{ fontSize: 13 }}>
-                  {item.name} x{item.quantity} = {item.price * item.quantity} ₽
-                </Text>
-              </div>
-            ))
-          ) : (
-            <Text>Корзина пуста</Text>
-          )}
+          {cart.map((item) => (
+            <div key={item.id}>
+              <Text style={{ fontSize: 13 }}>
+                {item.name} x{item.quantity} = {item.price * item.quantity} ₽
+              </Text>
+            </div>
+          ))}
+          <div>{cart.length === 0 && "Ничего не выбрано"}</div>
           <Button
             danger
             onClick={() => navigate("/")}
             style={{ border: "none", padding: "0px" }}
           >
             <PlusOutlined />
-            Добавить еще
+            {cart.length === 0 ? "Выбрать блюда" : "Добавить еще"}
           </Button>
           <div
             style={{

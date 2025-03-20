@@ -9,7 +9,7 @@ const TimeContext = createContext();
 
 // Провайдер контекста
 export const TimeProvider = ({ children }) => {
-  const [countdownTime, setCountdownTime] = useState(120); // По умолчанию 2 минуты (120 секунд)
+  const [countdownTime, setCountdownTime] = useState(null); // По умолчанию 2 минуты (120 секунд)
   const [countdowns, setCountdowns] = useState({});
 
   // Функция сохранения времени в API

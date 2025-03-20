@@ -5,6 +5,18 @@
   text-align: center; */
 }
 
+:where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-cell, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-thead>tr>th, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-tbody>tr>th, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-tbody>tr>td, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper tfoot>tr>th, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper tfoot>tr>td{
+  padding: 6px 10px !important;
+}
+
+:where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-thead >tr>th, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-thead >tr>td {
+  text-align:center !important;
+}
+
+:where(.css-dev-only-do-not-override-240cud).ant-table-wrapper table{
+  text-align: center !important;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
