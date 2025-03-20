@@ -1,27 +1,23 @@
 import { Button } from "antd";
-import React from "react";
+import React, { useEffect } from "react";
 import { useTimeContext } from "../TimeContext";
 
-const ButtonCard = ({
-  tables,
-  setSelectedTable,
-  setModalVisible,
- 
-}) => {
+const ButtonCard = ({ tables, setSelectedTable, setModalVisible }) => {
   const openModal = (table) => {
     if (table.reserved || table.pending) return;
     setSelectedTable(table);
     setModalVisible(true);
   };
+  useEffect(() => {}, [tables]);
 
-    const {  countdowns } = useTimeContext();
+  const { countdowns } = useTimeContext();
 
-    const formatTime = (seconds) => {
-      const minutes = Math.floor(seconds / 60);
-      const remainingSeconds = seconds % 60;
-      return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
-    };
-  
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
   return (
     <>
       {tables.map((table) => (
