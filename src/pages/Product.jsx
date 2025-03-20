@@ -104,7 +104,7 @@ const Product = () => {
             <div
               key={dish.id}
               style={{
-                width: "113px",
+                width: "110px",
                 boxSizing: "border-box",
                 padding: "5px",
                 border: "1px solid #ccc",
