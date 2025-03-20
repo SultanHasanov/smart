@@ -20,7 +20,6 @@ const App = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const { countdownTime, setCountdowns, activeTab, setActiveTab } =
     useTimeContext();
-  console.log(activeTab);
   const [orderData, setOrderData] = useState({
     name: "",
     deliveryType: "pickup", // "pickup" или "delivery"
@@ -83,15 +82,9 @@ ${cartDetails}
         people: values.people,
         pending: true,
         timestamp: Date.now(),
-        test: true,
       });
 
-      setTimeout(async () => {
-        await axios.patch(`${API_URL}/${selectedTable.id}`, {
-          test: false, // Set test to false after 10 seconds
-        });
-        fetchTables(); // Re-fetch tables to update the UI
-      }, 10000); // 10 seconds
+   
 
       message.success("Запрос отправлен админу!");
       fetchTables();
