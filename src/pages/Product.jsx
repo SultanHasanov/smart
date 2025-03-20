@@ -108,7 +108,6 @@ const Product = () => {
           display: "flex",
           flexWrap: "wrap",
           gap: "10px",
-          justifyContent: "space-evenly",
         }}
       >
         {filteredDishes.map((dish) => {

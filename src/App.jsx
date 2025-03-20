@@ -215,7 +215,10 @@ ${cartDetails}
           const elapsedTestSeconds = Math.floor((now - table.timestamptwo) / 1000);
           if (elapsedTestSeconds >= 30) {
             axios.patch(`${API_URL}/${table.id}`, { test: false })
-              .then(() => fetchTables());
+              .then(() => {
+                // После того как тест станет false, получаем актуальные данные
+                fetchTables(); // или сделай другой запрос, чтобы обновить таблицы
+              });
           }
         }
       });
