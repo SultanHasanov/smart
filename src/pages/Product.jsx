@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../App.css";
 import { DeleteFilled, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import dishes from "../data";
+import { useTimeContext } from "../TimeContext";
 const { Text } = Typography;
 const { TabPane } = Tabs;
 
@@ -17,8 +18,6 @@ const categories = [
   { id: "5", name: "Кофе" },
 ];
 
-
-
 const Product = () => {
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
@@ -26,6 +25,8 @@ const Product = () => {
   });
 
   const [selectedCategory, setSelectedCategory] = useState("1");
+
+  const { setActiveTab } = useTimeContext();
 
   const navigate = useNavigate();
 
@@ -63,6 +64,11 @@ const Product = () => {
   };
 
   const handleReserveTable = () => {
+    if (cart.length === 0) {
+      setActiveTab("order_reservation");
+    } else {
+      setActiveTab("order");
+    }
     navigate("/booking");
   };
 
@@ -82,7 +88,14 @@ const Product = () => {
 
   return (
     <div>
-       <div style={{ position: "sticky", top: 0, backgroundColor: "#fff", zIndex: 10 }}>
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          backgroundColor: "#fff",
+          zIndex: 10,
+        }}
+      >
         <Tabs defaultActiveKey="1" onChange={setSelectedCategory}>
           {categories.map((category) => (
             <TabPane tab={category.name} key={category.id} />
@@ -215,7 +228,7 @@ const Product = () => {
         )}
 
         <div style={{ marginTop: "10px" }}>
-          <Text strong>Итоговая стоимость: {calculateTotal()} ₽</Text>
+        <Text style={{fontSize: 17, color: 'green', textDecoration: "underline" }} strong>Итоговая сумма: {calculateTotal()} ₽</Text>
         </div>
 
         <Button
@@ -234,7 +247,7 @@ const Product = () => {
             cursor: "pointer",
           }}
         >
-          Бронь столика
+          {cart.length !== 0 ? "Оформить заказ" : "Бронь столика"}
         </Button>
       </div>
     </div>
