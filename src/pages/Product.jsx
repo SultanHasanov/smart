@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../App.css";
 import { DeleteFilled, MinusOutlined, PlusOutlined } from "@ant-design/icons";
-
+import dishes from "../data";
 const { Text } = Typography;
 const { TabPane } = Tabs;
 
@@ -17,77 +17,7 @@ const categories = [
   { id: "5", name: "Кофе" },
 ];
 
-const dishes = [
-  { id: 1, name: "Пицца", price: 500, emoji: "🍕", category: "6" },
-  { id: 2, name: "Суши", price: 300, emoji: "🍣", category: "1" },
-  { id: 3, name: "Бургер", price: 350, emoji: "🍔", category: "6" },
-  { id: 4, name: "Салат", price: 150, emoji: "🥗", category: "1" },
-  { id: 5, name: "Стейк", price: 700, emoji: "🥩", category: "1" },
-  { id: 6, name: "Десерт", price: 200, emoji: "🍰", category: "1" },
-  { id: 7, name: "Кола", price: 100, emoji: "🥤", category: "2" },
-  { id: 8, name: "Минералка", price: 50, emoji: "💧", category: "2" },
-  { id: 9, name: "Лимонад", price: 150, emoji: "🍋", category: "2" },
-  { id: 10, name: "Апельсиновый сок", price: 120, emoji: "🍊", category: "3" },
-  { id: 11, name: "Яблочный сок", price: 100, emoji: "🍏", category: "3" },
-  { id: 12, name: "Виноградный сок", price: 130, emoji: "🍇", category: "3" },
-  { id: 13, name: "Чиабатта", price: 90, emoji: "🍞", category: "4" },
-  { id: 14, name: "Багет", price: 120, emoji: "🥖", category: "4" },
-  { id: 15, name: "Кофе латте", price: 180, emoji: "☕", category: "5" },
-  { id: 16, name: "Эспрессо", price: 150, emoji: "☕", category: "5" },
-  { id: 17, name: "Капучино", price: 160, emoji: "☕", category: "5" },
-  { id: 18, name: "Американо", price: 140, emoji: "☕", category: "5" },
-  { id: 19, name: "Паста карбонара", price: 550, emoji: "🍝", category: "1" },
-  { id: 20, name: "Паста Болоньезе", price: 480, emoji: "🍝", category: "1" },
-  { id: 21, name: "Рамен", price: 400, emoji: "🍜", category: "1" },
-  { id: 22, name: "Чизбургер", price: 350, emoji: "🍔", category: "6" },
-  { id: 23, name: "Том Ям", price: 350, emoji: "🍲", category: "1" },
-  {
-    id: 24,
-    name: "Моцарелла",
-    price: 200,
-    emoji: "🧀",
-    category: "1",
-  },
-  { id: 25, name: "Латте макиато", price: 190, emoji: "☕", category: "5" },
-  { id: 26, name: "Трюфельный бургер", price: 700, emoji: "🍔", category: "6" },
-  { id: 27, name: "Тирамису", price: 250, emoji: "🍮", category: "1" },
-  { id: 29, name: "Греческий салат", price: 250, emoji: "🥗", category: "1" },
-  { id: 30, name: "Фокачча", price: 180, emoji: "🍞", category: "4" },
-  { id: 31, name: "Цезарь", price: 300, emoji: "🥗", category: "1" },
-  {
-    id: 32,
-    name: "Классический чизкейк",
-    price: 200,
-    emoji: "🍰",
-    category: "1",
-  },
-  {
-    id: 33,
-    name: "Суп-пюре из брокколи",
-    price: 180,
-    emoji: "🥣",
-    category: "1",
-  },
-  { id: 34, name: "Свежий сок", price: 120, emoji: "🍊", category: "3" },
-  {
-    id: 35,
-    name: "Капучино с карамелью",
-    price: 170,
-    emoji: "☕",
-    category: "5",
-  },
-  {
-    id: 36,
-    name: "Гранола с йогуртом",
-    price: 160,
-    emoji: "🍧",
-    category: "1",
-  },
-  { id: 37, name: "Мохито", price: 200, emoji: "🍹", category: "2" },
-  { id: 38, name: "Виски с колой", price: 250, emoji: "🥃", category: "2" },
-  { id: 39, name: "Кофе с молоком", price: 130, emoji: "☕🥛", category: "5" },
-  { id: 40, name: "Чай с лимоном", price: 100, emoji: "🍵🍋", category: "5" },
-];
+
 
 const Product = () => {
   const [cart, setCart] = useState(() => {
@@ -162,8 +92,8 @@ const Product = () => {
         style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: "10px",
-          justifyContent: "center",
+          gap: "15px",
+          justifyContent: "space-evenly",
         }}
       >
         {filteredDishes.map((dish) => {
@@ -174,7 +104,7 @@ const Product = () => {
             <div
               key={dish.id}
               style={{
-                width: "117px",
+                width: "115px",
                 boxSizing: "border-box",
                 padding: "5px",
                 border: "1px solid #ccc",
