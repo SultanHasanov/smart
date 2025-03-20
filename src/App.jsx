@@ -10,6 +10,7 @@ import TabPane from "antd/es/tabs/TabPane";
 import { DeleteFilled, PlusOutlined } from "@ant-design/icons";
 import ModalProduct from "./component/ModalProduct";
 const { Text } = Typography;
+import Pusher from "pusher-js";
 const ADMIN_PHONE = "+79667283100";
 
 const API_URL = "https://1c298a0f688767c5.mokky.dev/items";
@@ -55,6 +56,14 @@ const App = () => {
     }
   };
 
+  
+const pusher = new Pusher("6abdde8ba81f348f1c97", {
+  cluster: "eu",
+  forceTLS: true,
+});
+  
+const channel = pusher.subscribe("my-channel");
+
   const sendToWhatsApp = async (values) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
@@ -92,7 +101,10 @@ ${cartDetails}
         timestamp: Date.now(),
       });
 
-   
+      channel.trigger("client-my-event", {
+        tableId: selectedTable.id,
+        status: "pending",
+      });
 
       message.success("Запрос отправлен админу!");
       fetchTables();
@@ -381,6 +393,7 @@ ${cartDetails}
               tables={tables}
               setSelectedTable={setSelectedTable}
               setModalVisible={setModalVisible}
+              setTables={setTables}
             />
 
             <ReservationModal

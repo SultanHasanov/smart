@@ -2,13 +2,31 @@ import { Button } from "antd";
 import React, { useEffect } from "react";
 import { useTimeContext } from "../TimeContext";
 
-const ButtonCard = ({ tables, setSelectedTable, setModalVisible }) => {
+const ButtonCard = ({ tables, setSelectedTable, setModalVisible, setTables }) => {
   const openModal = (table) => {
     if (table.reserved || table.pending) return;
     setSelectedTable(table);
     setModalVisible(true);
   };
-  useEffect(() => {}, [tables]);
+  useEffect(() => {
+    const pusher = new Pusher("6abdde8ba81f348f1c97", {
+      cluster: "eu",
+      forceTLS: true,
+    });
+
+    const channel = pusher.subscribe("my-channel"); // Убедись, что сервер отправляет в этот канал
+    channel.bind("my-event", (data) => {
+      setTables((prevTables) =>
+        prevTables.map((table) =>
+          table.id === data.tableId ? { ...table, pending: true } : table
+        )
+      );
+    });
+
+    return () => {
+      pusher.unsubscribe("my-channel");
+    };
+  }, [setTables]);
 
   const { countdowns } = useTimeContext();
 
