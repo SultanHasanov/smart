@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import { Button, Table, message, Modal, Form, Input, Select } from "antd";
+import { Button, Table, message, Modal, Form, Input } from "antd";
 import axios from "axios";
 import InputMask from "react-input-mask";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  DeleteFilled,
+  SettingFilled,
+} from "@ant-design/icons";
+import TimeSelect from "../TimeSelect";
 
 const API_URL = "https://1c298a0f688767c5.mokky.dev/items";
 
@@ -13,10 +20,9 @@ const Admin = () => {
   const [selectedTable, setSelectedTable] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
-
   const tablesFilter = tables.filter((el) => el.name !== "");
 
-  console.log({ tablesFilter });
+  // console.log({ tablesFilter });
 
   const navigate = useNavigate();
 
@@ -43,7 +49,6 @@ const Admin = () => {
           for (const table of tablesFilter) {
             await axios.patch(`${API_URL}/${table.id}`, {
               name: "",
-              phone: "",
               time: "",
               people: "",
               reserved: false,
@@ -100,7 +105,6 @@ const Admin = () => {
     try {
       await axios.patch(`${API_URL}/${selectedTable.id}`, {
         name: values.name,
-        phone: values.phone,
         time: values.time,
         people: values.people,
         reserved: true, // Ожидание подтверждения
@@ -119,17 +123,43 @@ const Admin = () => {
   const columns = [
     { title: "№", dataIndex: "id", key: "id" },
     { title: "Имя", dataIndex: "name", key: "name" },
-    { title: "Телефон", dataIndex: "phone", key: "phone" },
     { title: "Время", dataIndex: "time", key: "time" },
-    { title: "Человек", dataIndex: "people", key: "people" },
+    { title: "Кол-во", dataIndex: "people", key: "people" },
     {
-      title: "Действие",
+      title: <SettingFilled />,
       key: "action",
       render: (_, record) =>
         record.pending ? (
           <>
-            <Button
-              type="primary"
+            <button
+              style={{
+                padding: "8px 15px",
+                backgroundColor: "transparent",
+                marginRight: 10,
+                color: "#f44336",
+                border: "1px solid #f44336",
+                borderRadius: "7px",
+                cursor: "pointer",
+              }}
+              onClick={() =>
+                updateTableWithConfirm(
+                  record.id,
+                  { name: "", time: "", people: "", pending: false },
+                  "отклонить бронь"
+                )
+              }
+            >
+              <CloseOutlined />
+            </button>
+            <button
+              style={{
+                padding: "8px 15px",
+                backgroundColor: "transparent",
+                color: "#4CAF50",
+                border: "1px solid #4CAF50",
+                borderRadius: "7px",
+                cursor: "pointer",
+              }}
               onClick={() =>
                 updateTableWithConfirm(
                   record.id,
@@ -138,37 +168,29 @@ const Admin = () => {
                 )
               }
             >
-              ✅ Подтвердить
-            </Button>
-            <Button
-              danger
-              onClick={() =>
-                updateTableWithConfirm(
-                  record.id,
-                  { name: "", phone: "", time: "", people: "", pending: false },
-                  "отклонить бронь"
-                )
-              }
-            >
-              ❌ Отклонить
-            </Button>
+              <CheckOutlined />
+            </button>
           </>
         ) : record.reserved ? (
-          <Button
-            danger
+          <DeleteFilled
             onClick={() =>
               updateTableWithConfirm(
                 record.id,
-                { name: "", phone: "", time: "", people: "", reserved: false },
+                { name: "", time: "", people: "", reserved: false },
                 "отменить бронь"
               )
             }
-          >
-            🔄 Отменить
-          </Button>
+            style={{ color: "#f44336", cursor: "pointer", fontSize: "20px" }}
+          />
         ) : null,
     },
   ];
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
 
   return (
     <div className="admin-container">
@@ -176,7 +198,7 @@ const Admin = () => {
         <Button
           fill="none"
           style={{ marginLeft: -8 }}
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/booking")}
         >
           <ArrowLeftOutlined /> Назад
         </Button>
@@ -196,7 +218,10 @@ const Admin = () => {
           Выйти
         </Button>
       </div>
-      <div className="table-wrapper">
+      <div
+        className="table-wrapper"
+        style={tablesFilter.length === 0 ? { marginBottom: 10 } : undefined}
+      >
         <Table
           scroll={{ x: "max-content" }}
           columns={columns}
@@ -212,17 +237,19 @@ const Admin = () => {
         />
       </div>
       {tablesFilter.length > 0 && (
-        <div>
-          <Button
-            type="dashed"
-            onClick={() => clearAllReservations(tablesFilter, fetchTables)}
-          >
-            ❌ Удалить все брони
-          </Button>
-        </div>
+        <Button
+          type="dashed"
+          onClick={() => clearAllReservations(tablesFilter, fetchTables)}
+        >
+          ❌ Удалить все брони
+        </Button>
       )}
+      <TimeSelect />
 
-      <div className="grid-container">
+      <div
+        className="grid-container"
+        style={tablesFilter.length === 0 ? { marginTop: 50 } : undefined}
+      >
         {tables.map((table) => (
           <Button
             key={table.id}
@@ -237,7 +264,32 @@ const Admin = () => {
             }}
             onClick={() => openModal(table)}
           >
-            Столик {table.id}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                fontSize: 12,
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <b>Столик: </b> №{table.id}
+              </div>
+              <div>
+                <div>
+                  {table.reserved && <b>Время: </b>}
+                  {table.time !== "" ? table.time : null}
+                </div>
+                <div>
+                  {table.reserved && <b>Имя: </b>}
+                  {table.reserved && table.name}
+                </div>
+                <div>
+                  {table.reserved && <b>Кол-во: </b>}
+                  {table.reserved && table.people}
+                </div>
+              </div>
+            </div>
           </Button>
         ))}
       </div>
@@ -249,73 +301,62 @@ const Admin = () => {
         footer={null}
       >
         <Form form={form} onFinish={handleReserve}>
-               <Form.Item
-                 name="name"
-                 rules={[
-                   { required: true, message: "Введите имя" },
-                   {
-                     max: 10,
-                     message: "Имя должно содержать не более 10 символов",
-                   },
-                 ]}
-               >
-                 <Input placeholder="Имя"  size="large"/>
-               </Form.Item>
-               <Form.Item
-                 name="phone"
-                 rules={[{ required: true, message: "Введите телефон" }]}
-               >
-                 <InputMask mask="+7 (999) 999-99-99" maskChar={null}>
-                   {(inputProps) => (
-                     <Input  size="large"
-                       {...inputProps}
-                       placeholder="Телефон"
-                       inputMode="numeric"
-                     />
-                   )}
-                 </InputMask>
-               </Form.Item>
-               <Form.Item
-                 name="time"
-                 rules={[{ required: true, message: "Введите время" }]}
-               >
-                 <InputMask mask="99:99" maskChar={null}>
-                   {(inputProps) => (
-                     <Input  size="large"
-                       {...inputProps}
-                       placeholder="Время (чч:мм)"
-                       inputMode="numeric"
-                     />
-                   )}
-                 </InputMask>
-               </Form.Item>
-               <Form.Item
-                 name="people"
-                 rules={[{ required: true, message: "Введите количество человек" }]}
-               >
-                 <Select  size="large"
-                   placeholder="Количество человек"
-                   showSearch
-                   filterOption={false} // Позволяет вводить любое значение
-                   onSearch={(value) => {
-                     if (!isNaN(value) && value > 0) {
-                       form.setFieldsValue({ people: Number(value) });
-                     }
-                   }}
-                   onChange={(value) => form.setFieldsValue({ people: value })}
-                 >
-                   {[1, 2, 3, 4, 5, 6].map((num) => (
-                     <Select.Option  size="large" key={num} value={num}>
-                       {num}
-                     </Select.Option>
-                   ))}
-                 </Select>
-               </Form.Item>
-       
-               <Button  size="large" type="primary" htmlType="submit">
-                 Отправить админу
-               </Button>
-             </Form>
+          <Form.Item
+            name="name"
+            rules={[
+              { required: true, message: "Введите имя" },
+              {
+                max: 10,
+                message: "Имя должно содержать не более 10 символов",
+              },
+            ]}
+          >
+            <Input placeholder="Имя" size="large" />
+          </Form.Item>
+
+          <Form.Item
+            name="time"
+            rules={[{ required: true, message: "Введите время" }]}
+          >
+            <InputMask mask="99:99" maskChar={null}>
+              {(inputProps) => (
+                <Input
+                  size="large"
+                  {...inputProps}
+                  placeholder="Время (чч:мм)"
+                  inputMode="numeric"
+                />
+              )}
+            </InputMask>
+          </Form.Item>
+          <Form.Item
+            name="people"
+            rules={[{ required: true, message: "Введите количество человек" }]}
+          >
+            <Input
+              placeholder="Количество человек"
+              size="large"
+              inputMode="numeric"
+            />
+          </Form.Item>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              marginTop: "20px",
+            }}
+          >
+            <Button
+              size="large"
+              type="primary"
+              htmlType="submit"
+              style={{ width: "auto" }}
+            >
+              Отправить заявку
+            </Button>
+          </div>
+        </Form>
       </Modal>
 
       <style>

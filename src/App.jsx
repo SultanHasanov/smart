@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Button, Modal, Form, Input, Select, message } from "antd";
+import { message } from "antd";
 import axios from "axios";
-import InputMask from "react-input-mask";
 import { useNavigate } from "react-router-dom";
 import AdminPanelButton from "./component/AdminPanelButton";
 import ButtonCard from "./component/ButtonCard";
 import ReservationModal from "./component/ReservationModal";
+import { useTimeContext } from "./TimeContext";
 
 const ADMIN_PHONE = "+79667283100";
 
@@ -16,9 +16,10 @@ const App = () => {
   const [loading, setLoading] = useState(false);
   const [selectedTable, setSelectedTable] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [countdowns, setCountdowns] = useState({});
+  // const [countdowns, setCountdowns] = useState({});
+  const { countdownTime, setCountdownTime, countdowns, setCountdowns } = useTimeContext();
+  
 
-  const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,104 +39,50 @@ const App = () => {
     }
   };
 
-  // const sendToWhatsApp = async (values) => {
-  //   // Извлекаем корзину из localStorage
-  //   const cart = JSON.parse(localStorage.getItem('cart')) || [];
-    
-  //   // Формируем строку с выбранными блюдами и общей суммой
-  //   let cartDetails = '';
-  //   let totalAmount = 0;
-  
-  //   cart.forEach(item => {
-  //     const itemTotal = item.price * item.quantity;
-  //     cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
-  //     totalAmount += itemTotal;
-  //   });
-  
-  //   // Формируем сообщение для WhatsApp
-  //   const whatsappMessage = `
-  //     Запрос на бронь
-  //     Столик №${selectedTable.id}
-  //     Имя: ${values.name}
-  //     Телефон: ${values.phone}
-  //     Время: ${values.time}
-  //     Человек: ${values.people}
-  
-  //     Ваши выбранные блюда:
-  //     ${cartDetails}
-  //     Общая сумма: ${totalAmount} ₽
-  //   `;
-  
-  //   const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(whatsappMessage)}`;
-  
-  //   window.open(whatsappURL, "_blank");
-  
-  //   try {
-  //     await axios.patch(`${API_URL}/${selectedTable.id}`, {
-  //       name: values.name,
-  //       phone: values.phone,
-  //       time: values.time,
-  //       people: values.people,
-  //       pending: true,
-  //       timestamp: Date.now(), // Фиксируем время заявки
-  //     });
-  
-  //     message.success("Запрос отправлен админу!");
-  //     fetchTables();
-  //   } catch (error) {
-  //     message.error("Ошибка сохранения в API");
-  //   }
-  
-  //   setModalVisible(false);
-  //   form.resetFields();
-  // };
-  
   const sendToWhatsApp = async (values) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-    
+
     let cartDetails = "";
     let totalAmount = 0;
-  
+
     cart.forEach((item) => {
       const itemTotal = item.price * item.quantity;
       cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
       totalAmount += itemTotal;
     });
-  
+
     const whatsappMessage = `
-      Запрос на бронь
-      Столик №${selectedTable.id}
-      Имя: ${values.name}
-      Телефон: ${values.phone}
-      Время: ${values.time}
-      Человек: ${values.people}
-  
-      Ваши выбранные блюда:
-      ${cartDetails}
-      Общая сумма: ${totalAmount} ₽
-    `;
-  
-    const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(whatsappMessage)}`;
+\`Запрос на бронь\`
+Столик №${selectedTable.id}
+Имя: ${values.name}
+Время: ${values.time}
+Человек: ${values.people}
+\`Ваши выбранные блюда:\`
+${cartDetails}
+Общая сумма: ${totalAmount} ₽`;
+
     
+    const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
+      whatsappMessage
+    )}`;
+
     window.open(whatsappURL, "_blank");
-  
+
     try {
       await axios.patch(`${API_URL}/${selectedTable.id}`, {
         name: values.name,
-        phone: values.phone,
         time: values.time,
         people: values.people,
         pending: true,
         timestamp: Date.now(),
       });
-  
+
       message.success("Запрос отправлен админу!");
       fetchTables();
     } catch (error) {
       message.error("Ошибка сохранения в API");
     }
   };
-  
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -145,7 +92,8 @@ const App = () => {
       tables.forEach((table) => {
         if (table.pending && table.timestamp) {
           const elapsedSeconds = Math.floor((now - table.timestamp) / 1000);
-          const remainingSeconds = 60 - elapsedSeconds;
+          // const remainingSeconds = 120 - elapsedSeconds;
+          const remainingSeconds = countdownTime - elapsedSeconds;
 
           if (remainingSeconds > 0) {
             newCountdowns[table.id] = remainingSeconds;
@@ -154,7 +102,6 @@ const App = () => {
             axios
               .patch(`${API_URL}/${table.id}`, {
                 name: "",
-                phone: "",
                 time: "",
                 people: "",
                 reserved: false,
@@ -169,23 +116,23 @@ const App = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [tables]);
+  }, [tables, countdownTime]);
+
+ 
 
   return (
     <>
       <AdminPanelButton navigate={navigate} />
-      
-
       <div className="grid-container">
         <ButtonCard
+       
           tables={tables}
           setSelectedTable={setSelectedTable}
           setModalVisible={setModalVisible}
-          countdowns={countdowns}
         />
 
         <ReservationModal
-        selectedTable={selectedTable}
+          selectedTable={selectedTable}
           sendToWhatsApp={sendToWhatsApp}
           setModalVisible={setModalVisible}
           modalVisible={modalVisible}

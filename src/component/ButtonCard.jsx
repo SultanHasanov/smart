@@ -1,17 +1,27 @@
 import { Button } from "antd";
 import React from "react";
+import { useTimeContext } from "../TimeContext";
 
 const ButtonCard = ({
   tables,
   setSelectedTable,
   setModalVisible,
-  countdowns = { countdowns },
+ 
 }) => {
   const openModal = (table) => {
     if (table.reserved || table.pending) return;
     setSelectedTable(table);
     setModalVisible(true);
   };
+
+    const {  countdowns } = useTimeContext();
+
+    const formatTime = (seconds) => {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+    };
+  
   return (
     <>
       {tables.map((table) => (
@@ -53,8 +63,8 @@ const ButtonCard = ({
                 {table.reserved && table.people}
               </div>
               {table.pending && countdowns[table.id] !== undefined && (
-                <div style={{ color: "red", fontWeight: "bold" }}>
-                  ⏳ {countdowns[table.id]} сек
+                <div style={{ color: "red", fontWeight: "bold", fontSize: 14 }}>
+                  ⏳ {formatTime(countdowns[table.id])}
                 </div>
               )}
             </div>
