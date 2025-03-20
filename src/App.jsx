@@ -8,6 +8,7 @@ import ReservationModal from "./component/ReservationModal";
 import { useTimeContext } from "./TimeContext";
 import TabPane from "antd/es/tabs/TabPane";
 import { DeleteFilled, PlusOutlined } from "@ant-design/icons";
+import ModalProduct from "./component/ModalProduct";
 const { Text } = Typography;
 const ADMIN_PHONE = "+79667283100";
 
@@ -29,6 +30,13 @@ const App = () => {
   });
 
   const navigate = useNavigate();
+
+   const [openModalProduct, setOpenModalProduct] = useState(false);
+  
+    const handleClickModalProduct = () => {
+      setOpenModalProduct(true)
+    }
+  
 
   useEffect(() => {
     fetchTables();
@@ -376,11 +384,14 @@ ${cartDetails}
             />
 
             <ReservationModal
+             setOpenModalProduct={setOpenModalProduct}
               selectedTable={selectedTable}
               sendToWhatsApp={sendToWhatsApp}
               setModalVisible={setModalVisible}
               modalVisible={modalVisible}
+              openModalProduct={openModalProduct}
             />
+             {openModalProduct && <ModalProduct openModalProduct={openModalProduct} setOpenModalProduct={setOpenModalProduct}  />}
 
             <style>
               {`

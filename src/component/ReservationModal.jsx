@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, Input, Button, Typography } from "antd";
 import InputMask from "react-input-mask";
-import { useNavigate } from "react-router-dom";
+
 import { PlusOutlined } from "@ant-design/icons";
+import ModalProduct from "./ModalProduct";
 
 const { Text } = Typography;
 
@@ -11,12 +12,16 @@ const ReservationModal = ({
   setModalVisible,
   sendToWhatsApp,
   selectedTable,
+  setOpenModalProduct,
+  openModalProduct
 }) => {
   const [form] = Form.useForm();
   const [cart, setCart] = useState([]);
 
-  const navigate = useNavigate();
-
+  const handleClickModalProduct = () => {
+    setOpenModalProduct(true)
+  }
+ 
   // Функция для извлечения данных корзины из localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
@@ -24,6 +29,32 @@ const ReservationModal = ({
       setCart(JSON.parse(savedCart));
     }
   }, []);
+
+  useEffect(() => {
+    if (!openModalProduct) {
+      const updatedCart = localStorage.getItem("cart");
+      if (updatedCart) {
+        setCart(JSON.parse(updatedCart));
+      }
+    }
+  }, [openModalProduct]);
+
+  useEffect(() => {
+    if (modalVisible) {
+      const savedFormData = localStorage.getItem("reservationForm");
+      if (savedFormData) {
+        form.setFieldsValue(JSON.parse(savedFormData));
+      }
+    }
+  }, [modalVisible, form]);
+
+  const handleCancel = () => {
+    localStorage.setItem(
+      "reservationForm",
+      JSON.stringify(form.getFieldsValue())
+    );
+    setModalVisible(false);
+  };
 
   // Функция для вычисления общей суммы корзины
   const calculateTotal = () => {
@@ -35,6 +66,7 @@ const ReservationModal = ({
 
     // Очистка localStorage и состояния корзины
     localStorage.removeItem("cart");
+    localStorage.removeItem("reservationForm");
     setCart([]);
 
     // Очистка формы
@@ -48,7 +80,7 @@ const ReservationModal = ({
     <Modal
       title={`Запрос на бронь столика №${selectedTable?.id}`}
       open={modalVisible}
-      onCancel={() => setModalVisible(false)}
+      onCancel={handleCancel}
       footer={null}
     >
       <Form form={form} onFinish={handleFinish}>
@@ -99,10 +131,12 @@ const ReservationModal = ({
               </Text>
             </div>
           ))}
+         
+          
           <div>{cart.length === 0 && "Ничего не выбрано"}</div>
           <Button
             danger
-            onClick={() => navigate("/")}
+            onClick={handleClickModalProduct}
             style={{ border: "none", padding: "0px" }}
           >
             <PlusOutlined />
