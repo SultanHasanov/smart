@@ -50,33 +50,34 @@ const App = () => {
 
   const sendToWhatsApp = async (values) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
+  
     let cartDetails = "";
     let totalAmount = 0;
-
+  
     cart.forEach((item) => {
       const itemTotal = item.price * item.quantity;
       cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
       totalAmount += itemTotal;
     });
-
+  
     const whatsappMessage = `
-\`Запрос на бронь\`
-Столик №${selectedTable.id}
-Имя: ${values.name}
-Время: ${values.time}
-Человек: ${values.people}
-\`Ваши выбранные блюда:\`
-${cartDetails}
-Общая сумма: ${totalAmount} ₽`;
-
+  \`Запрос на бронь\`
+  Столик №${selectedTable.id}
+  Имя: ${values.name}
+  Время: ${values.time}
+  Человек: ${values.people}
+  \`Ваши выбранные блюда:\`
+  ${cartDetails}
+  Общая сумма: ${totalAmount} ₽`;
+  
     const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
       whatsappMessage
     )}`;
-
+  
     window.open(whatsappURL, "_blank");
-
+  
     try {
+      // Обновление данных на сервере
       await axios.patch(`${API_URL}/${selectedTable.id}`, {
         name: values.name,
         time: values.time,
@@ -84,14 +85,16 @@ ${cartDetails}
         pending: true,
         timestamp: Date.now(),
       });
-
+  
       message.success("Запрос отправлен админу!");
-      fetchTables();
+  
+      // Обновление состояния tables после изменения
+      fetchTables();  // Перезапрашиваем данные с сервера, чтобы синхронизировать состояние
     } catch (error) {
       message.error("Ошибка сохранения в API");
     }
   };
-
+  
   const sendOrderToWhatsApp = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
 
