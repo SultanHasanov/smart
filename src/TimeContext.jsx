@@ -11,6 +11,7 @@ const TimeContext = createContext();
 export const TimeProvider = ({ children }) => {
   const [countdownTime, setCountdownTime] = useState(null); // По умолчанию 2 минуты (120 секунд)
   const [countdowns, setCountdowns] = useState({});
+  const [activeTab, setActiveTab] = useState("order");
 
   // Функция сохранения времени в API
   const saveTime = async (newTime) => {
@@ -47,7 +48,7 @@ export const TimeProvider = ({ children }) => {
   }, []);
 
   return (
-    <TimeContext.Provider value={{ countdownTime, setCountdownTime, saveTime, countdowns, setCountdowns }}>
+    <TimeContext.Provider value={{ countdownTime, setCountdownTime, saveTime, countdowns, setCountdowns, activeTab, setActiveTab }}>
       {children}
     </TimeContext.Provider>
   );

@@ -1,9 +1,7 @@
 import React from "react";
-import { Select, message } from "antd"; 
+import { Select } from "antd"; 
 import { useTimeContext } from "./TimeContext";
-import axios from "axios";  
 
-const API_URL = "https://1c298a0f688767c5.mokky.dev/time";
 
 const TimeSelect = () => {
   const { countdownTime, setCountdownTime, saveTime } = useTimeContext();
