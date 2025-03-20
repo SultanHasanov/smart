@@ -81,18 +81,20 @@ const Product = () => {
   );
 
   return (
-    <div style={{ padding: 10 }}>
-      <Tabs defaultActiveKey="1" onChange={setSelectedCategory}>
-        {categories.map((category) => (
-          <TabPane tab={category.name} key={category.id} />
-        ))}
-      </Tabs>
+    <div>
+       <div style={{ position: "sticky", top: 0, backgroundColor: "#fff", zIndex: 10 }}>
+        <Tabs defaultActiveKey="1" onChange={setSelectedCategory}>
+          {categories.map((category) => (
+            <TabPane tab={category.name} key={category.id} />
+          ))}
+        </Tabs>
+      </div>
 
       <div
         style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: "15px",
+          gap: "10px",
           justifyContent: "space-evenly",
         }}
       >
@@ -104,7 +106,7 @@ const Product = () => {
             <div
               key={dish.id}
               style={{
-                width: "110px",
+                width: "115px",
                 boxSizing: "border-box",
                 padding: "5px",
                 border: "1px solid #ccc",
