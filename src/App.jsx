@@ -10,7 +10,6 @@ import TabPane from "antd/es/tabs/TabPane";
 import { DeleteFilled, PlusOutlined } from "@ant-design/icons";
 import ModalProduct from "./component/ModalProduct";
 const { Text } = Typography;
-import Pusher from "pusher-js";
 const ADMIN_PHONE = "+79667283100";
 
 const API_URL = "https://1c298a0f688767c5.mokky.dev/items";
@@ -32,12 +31,11 @@ const App = () => {
 
   const navigate = useNavigate();
 
-   const [openModalProduct, setOpenModalProduct] = useState(false);
-  
-    const handleClickModalProduct = () => {
-      setOpenModalProduct(true)
-    }
-  
+  const [openModalProduct, setOpenModalProduct] = useState(false);
+
+  const handleClickModalProduct = () => {
+    setOpenModalProduct(true);
+  };
 
   useEffect(() => {
     fetchTables();
@@ -55,14 +53,6 @@ const App = () => {
       setLoading(false);
     }
   };
-
-  
-const pusher = new Pusher("6abdde8ba81f348f1c97", {
-  cluster: "eu",
-  forceTLS: true,
-});
-  
-const channel = pusher.subscribe("my-channel");
 
   const sendToWhatsApp = async (values) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -99,11 +89,8 @@ ${cartDetails}
         people: values.people,
         pending: true,
         timestamp: Date.now(),
-      });
-
-      channel.trigger("client-my-event", {
-        tableId: selectedTable.id,
-        status: "pending",
+        timestamptwo: Date.now(),
+        test: true,
       });
 
       message.success("Запрос отправлен админу!");
@@ -224,7 +211,16 @@ ${cartDetails}
               .then(() => fetchTables());
           }
         }
+        if (table.test && table.timestamptwo) {
+          const elapsedTestSeconds = Math.floor((now - table.timestamptwo) / 1000);
+          if (elapsedTestSeconds >= 30) {
+            axios.patch(`${API_URL}/${table.id}`, { test: false })
+              .then(() => fetchTables());
+          }
+        }
       });
+
+      
 
       setCountdowns(newCountdowns);
     }, 1000);
@@ -248,7 +244,6 @@ ${cartDetails}
     setCart(newCart);
     localStorage.setItem("cart", JSON.stringify(newCart));
   };
-
 
   return (
     <>
@@ -291,18 +286,17 @@ ${cartDetails}
                     />
                   </Text>
                 </div>
-              ))
-            }
-           
-<div>{cart.length === 0 && "Ничего не выбрано"}</div>
-          <Button
-            danger
-            onClick={() => navigate("/")}
-            style={{ border: "none", padding: "0px" }}
-          >
-            <PlusOutlined />
-            {cart.length === 0 ? "Выбрать блюда" : "Добавить еще"}
-          </Button>
+              ))}
+
+            <div>{cart.length === 0 && "Ничего не выбрано"}</div>
+            <Button
+              danger
+              onClick={() => navigate("/")}
+              style={{ border: "none", padding: "0px" }}
+            >
+              <PlusOutlined />
+              {cart.length === 0 ? "Выбрать блюда" : "Добавить еще"}
+            </Button>
             <div style={{ marginTop: "10px" }}>
               <Text
                 style={{
@@ -393,18 +387,22 @@ ${cartDetails}
               tables={tables}
               setSelectedTable={setSelectedTable}
               setModalVisible={setModalVisible}
-              setTables={setTables}
             />
 
             <ReservationModal
-             setOpenModalProduct={setOpenModalProduct}
+              setOpenModalProduct={setOpenModalProduct}
               selectedTable={selectedTable}
               sendToWhatsApp={sendToWhatsApp}
               setModalVisible={setModalVisible}
               modalVisible={modalVisible}
               openModalProduct={openModalProduct}
             />
-             {openModalProduct && <ModalProduct openModalProduct={openModalProduct} setOpenModalProduct={setOpenModalProduct}  />}
+            {openModalProduct && (
+              <ModalProduct
+                openModalProduct={openModalProduct}
+                setOpenModalProduct={setOpenModalProduct}
+              />
+            )}
 
             <style>
               {`

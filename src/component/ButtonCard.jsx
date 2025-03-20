@@ -2,31 +2,13 @@ import { Button } from "antd";
 import React, { useEffect } from "react";
 import { useTimeContext } from "../TimeContext";
 
-const ButtonCard = ({ tables, setSelectedTable, setModalVisible, setTables }) => {
+const ButtonCard = ({ tables, setSelectedTable, setModalVisible }) => {
   const openModal = (table) => {
     if (table.reserved || table.pending) return;
     setSelectedTable(table);
     setModalVisible(true);
   };
-  useEffect(() => {
-    const pusher = new Pusher("6abdde8ba81f348f1c97", {
-      cluster: "eu",
-      forceTLS: true,
-    });
-
-    const channel = pusher.subscribe("my-channel"); // Убедись, что сервер отправляет в этот канал
-    channel.bind("my-event", (data) => {
-      setTables((prevTables) =>
-        prevTables.map((table) =>
-          table.id === data.tableId ? { ...table, pending: true } : table
-        )
-      );
-    });
-
-    return () => {
-      pusher.unsubscribe("my-channel");
-    };
-  }, [setTables]);
+  useEffect(() => {}, [tables]);
 
   const { countdowns } = useTimeContext();
 
@@ -81,6 +63,11 @@ const ButtonCard = ({ tables, setSelectedTable, setModalVisible, setTables }) =>
                   ⏳ {formatTime(countdowns[table.id])}
                 </div>
               )}
+              {table.test && table.timestamptwo && (
+  <div style={{ color: "blue", fontWeight: "bold", fontSize: 14 }}>
+    ⏳ {formatTime(30 - Math.floor((Date.now() - table.timestamptwo) / 1000))}
+  </div>
+)}
             </div>
           </div>
         </Button>

@@ -3,7 +3,6 @@ import { Modal, Form, Input, Button, Typography } from "antd";
 import InputMask from "react-input-mask";
 
 import { PlusOutlined } from "@ant-design/icons";
-import ModalProduct from "./ModalProduct";
 
 const { Text } = Typography;
 
@@ -13,15 +12,15 @@ const ReservationModal = ({
   sendToWhatsApp,
   selectedTable,
   setOpenModalProduct,
-  openModalProduct
+  openModalProduct,
 }) => {
   const [form] = Form.useForm();
   const [cart, setCart] = useState([]);
 
   const handleClickModalProduct = () => {
-    setOpenModalProduct(true)
-  }
- 
+    setOpenModalProduct(true);
+  };
+
   // Функция для извлечения данных корзины из localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
@@ -131,8 +130,7 @@ const ReservationModal = ({
               </Text>
             </div>
           ))}
-         
-          
+
           <div>{cart.length === 0 && "Ничего не выбрано"}</div>
           <Button
             danger
