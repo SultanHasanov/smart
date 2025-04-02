@@ -10,7 +10,7 @@ import TabPane from "antd/es/tabs/TabPane";
 import { DeleteFilled, PlusOutlined } from "@ant-design/icons";
 import ModalProduct from "./component/ModalProduct";
 const { Text } = Typography;
-const ADMIN_PHONE = "+79667283100";
+const ADMIN_PHONE = "+79298974969";
 
 const API_URL = "https://1c298a0f688767c5.mokky.dev/items";
 
