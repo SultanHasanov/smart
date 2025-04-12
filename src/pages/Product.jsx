@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "../App.css";
 import { DeleteFilled, MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import dishes from "../data";
-import { useTimeContext } from "../TimeContext";
+import TabIcons from "../component/TabIcons";
 const { Text } = Typography;
 const { TabPane } = Tabs;
 
@@ -26,7 +26,7 @@ const Product = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("1");
 
-  const { setActiveTab } = useTimeContext();
+  
 
   const navigate = useNavigate();
 
@@ -63,14 +63,7 @@ const Product = () => {
     localStorage.setItem("cart", JSON.stringify(newCart));
   };
 
-  const handleReserveTable = () => {
-    if (cart.length === 0) {
-      setActiveTab("order_reservation");
-    } else {
-      setActiveTab("order");
-    }
-    navigate("/booking");
-  };
+ 
 
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -192,63 +185,8 @@ const Product = () => {
         })}
       </div>
 
-      <div style={{ textAlign: "left", margin: "40px 0 10px 0" }}>
-        {cart.length > 0 ? (
-          cart.map((item) => (
-            <div
-              key={item.id}
-              style={{ marginBottom: "5px", position: "relative" }}
-            >
-              <Text
-                strong
-                style={{
-                  fontSize: "16px",
-                  margin: 0,
-                }}
-              >
-                {item.name} x{item.quantity} = {item.price * item.quantity} ₽
-                <DeleteFilled
-                  onClick={() => handleRemoveFromCart(item.id)}
-                  style={{
-                    position: "absolute",
-                    right: "0",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "#f44336",
-                    cursor: "pointer",
-                    fontSize: "20px",
-                  }}
-                />
-              </Text>
-            </div>
-          ))
-        ) : (
-          <Text>Корзина пуста</Text>
-        )}
-
-        <div style={{ marginTop: "10px" }}>
-        <Text style={{fontSize: 17, color: 'green', textDecoration: "underline" }} strong>Итоговая сумма: {calculateTotal()} ₽</Text>
-        </div>
-
-        <Button
-          size="large"
-          onClick={handleReserveTable}
-          style={{
-            position: "fixed", // Зафиксируем кнопку
-            bottom: "10px", // Расстояние от нижней границы экрана
-            right: "20px", // Центрируем кнопку по горизонтали
-            padding: "12px 24px",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            width: "auto", // Ширина кнопки будет автоматически подстраиваться
-            cursor: "pointer",
-          }}
-        >
-          {cart.length !== 0 ? "Оформить заказ" : "Бронь столика"}
-        </Button>
-      </div>
+       
+            <TabIcons />
     </div>
   );
 };

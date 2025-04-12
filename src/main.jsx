@@ -4,11 +4,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import App from "./App";
 import Admin from "./pages/Admin";
 import Product from "./pages/Product";
-import { TimeProvider } from "./TimeContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-  <TimeProvider>
 
   
     <Routes>
@@ -16,6 +14,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Route path="/admin" element={<Admin />} />
       <Route path="/" element={<Product/>} />
     </Routes>
-    </TimeProvider>
   </BrowserRouter>
 );
