@@ -31,7 +31,7 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
         <ShoppingCartOutlined
           onClick={() => navigate("/cart")}
           style={{ fontSize: "22px", cursor: "pointer" }}
-        />
+          />
       </div>
 
       {/* Подзаголовок или статус */}

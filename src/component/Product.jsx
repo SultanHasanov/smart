@@ -1,17 +1,15 @@
-import { Button, Typography, Input } from "antd";
+import { Button, Input } from "antd";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "../App.css";
 import {
   DeleteFilled,
   MinusOutlined,
   PlusOutlined,
   CloseCircleFilled,
+  AppstoreOutlined,
+  AppstoreAddOutlined,
 } from "@ant-design/icons";
 import dishes from "../data";
-import TabIcons from "./TabIcons";
-
-const { Text } = Typography;
 
 const categories = [
   { id: "1", name: "Блюда" },
@@ -29,8 +27,13 @@ const Product = () => {
 
   const [selectedCategory, setSelectedCategory] = useState("1");
   const [searchTerm, setSearchTerm] = useState("");
-
-  const navigate = useNavigate();
+  const [columnsCount, setColumnsCount] = useState(3);
+  const getGridTemplateColumns = () => {
+    if (columnsCount === 2) {
+      return "repeat(2, minmax(160px, 1fr))"; // крупные карточки
+    }
+    return "repeat(3, minmax(105px, 1fr))"; // стандартные
+  };
 
   const handleAddToCart = (dishId) => {
     const newCart = [...cart];
@@ -84,8 +87,8 @@ const Product = () => {
       >
         <div
           style={{
-            padding: "0 14px ",
-            maxWidth: "1000px",
+            padding: "0 4px ",
+            // maxWidth: "1000px",
             marginTop: "10px",
           }}
         >
@@ -107,14 +110,15 @@ const Product = () => {
             // zIndex: 10,
             overflowX: "auto",
             display: "flex",
-            padding: "8px 12px",
+            marginTop: "10px",
+            padding: "0px 4px",
             gap: "8px",
             scrollbarWidth: "none",
           }}
         >
           {categories.map((category) => (
             <Button
-              size="large"
+              size="middle"
               key={category.id}
               onClick={() => {
                 setSelectedCategory(category.id);
@@ -138,17 +142,31 @@ const Product = () => {
           ))}
         </div>
       </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          padding: "0 6px",
+          margin: "5px 0",
+        }}
+      >
+        <Button
+          shape="circle"
+          icon={
+            columnsCount === 3 ? <AppstoreAddOutlined /> : <AppstoreOutlined />
+          }
+          onClick={() => setColumnsCount(columnsCount === 3 ? 2 : 3)}
+        />
+      </div>
 
       {/* Блюда */}
       <div style={{ display: "flex", justifyContent: "center" }}>
         <div
           style={{
-            display: "flex",
-            justifyContent: "flex-start",
-            flexWrap: "wrap",
-            gap: "10px",
-            padding: "0 4px",
-            maxWidth: "1000px",
+            display: "grid",
+            gridTemplateColumns: getGridTemplateColumns(),
+            gap: "8px",
+            padding: "0 7px",
             margin: "0 auto",
           }}
         >
@@ -173,7 +191,10 @@ const Product = () => {
                 <div
                   key={dish.id}
                   style={{
-                    width: "115px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    width: "100%",
                     boxSizing: "border-box",
                     padding: "5px",
                     border: "1px solid #ccc",
@@ -189,9 +210,12 @@ const Product = () => {
                     </div>
                     <span>
                       <b style={{ fontSize: "14px", fontWeight: "bold" }}>
-                        {dish.name}
+                        {dish.name.length > 12
+                          ? dish.name.slice(0, 10) + "..."
+                          : dish.name}
                       </b>
                     </span>
+
                     <div style={{ margin: "10px 0 10px" }}>
                       <b style={{ fontSize: "14px", fontWeight: "bold" }}>
                         Цена:
@@ -200,10 +224,12 @@ const Product = () => {
                     </div>
                   </div>
                   <div className="btn-product">
-                    <button
+                    <Button
+                      size={columnsCount === 3 ? "small" : "large"}
                       onClick={() => handleDecreaseQuantity(dish.id)}
                       style={{
-                        padding: "8px 15px",
+                        // padding: "6px 10px",
+                        // padding: "4px",
                         backgroundColor: "#f44336",
                         color: "white",
                         border: "none",
@@ -212,11 +238,13 @@ const Product = () => {
                       }}
                     >
                       <MinusOutlined />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      size={columnsCount === 3 ? "small" : "large"}
                       onClick={() => handleAddToCart(dish.id)}
                       style={{
-                        padding: "10px 15px",
+                        // padding: "6px 10px",
+                        // padding: "4px",
                         backgroundColor: "#4CAF50",
                         color: "white",
                         border: "none",
@@ -225,7 +253,7 @@ const Product = () => {
                       }}
                     >
                       <PlusOutlined />
-                    </button>
+                    </Button>
                   </div>
                   {quantity > 0 && (
                     <span
