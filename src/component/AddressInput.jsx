@@ -110,7 +110,7 @@ export default function AddressInput() {
   return (
     <div style={{ width: "100%" }}>
       {selectedAddress && (
-        <Space direction="vertical"  style={{ marginBottom: 18 }}>
+        <Space direction="vertical" style={{ marginBottom: 18 }}>
           <Text strong>Выбранный адрес:</Text>
           <Space>
             <Text code>{selectedAddress}</Text>
@@ -150,7 +150,7 @@ export default function AddressInput() {
           size="large"
           type="primary"
           icon={<CompassOutlined />}
-          href={`yandexnavi://build_route_on_map?lat_to=${coordinates.lat}&lon_to=${coordinates.lon}`}
+          href={`https://yandex.ru/maps/?ll=${coordinates.lon},${coordinates.lat}&z=16&pt=${coordinates.lon},${coordinates.lat},pm2rdl`}
           target="_blank"
           style={{ marginTop: "15px" }}
         >
