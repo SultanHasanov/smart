@@ -9,7 +9,7 @@ import {
   Space,
   Button,
 } from "antd";
-import { CopyOutlined, CompassOutlined } from "@ant-design/icons";
+import { CopyOutlined, CompassOutlined, CloseOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 const DADATA_API_KEY = "a17c1b8db5c44bf264bf804062ffe577594171e5";
@@ -58,6 +58,12 @@ export default function AddressInput() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClear = () => {
+    setQuery("");
+    setSuggestions([]);
+    setHasSelected(false);
   };
 
   const handleSelect = (value) => {
@@ -123,27 +129,46 @@ export default function AddressInput() {
         </Space>
       )}
 
-      <Dropdown
-        open={suggestions.length > 0}
-        dropdownRender={() => dropdownContent}
-        placement="bottomLeft"
-        getPopupContainer={(triggerNode) => triggerNode.parentNode}
-        align={{
-          points: ["tl", "bl"],
-          overflow: { adjustY: false, adjustX: false },
-        }}
-      >
+<Dropdown
+      open={suggestions.length > 0}
+      dropdownRender={() => dropdownContent}
+      placement="bottomLeft"
+      getPopupContainer={(triggerNode) => triggerNode.parentNode}
+      align={{
+        points: ["tl", "bl"],
+        overflow: { adjustY: false, adjustX: false },
+      }}
+    >
+      <div style={{ position: "relative" }}>
         <Input
           placeholder="Введите адрес"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            setHasSelected(false); // <<< разрешаем подсказки при ручном вводе
+            setHasSelected(false); // Разрешаем подсказки при ручном вводе
           }}
           autoComplete="off"
           size="large"
         />
-      </Dropdown>
+        {query && (
+          <Button
+            icon={<CloseOutlined />}
+            onClick={handleClear}
+            size="small"
+            style={{
+              position: "absolute",
+              top: "50%",
+              right: "10px",
+              transform: "translateY(-50%)",
+              border: "none",
+              backgroundColor: "transparent",
+              cursor: "pointer",
+              color: "red",
+            }}
+          />
+        )}
+      </div>
+    </Dropdown>
 
       {coordinates && (
         <Button
