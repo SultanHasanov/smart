@@ -323,7 +323,7 @@ ${cartDetails}
           </Button>
         </div>
       </div>
-      <h1>Введите адрес</h1>
+      <h3>Введите адрес</h3>
       <AddressInput />
       <TabIcons />
     </>

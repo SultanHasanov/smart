@@ -11,18 +11,20 @@ export default function AddressInput() {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef(null);
+  const [hasSelected, setHasSelected] = useState(false);
 
   useEffect(() => {
-    if (!query) {
+    if (!query || hasSelected) {
       setSuggestions([]);
       return;
     }
-
+  
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(query);
     }, 300);
-  }, [query]);
+  }, [query, hasSelected]);
+  
 
   const fetchSuggestions = async (value) => {
     setLoading(true);
@@ -49,9 +51,12 @@ export default function AddressInput() {
   const handleSelect = (value) => {
     setQuery(value);
     setSelectedAddress(value);
+    setHasSelected(true); // <<< ставим блокировку
     setSuggestions([]);
     console.log("Выбран адрес:", value);
+
   };
+  
 
   const handleCopy = async () => {
     try {
@@ -109,7 +114,11 @@ export default function AddressInput() {
         <Input
           placeholder="Введите адрес"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setHasSelected(false); // <<< разрешаем подсказки при ручном вводе
+          }}
+          
           autoComplete="off"
           size="large"
         />
