@@ -147,7 +147,7 @@ const Product = () => {
             justifyContent: "flex-start",
             flexWrap: "wrap",
             gap: "10px",
-            padding: "0 7px",
+            padding: "0 4px",
             maxWidth: "1000px",
             margin: "0 auto",
           }}
