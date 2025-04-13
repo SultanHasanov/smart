@@ -14,6 +14,7 @@
     "antd": "^5.24.3",
     "axios": "^1.8.3",
     "dayjs": "^1.11.13",
+    "jquery": "^3.7.1",
     "pusher-js": "^8.4.0",
     "react": "^18.3.1",
     "react-audio-player": "^0.17.0",

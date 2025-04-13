@@ -7,6 +7,7 @@ import {
   MinusOutlined,
 } from "@ant-design/icons";
 import TabIcons from "./component/TabIcons";
+import AddressInput from "./component/AddressInput";
 
 const { Text } = Typography;
 const ADMIN_PHONE = "+79298974969";
@@ -322,7 +323,8 @@ ${cartDetails}
           </Button>
         </div>
       </div>
-
+      <h1>Введите адрес</h1>
+      <AddressInput />
       <TabIcons />
     </>
   );
