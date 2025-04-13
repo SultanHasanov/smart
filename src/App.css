@@ -3,6 +3,8 @@
   margin: 0 auto;
   /* padding: 1rem;
   text-align: center; */
+  /* font-family: monospace; */
+  font-family: Arial, sans-serif;
 }
 
 :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-cell, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-thead>tr>th, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-tbody>tr>th, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper .ant-table-tbody>tr>td, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper tfoot>tr>th, :where(.css-dev-only-do-not-override-240cud).ant-table-wrapper tfoot>tr>td{
@@ -71,4 +73,9 @@ justify-content: space-between;
   display: flex !important;
   justify-content: space-between !important;
   width: 80%;
+}
+
+.custom-allow-clear .ant-input-clear-icon {
+  font-size: 20px; /* увеличиваем иконку */
+  
 }

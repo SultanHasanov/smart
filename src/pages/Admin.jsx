@@ -1,11 +1,16 @@
-import React from 'react';
-import TabIcons from '../component/TabIcons';
+import React from "react";
 
 const Admin = () => {
   return (
-    <div>
-      Админка
-      <TabIcons />
+    <div
+      style={{
+        width: "100%",
+        textAlign: "center",
+        marginTop: "30px",
+        fontSize: "24px",
+      }}
+    >
+      Тут будет профиль
     </div>
   );
 };

@@ -9,14 +9,18 @@ import {
   Space,
   Button,
 } from "antd";
-import { CopyOutlined, CompassOutlined, CloseOutlined } from "@ant-design/icons";
+import {
+  CopyOutlined,
+  CompassOutlined,
+  CloseOutlined,
+} from "@ant-design/icons";
 
 const { Text } = Typography;
 const DADATA_API_KEY = "a17c1b8db5c44bf264bf804062ffe577594171e5";
 
-export default function AddressInput() {
-  const [query, setQuery] = useState("");
+export default function AddressInput({query, setQuery}) {
   const [selectedAddress, setSelectedAddress] = useState("");
+  console.log("selectedAddress", selectedAddress, query);
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef(null);
@@ -114,7 +118,7 @@ export default function AddressInput() {
   );
 
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ width: "100%", marginBottom: 10 }}>
       {selectedAddress && (
         <Space direction="vertical" style={{ marginBottom: 18 }}>
           <Text strong>Выбранный адрес:</Text>
@@ -129,46 +133,46 @@ export default function AddressInput() {
         </Space>
       )}
 
-<Dropdown
-      open={suggestions.length > 0}
-      dropdownRender={() => dropdownContent}
-      placement="bottomLeft"
-      getPopupContainer={(triggerNode) => triggerNode.parentNode}
-      align={{
-        points: ["tl", "bl"],
-        overflow: { adjustY: false, adjustX: false },
-      }}
-    >
-      <div style={{ position: "relative" }}>
-        <Input
-          placeholder="Введите адрес"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setHasSelected(false); // Разрешаем подсказки при ручном вводе
-          }}
-          autoComplete="off"
-          size="large"
-        />
-        {query && (
-          <Button
-            icon={<CloseOutlined />}
-            onClick={handleClear}
-            size="small"
-            style={{
-              position: "absolute",
-              top: "50%",
-              right: "10px",
-              transform: "translateY(-50%)",
-              border: "none",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-              color: "red",
+      <Dropdown
+        open={suggestions.length > 0}
+        dropdownRender={() => dropdownContent}
+        placement="bottomLeft"
+        getPopupContainer={(triggerNode) => triggerNode.parentNode}
+        align={{
+          points: ["tl", "bl"],
+          overflow: { adjustY: false, adjustX: false },
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          <Input
+            placeholder="Введите адрес"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setHasSelected(false); // Разрешаем подсказки при ручном вводе
             }}
+            autoComplete="off"
+            size="large"
           />
-        )}
-      </div>
-    </Dropdown>
+          {query && (
+            <Button
+              icon={<CloseOutlined />}
+              onClick={handleClear}
+              size="small"
+              style={{
+                position: "absolute",
+                top: "50%",
+                right: "10px",
+                transform: "translateY(-50%)",
+                border: "none",
+                backgroundColor: "transparent",
+                cursor: "pointer",
+                color: "red",
+              }}
+            />
+          )}
+        </div>
+      </Dropdown>
 
       {coordinates && (
         <Button
