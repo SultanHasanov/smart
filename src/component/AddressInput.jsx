@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Input, Dropdown, Spin, List, Typography, message, Space } from "antd";
-import { CopyOutlined } from "@ant-design/icons";
+import {
+  Input,
+  Dropdown,
+  Spin,
+  List,
+  Typography,
+  message,
+  Space,
+  Button,
+} from "antd";
+import { CopyOutlined, CompassOutlined } from "@ant-design/icons";
 
 const { Text } = Typography;
 const DADATA_API_KEY = "a17c1b8db5c44bf264bf804062ffe577594171e5";
@@ -12,32 +21,35 @@ export default function AddressInput() {
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef(null);
   const [hasSelected, setHasSelected] = useState(false);
+  const [coordinates, setCoordinates] = useState(null);
 
   useEffect(() => {
     if (!query || hasSelected) {
       setSuggestions([]);
       return;
     }
-  
+
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(query);
     }, 300);
   }, [query, hasSelected]);
-  
 
   const fetchSuggestions = async (value) => {
     setLoading(true);
     try {
-      const response = await fetch("https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Authorization": `Token ${DADATA_API_KEY}`
-        },
-        body: JSON.stringify({ query: value })
-      });
+      const response = await fetch(
+        "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Token ${DADATA_API_KEY}`,
+          },
+          body: JSON.stringify({ query: value }),
+        }
+      );
 
       const result = await response.json();
       setSuggestions(result.suggestions || []);
@@ -49,14 +61,20 @@ export default function AddressInput() {
   };
 
   const handleSelect = (value) => {
+    const selected = suggestions.find((item) => item.value === value);
     setQuery(value);
     setSelectedAddress(value);
-    setHasSelected(true); // <<< ставим блокировку
-    setSuggestions([]);
-    console.log("Выбран адрес:", value);
+    setHasSelected(true);
 
+    if (selected?.data?.geo_lat && selected?.data?.geo_lon) {
+      setCoordinates({
+        lat: selected.data.geo_lat,
+        lon: selected.data.geo_lon,
+      });
+    }
+
+    setSuggestions([]);
   };
-  
 
   const handleCopy = async () => {
     try {
@@ -92,25 +110,29 @@ export default function AddressInput() {
   return (
     <div style={{ width: "100%" }}>
       {selectedAddress && (
-        <Space style={{ marginBottom: 8 }}>
+        <Space direction="vertical"  style={{ marginBottom: 18 }}>
           <Text strong>Выбранный адрес:</Text>
-          <Text code>{selectedAddress}</Text>
-          <CopyOutlined
-            onClick={handleCopy}
-            style={{ cursor: "pointer", color: "#1890ff" }}
-            title="Скопировать адрес"
-          />
+          <Space>
+            <Text code>{selectedAddress}</Text>
+            <CopyOutlined
+              onClick={handleCopy}
+              style={{ cursor: "pointer", color: "#1890ff" }}
+              title="Скопировать адрес"
+            />
+          </Space>
         </Space>
       )}
 
-<Dropdown
-  open={suggestions.length > 0}
-  dropdownRender={() => dropdownContent}
-  placement="bottomLeft"
-  getPopupContainer={(triggerNode) => triggerNode.parentNode}
-  align={{ points: ['tl', 'bl'], overflow: { adjustY: false, adjustX: false } }}
->
-
+      <Dropdown
+        open={suggestions.length > 0}
+        dropdownRender={() => dropdownContent}
+        placement="bottomLeft"
+        getPopupContainer={(triggerNode) => triggerNode.parentNode}
+        align={{
+          points: ["tl", "bl"],
+          overflow: { adjustY: false, adjustX: false },
+        }}
+      >
         <Input
           placeholder="Введите адрес"
           value={query}
@@ -118,11 +140,23 @@ export default function AddressInput() {
             setQuery(e.target.value);
             setHasSelected(false); // <<< разрешаем подсказки при ручном вводе
           }}
-          
           autoComplete="off"
           size="large"
         />
       </Dropdown>
+
+      {coordinates && (
+        <Button
+          size="large"
+          type="primary"
+          icon={<CompassOutlined />}
+          href={`yandexnavi://build_route_on_map?lat_to=${coordinates.lat}&lon_to=${coordinates.lon}`}
+          target="_blank"
+          style={{ marginTop: "15px" }}
+        >
+          Открыть в Яндекс.Навигаторе
+        </Button>
+      )}
     </div>
   );
 }
