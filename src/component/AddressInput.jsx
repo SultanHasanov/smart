@@ -98,11 +98,14 @@ export default function AddressInput() {
         </Space>
       )}
 
-      <Dropdown
-        open={suggestions.length > 0}
-        dropdownRender={() => dropdownContent}
-        placement="bottomLeft"
-      >
+<Dropdown
+  open={suggestions.length > 0}
+  dropdownRender={() => dropdownContent}
+  placement="bottomLeft"
+  getPopupContainer={(triggerNode) => triggerNode.parentNode}
+  align={{ points: ['tl', 'bl'], overflow: { adjustY: false, adjustX: false } }}
+>
+
         <Input
           placeholder="Введите адрес"
           value={query}
