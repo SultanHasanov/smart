@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { Button, Checkbox, Input, message, Radio, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
-import { DeleteFilled, PlusOutlined, MinusOutlined } from "@ant-design/icons";
+import {
+  DeleteFilled,
+  PlusOutlined,
+  MinusOutlined,
+  ShoppingOutlined,
+} from "@ant-design/icons";
 import AddressInput from "../component/AddressInput";
 
 const { Text } = Typography;
@@ -12,7 +17,11 @@ const CartPage = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [query, setQuery] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
-  console.log(query);
+
+  const [test, setTest] = useState(1);
+  useEffect(() => {
+    setTest(cart.length !== 0 ? 1 : 2);
+  }, [cart.length]);
 
   const [orderData, setOrderData] = useState({
     name: "",
@@ -21,7 +30,6 @@ const CartPage = () => {
     address: query,
     changeFor: "",
   });
-  console.log(orderData);
 
   const navigate = useNavigate();
 
@@ -165,8 +173,35 @@ ${cartDetails}
 
   return (
     <>
-      <div style={{ padding: "20px", position: "relative", overflowY: "auto", height: "100vh" }}>
-        <h2>Ваш заказ:</h2>
+      <div
+        style={{
+          padding: "20px",
+          position: "relative",
+          overflowY: "auto",
+          height: "100vh",
+        }}
+      >
+        {cart.length !== 0 && <h2>Ваш заказ:</h2>}
+
+        {test === 2 && (
+          <div style={{ marginTop: "10px", display: "flex", gap: 8 }}>
+            {cart.length !== 0 && (
+              <Button
+                danger
+                onClick={handleRemoveSelected}
+                disabled={selectedIds.length === 0}
+              >
+                Удалить выбранные
+              </Button>
+            )}
+
+            <Button style={{color: 'green'}} onClick={() => navigate("/")} icon={<PlusOutlined />}>
+              {cart.length !== 0 ? "Добавить ещё" : "Добавить товары"}
+            </Button>
+          </div>
+        )}
+
+
         {cart.length > 0 ? (
           <>
             <Button
@@ -229,105 +264,135 @@ ${cartDetails}
             ))}
           </>
         ) : (
-          <div>Ничего не выбрано</div>
+          <div
+            style={{
+              height: "50vh",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#ccc",
+              fontSize: "18px",
+              textAlign: "center",
+              padding: "20px",
+            }}
+          >
+            <ShoppingOutlined style={{ fontSize: 60, marginBottom: 16 }} />
+            <div>Корзина пуста</div>
+          </div>
         )}
 
-        <div style={{ marginTop: "10px", display: "flex", gap: 8 }}>
-          <Button
-            danger
-            onClick={handleRemoveSelected}
-            disabled={selectedIds.length === 0}
-          >
-            Удалить выбранные
-          </Button>
-          <Button onClick={() => navigate("/")} icon={<PlusOutlined />}>
-            Добавить ещё
-          </Button>
-        </div>
-
-        <div style={{ marginTop: "10px" }}>
-          <Text
-            style={{
-              fontSize: 17,
-              color: "green",
-              textDecoration: "underline",
-            }}
-            strong
-          >
-            Итоговая сумма: {calculateTotal()} ₽
-          </Text>
-        </div>
-
-        <div style={{ marginTop: 20 }}>
-          <Input
-            size="large"
-            placeholder="Имя"
-            value={orderData.name}
-            onChange={(e) =>
-              setOrderData({ ...orderData, name: e.target.value })
-            }
-            style={{ marginBottom: 10 }}
-          />
-
-          <Radio.Group
-            size="large"
-            value={orderData.paymentType}
-            onChange={(e) =>
-              setOrderData({ ...orderData, paymentType: e.target.value })
-            }
-            style={{ marginBottom: 10 }}
-          >
-            <Radio.Button value="cash">Наличными</Radio.Button>
-            <Radio.Button value="transfer">Перевод</Radio.Button>
-          </Radio.Group>
-
-          {orderData.paymentType === "cash" &&
-            orderData.deliveryType === "delivery" && (
-              <Input
-                size="large"
-                placeholder="С какой суммы нужна сдача?"
-                value={orderData.changeFor}
-                onChange={(e) =>
-                  setOrderData({ ...orderData, changeFor: e.target.value })
-                }
-                style={{ marginBottom: 10 }}
-              />
+        {test === 1 && (
+          <div style={{ marginTop: "10px", display: "flex", gap: 8 }}>
+            {cart.length !== 0 && (
+              <Button
+                danger
+                onClick={handleRemoveSelected}
+                disabled={selectedIds.length === 0}
+              >
+                Удалить выбранные
+              </Button>
             )}
 
-          <Radio.Group
-            size="large"
-            value={orderData.deliveryType}
-            onChange={(e) =>
-              setOrderData({ ...orderData, deliveryType: e.target.value })
-            }
-            style={{ marginBottom: 10 }}
-          >
-            <Radio.Button value="pickup">Самовывоз</Radio.Button>
-            <Radio.Button value="delivery">Доставка</Radio.Button>
-          </Radio.Group>
+            <Button onClick={() => navigate("/")} icon={<PlusOutlined />}>
+              {cart.length !== 0 ? "Добавить ещё" : "Добавить товары"}
+            </Button>
+          </div>
+        )}
 
-          {orderData.deliveryType === "delivery" && (
-            <AddressInput query={query} setQuery={setQuery} selectedAddress={selectedAddress} setSelectedAddress={setSelectedAddress} />
-          )}
+        {cart.length !== 0 && (
+          <div style={{ marginTop: "10px" }}>
+            <Text
+              style={{
+                fontSize: 17,
+                color: "green",
+                textDecoration: "underline",
+              }}
+              strong
+            >
+              Итоговая сумма: {calculateTotal()} ₽
+            </Text>
+          </div>
+        )}
 
-        </div>
+        {cart.length !== 0 && (
+          <div style={{ marginTop: 20 }}>
+            <Input
+              size="large"
+              placeholder="Имя"
+              value={orderData.name}
+              onChange={(e) =>
+                setOrderData({ ...orderData, name: e.target.value })
+              }
+              style={{ marginBottom: 10 }}
+            />
+
+            <Radio.Group
+              size="large"
+              value={orderData.paymentType}
+              onChange={(e) =>
+                setOrderData({ ...orderData, paymentType: e.target.value })
+              }
+              style={{ marginBottom: 10 }}
+            >
+              <Radio.Button value="cash">Наличными</Radio.Button>
+              <Radio.Button value="transfer">Перевод</Radio.Button>
+            </Radio.Group>
+
+            {orderData.paymentType === "cash" &&
+              orderData.deliveryType === "delivery" && (
+                <Input
+                  size="large"
+                  placeholder="С какой суммы нужна сдача?"
+                  value={orderData.changeFor}
+                  onChange={(e) =>
+                    setOrderData({ ...orderData, changeFor: e.target.value })
+                  }
+                  style={{ marginBottom: 10 }}
+                />
+              )}
+
+            <Radio.Group
+              size="large"
+              value={orderData.deliveryType}
+              onChange={(e) =>
+                setOrderData({ ...orderData, deliveryType: e.target.value })
+              }
+              style={{ marginBottom: 10 }}
+            >
+              <Radio.Button value="pickup">Самовывоз</Radio.Button>
+              <Radio.Button value="delivery">Доставка</Radio.Button>
+            </Radio.Group>
+
+            {orderData.deliveryType === "delivery" && (
+              <AddressInput
+                query={query}
+                setQuery={setQuery}
+                selectedAddress={selectedAddress}
+                setSelectedAddress={setSelectedAddress}
+              />
+            )}
+          </div>
+        )}
       </div>
-          <Button
-           style={{
+      {cart.length !== 0 && (
+        <Button
+          style={{
             position: "sticky",
             bottom: 75,
             zIndex: 1000,
             height: 50,
             fontSize: 20,
           }}
-            size="large"
-            type="primary"
-            block
-            disabled={selectedIds.length === 0}
-            onClick={sendOrderToWhatsApp}
-          >
-            Оформить заказ
-          </Button>
+          size="large"
+          type="primary"
+          block
+          disabled={selectedIds.length === 0}
+          onClick={sendOrderToWhatsApp}
+        >
+          Оформить заказ
+        </Button>
+      )}
     </>
   );
 };

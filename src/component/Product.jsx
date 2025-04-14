@@ -1,6 +1,6 @@
 import { Button, Input } from "antd";
 import React, { useState } from "react";
-import "../App.css";y
+import "../App.css";
 import "../component/styles/Product.scss"; // Подключаем стили для компонента
 import {
   MinusOutlined,
