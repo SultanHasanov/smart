@@ -174,7 +174,7 @@ export default function AddressInput({query, setQuery}) {
         </div>
       </Dropdown>
 
-      {coordinates && (
+      {/* {coordinates && (
         <Button
           size="large"
           type="primary"
@@ -185,7 +185,7 @@ export default function AddressInput({query, setQuery}) {
         >
           Открыть в Яндекс.Навигаторе
         </Button>
-      )}
+      )} */}
     </div>
   );
 }

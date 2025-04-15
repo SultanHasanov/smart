@@ -1,5 +1,6 @@
 import { Button, Input } from "antd";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "../App.css";
 import "../component/styles/Product.scss"; // Подключаем стили для компонента
 import {
@@ -8,7 +9,6 @@ import {
   AppstoreOutlined,
   AppstoreAddOutlined,
 } from "@ant-design/icons";
-import dishes from "../data";
 
 const categories = [
   { id: "1", name: "Блюда" },
@@ -19,6 +19,7 @@ const categories = [
 ];
 
 const Product = () => {
+  const [dishes, setDishes] = useState([]);
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
@@ -27,6 +28,18 @@ const Product = () => {
   const [selectedCategory, setSelectedCategory] = useState("1");
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
+
+  useEffect(() => {
+    const fetchDishes = async () => {
+      try {
+        const response = await axios.get("https://44899c88203381ec.mokky.dev/items");
+        setDishes(response.data);
+      } catch (error) {
+        console.error("Ошибка при загрузке блюд:", error);
+      }
+    };
+    fetchDishes();
+  }, []);
 
   const getGridTemplateColumns = () => {
     return columnsCount === 2
@@ -130,7 +143,7 @@ const Product = () => {
                     className="product-card-content"
                     onClick={() => handleAddToCart(dish.id)}
                   >
-                    <div className="product-card-emoji">{dish.emoji}</div>
+                    <div className="product-card-emoji"><img src={dish.emoji} alt="" /></div>
                     <span className="product-card-title">
                       <b>
                         {dish.name.length > 12

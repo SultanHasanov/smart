@@ -25,8 +25,8 @@ const CartPage = () => {
 
   const [orderData, setOrderData] = useState({
     name: "",
-    deliveryType: "pickup",
-    paymentType: "cash",
+    deliveryType: "",
+    paymentType: "",
     address: query,
     changeFor: "",
   });

@@ -7,6 +7,7 @@ import {
   ShoppingCartOutlined,
   HeartOutlined,
   LoginOutlined,
+  PlusOutlined,
 } from '@ant-design/icons';
 
 const TABS = [
@@ -28,8 +29,8 @@ const TABS = [
   },
   {
     to: '/favorites',
-    icon: HeartOutlined,
-    label: 'Избранное',
+    icon: PlusOutlined,
+    label: 'Товар',
   },
   {
     to: '/login', // Изменим метку, если пользователь авторизован
