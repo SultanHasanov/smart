@@ -89,7 +89,6 @@ const CartPage = () => {
         : [...prev, dishId]
     );
   };
-
   const sendOrderToWhatsApp = async () => {
     const selectedItems = cart.filter((item) => selectedIds.includes(item.id));
 
@@ -155,7 +154,6 @@ ${cartDetails}
     )}`;
 
     window.open(whatsappURL, "_blank");
-    message.success("Заказ отправлен админу!");
 
      // 2. Отправка на API
   try {
@@ -163,6 +161,8 @@ ${cartDetails}
       name: orderData.name,
       address: orderData.deliveryType === "delivery" ? query : null,
       items: selectedItems,
+      deliveryFee: deliveryFee,
+      deliveryText: deliveryText,
       total: finalTotal,
       deliveryType: orderData.deliveryType,
       paymentType: orderData.paymentType,
@@ -190,7 +190,6 @@ ${cartDetails}
     const remaining = cart.filter((item) => !selectedIds.includes(item.id));
     updateCart(remaining);
     setSelectedIds([]);
-    console.log("Заказ отправлен в WhatsApp:", whatsappMessage);
   };
 
   return (

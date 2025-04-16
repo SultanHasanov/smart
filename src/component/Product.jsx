@@ -16,7 +16,6 @@ const Product = () => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
-  console.log({ dishes });
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);

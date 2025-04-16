@@ -41,6 +41,8 @@ const OrderManager = () => {
   const [loading, setLoading] = useState(true);
   const refs = useRef({}); // объект с ключами по id заказов
 
+console.log({ orders });
+
   const fetchOrders = async () => {
     try {
       const res = await axios.get(ORDER_API);
@@ -123,7 +125,7 @@ const OrderManager = () => {
               label: (
                 <Space className="order-label">
                   <Text strong>{order.name}</Text>
-                  <Tag color={getStatusColor(order.status)}>{order.status}</Tag>
+                  <Tag color={getStatusColor(order.status)}><div>{order.status}</div></Tag>
                 </Space>
               ),
               children: (
@@ -134,6 +136,12 @@ const OrderManager = () => {
                       if (el) refs.current[order.id] = el;
                     }}
                   >
+                    <Paragraph className="order-label">
+                      <Text strong>Заказ от: {order.name}</Text>
+                      <Tag color={getStatusColor(order.status)}>
+                        <div>{order.status}</div>
+                      </Tag>
+                    </Paragraph>
                     <Paragraph>
                       <Text strong>Дата:</Text> {date}
                     </Paragraph>
@@ -141,7 +149,7 @@ const OrderManager = () => {
                       <Text strong>Тип:</Text>{" "}
                       {order.deliveryType === "delivery"
                         ? "Доставка"
-                        : "Самовывоз"}
+                        : "Самовывоз"} {order.deliveryFee > 0 && `(+${order.deliveryFee}₽)`}{" "}
                     </Paragraph>
                     {order.deliveryType === "delivery" && (
                       <Paragraph>
@@ -165,7 +173,9 @@ const OrderManager = () => {
                     </Paragraph>
                   </div>
 
-                  <Space style={{ marginTop: 12, display: "flex", justifyContent: "space-between" }}>
+                  <Space
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
                     {order.status === "новый" && (
                       <>
                         <Button
