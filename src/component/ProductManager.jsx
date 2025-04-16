@@ -286,11 +286,10 @@ const ProductManager = () => {
     <div style={{ position: "relative" }}>
       <Button
         icon={<MenuOutlined />}
-        type="default"
+        type="dashed"
         style={{ position: "absolute", top: 490, right: 0, zIndex: 1000 }}
         onClick={() => setDrawerVisible(true)}
       >
-        Меню
       </Button>
 
       <Drawer
