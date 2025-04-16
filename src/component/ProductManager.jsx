@@ -10,7 +10,7 @@ import {
   message,
   Space,
   Drawer,
-  Menu
+  Menu,
 } from "antd";
 import axios from "axios";
 import {
@@ -20,10 +20,11 @@ import {
   EditOutlined,
   MenuOutlined,
   DollarOutlined,
-  PlusOutlined
+  PlusOutlined,
 } from "@ant-design/icons";
 import CategoryManager from "./CategoryManager";
 import "../component/styles/Product.scss";
+import PriceEditorTable from "./PriceEditorTable";
 
 const { Option } = Select;
 
@@ -101,24 +102,49 @@ const ProductManager = () => {
     { key: "1", label: "Добавить товар", icon: <PlusOutlined /> },
     { key: "2", label: "Товары", icon: <EditOutlined /> },
     { key: "3", label: "Цены", icon: <DollarOutlined /> },
-    { key: "4", label: "Категории", icon: <AppstoreAddOutlined /> }
+    { key: "4", label: "Категории", icon: <AppstoreAddOutlined /> },
   ];
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "1":
         return (
-          <Form className="form-edit" form={form} layout="inline" onFinish={handleAdd}>
-            <Form.Item className="input-form" name="name" label="Название" rules={[{ required: true }]}>
+          <Form
+            className="form-edit"
+            form={form}
+            layout="inline"
+            onFinish={handleAdd}
+          >
+            <Form.Item
+              className="input-form"
+              name="name"
+              label="Название"
+              rules={[{ required: true }]}
+            >
               <Input size="large" />
             </Form.Item>
-            <Form.Item className="input-form" name="price" label="Цена" rules={[{ required: true }]}>
+            <Form.Item
+              className="input-form"
+              name="price"
+              label="Цена"
+              rules={[{ required: true }]}
+            >
               <InputNumber size="large" min={0} style={{ width: "100%" }} />
             </Form.Item>
-            <Form.Item className="input-form" name="emoji" label="URL" rules={[{ required: true }]}>
+            <Form.Item
+              className="input-form"
+              name="emoji"
+              label="URL"
+              rules={[{ required: true }]}
+            >
               <Input size="large" />
             </Form.Item>
-            <Form.Item className="input-form" name="category" label="Категория" rules={[{ required: true }]}>
+            <Form.Item
+              className="input-form"
+              name="category"
+              label="Категория"
+              rules={[{ required: true }]}
+            >
               <Select size="large">
                 {categories.map((cat) => (
                   <Option key={cat.id} value={cat.id}>
@@ -128,7 +154,13 @@ const ProductManager = () => {
               </Select>
             </Form.Item>
             <Form.Item className="input-form">
-              <Button className="btn-form" size="large" type="primary" block htmlType="submit">
+              <Button
+                className="btn-form"
+                size="large"
+                type="primary"
+                block
+                htmlType="submit"
+              >
                 Добавить товар
               </Button>
             </Form.Item>
@@ -159,8 +191,10 @@ const ProductManager = () => {
                           okText="Да"
                           cancelText="Нет"
                         >
-                          <DeleteFilled style={{ color: "red", fontSize: 20 }} />
-                        </Popconfirm>
+                          <DeleteFilled
+                            style={{ color: "red", fontSize: 20 }}
+                          />
+                        </Popconfirm>,
                       ]
                 }
               >
@@ -175,7 +209,7 @@ const ProductManager = () => {
                         fontSize: 18,
                         color: "red",
                         cursor: "pointer",
-                        zIndex: 1
+                        zIndex: 1,
                       }}
                     />
                     <Form
@@ -186,7 +220,7 @@ const ProductManager = () => {
                         width: "100%",
                         flexWrap: "wrap",
                         alignItems: "center",
-                        paddingRight: 24
+                        paddingRight: 24,
                       }}
                     >
                       <Form.Item className="input-form-edit" name="name">
@@ -215,8 +249,16 @@ const ProductManager = () => {
                     </Form>
                   </div>
                 ) : (
-                  <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                    <span>{item.name} — {item.price} ₽</span>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      width: "100%",
+                    }}
+                  >
+                    <span>
+                      {item.name} — {item.price} ₽
+                    </span>
                   </div>
                 )}
               </List.Item>
@@ -225,31 +267,7 @@ const ProductManager = () => {
         );
 
       case "3":
-        return (
-          <List
-            bordered
-            dataSource={items}
-            renderItem={(item) => (
-              <List.Item>
-                <Space>
-                  <span>{item.name}</span>
-                  <InputNumber
-                    defaultValue={item.price}
-                    min={0}
-                    onChange={(val) => handlePriceChange(item.id, val)}
-                  />
-                  <Button
-                    style={{ position: "absolute", right: 8, top: 10 }}
-                    type="primary"
-                    onClick={() => saveEditedPrice(item.id)}
-                  >
-                    Сохранить цену
-                  </Button>
-                </Space>
-              </List.Item>
-            )}
-          />
-        );
+        return <PriceEditorTable />;
 
       case "4":
         return <CategoryManager />;
@@ -277,7 +295,6 @@ const ProductManager = () => {
         open={drawerVisible}
         width={250}
         bodyStyle={{ padding: 0 }}
-        
       >
         <Menu
           mode="inline"
@@ -286,8 +303,6 @@ const ProductManager = () => {
             setActiveTab(key);
             setDrawerVisible(false);
           }}
-          
-          
         >
           {tabItems.map((tab) => (
             <Menu.Item key={tab.key} icon={tab.icon}>

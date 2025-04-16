@@ -194,3 +194,10 @@
   object-fit: cover;
   border-radius: 4px;
 }
+.edited-row {
+  background-color: #fff7e6 !important; // светло-жёлтая подсветка
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  padding: 5px 10px;
+}

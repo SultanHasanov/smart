@@ -12,6 +12,7 @@ import Catalog from "./pages/Catalog";
 import Header from "./component/Header";
 import "./index.css";
 
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Header />
