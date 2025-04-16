@@ -41,7 +41,7 @@ const OrderManager = () => {
   const [loading, setLoading] = useState(true);
   const refs = useRef({}); // объект с ключами по id заказов
 
-console.log({ orders });
+  console.log({ orders });
 
   const fetchOrders = async () => {
     try {
@@ -70,18 +70,22 @@ console.log({ orders });
 
   const shareOrder = async (order, el) => {
     if (!el) return message.error("Карточка не найдена");
-
+  
     try {
+      el.style.backgroundColor = "#fff"; // гарантируем белый фон
+  
       const canvas = await html2canvas(el, {
-        backgroundColor: null,
+        backgroundColor: "#fff", // фикс темного canvas
         scale: 2,
       });
-
+  
+      el.style.backgroundColor = ""; // очищаем фон обратно
+  
       const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
       const file = new File([blob], `order-${order.id}.png`, {
         type: "image/png",
       });
-
+  
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: `Заказ от ${order.name}`,
@@ -89,9 +93,7 @@ console.log({ orders });
         });
         message.success("Чек скопирован");
       } else {
-        message.warning(
-          "Устройство не поддерживает шаринг — изображение скачано."
-        );
+        message.warning("Устройство не поддерживает шаринг — изображение скачано.");
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `order-${order.id}.png`;
@@ -102,7 +104,7 @@ console.log({ orders });
       message.error("Не удалось создать чек");
     }
   };
-
+  
   return (
     <div>
       <h3>Управление заказами</h3>
@@ -125,7 +127,9 @@ console.log({ orders });
               label: (
                 <Space className="order-label">
                   <Text strong>{order.name}</Text>
-                  <Tag color={getStatusColor(order.status)}><div>{order.status}</div></Tag>
+                  <Tag color={getStatusColor(order.status)}>
+                    <div>{order.status}</div>
+                  </Tag>
                 </Space>
               ),
               children: (
@@ -149,7 +153,8 @@ console.log({ orders });
                       <Text strong>Тип:</Text>{" "}
                       {order.deliveryType === "delivery"
                         ? "Доставка"
-                        : "Самовывоз"} {order.deliveryFee > 0 && `(+${order.deliveryFee}₽)`}{" "}
+                        : "Самовывоз"}{" "}
+                      {order.deliveryFee > 0 && `(+${order.deliveryFee}₽)`}{" "}
                     </Paragraph>
                     {order.deliveryType === "delivery" && (
                       <Paragraph>
