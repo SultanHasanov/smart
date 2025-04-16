@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Tabs,
   Form,
   Input,
   InputNumber,
@@ -10,22 +9,23 @@ import {
   Popconfirm,
   message,
   Space,
+  Drawer,
+  Menu
 } from "antd";
 import axios from "axios";
-import { CloseOutlined, DeleteFilled, EditOutlined } from "@ant-design/icons";
+import {
+  AppstoreAddOutlined,
+  CloseOutlined,
+  DeleteFilled,
+  EditOutlined,
+  MenuOutlined,
+  DollarOutlined,
+  PlusOutlined
+} from "@ant-design/icons";
+import CategoryManager from "./CategoryManager";
 import "../component/styles/Product.scss";
 
-const { TabPane } = Tabs;
 const { Option } = Select;
-
-const categories = [
-  { id: "1", name: "Блюда" },
-  { id: "6", name: "Фастфуд" },
-  { id: "2", name: "Напитки" },
-  { id: "3", name: "Соки" },
-  { id: "4", name: "Хлеб" },
-  { id: "5", name: "Кофе" },
-];
 
 const apiUrl = "https://44899c88203381ec.mokky.dev/items";
 
@@ -34,6 +34,27 @@ const ProductManager = () => {
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState(null);
   const [priceEdits, setPriceEdits] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [activeTab, setActiveTab] = useState("1");
+  const [drawerVisible, setDrawerVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          "https://44899c88203381ec.mokky.dev/categories"
+        );
+        setCategories(res.data);
+        if (res.data.length > 0 && !selectedCategory) {
+          setSelectedCategory(res.data[0].id);
+        }
+      } catch (error) {
+        console.error("Ошибка при загрузке категорий:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const fetchItems = async () => {
     const res = await axios.get(apiUrl);
@@ -76,207 +97,208 @@ const ProductManager = () => {
     fetchItems();
   };
 
-  return (
-    <Tabs defaultActiveKey="1" style={{ padding: "0 10px" }}>
-      <TabPane tab="Добавить товар" key="1">
-        <Form
-          className="form-edit"
-          form={form}
-          layout="inline"
-          onFinish={handleAdd}
-        >
-          <Form.Item
-            className="input-form"
-            name="name"
-            label="Название"
-            rules={[{ required: true }]}
-          >
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item
-            className="input-form"
-            name="price"
-            label="Цена"
-            rules={[{ required: true }]}
-          >
-            <InputNumber size="large" min={0} style={{ width: "100%" }} />
-          </Form.Item>
-          <Form.Item
-            className="input-form"
-            name="emoji"
-            label="URL"
-            rules={[{ required: true }]}
-          >
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item
-            className="input-form"
-            name="category"
-            label="Категория"
-            rules={[{ required: true }]}
-          >
-            <Select size="large">
-              {categories.map((cat) => (
-                <Option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item className="input-form">
-            <Button
-              className="btn-form"
-              size="large"
-              type="primary"
-              block
-              htmlType="submit"
-            >
-              Добавить товар
-            </Button>
-          </Form.Item>
-        </Form>
-      </TabPane>
+  const tabItems = [
+    { key: "1", label: "Добавить товар", icon: <PlusOutlined /> },
+    { key: "2", label: "Товары", icon: <EditOutlined /> },
+    { key: "3", label: "Цены", icon: <DollarOutlined /> },
+    { key: "4", label: "Категории", icon: <AppstoreAddOutlined /> }
+  ];
 
-      <TabPane
-        tab={
-          <span>
-            <EditOutlined style={{ marginRight: 8 }} />
-            Товар
-          </span>
-        }
-        key="2"
-      >
-        <List
-          bordered
-          dataSource={items}
-          renderItem={(item) => (
-            <List.Item
-              actions={
-                editingId === item.id
-                  ? [] // 🔒 Скрываем иконки при редактировании
-                  : [
-                      <EditOutlined
-                        key="edit"
-                        style={{ color: "green", fontSize: 20 }}
-                        onClick={() => setEditingId(item.id)}
-                      />,
-                      <Popconfirm
-                        key="delete"
-                        title="Удалить товар?"
-                        onConfirm={() => handleDelete(item.id)}
-                        okText="Да"
-                        cancelText="Нет"
-                      >
-                        <DeleteFilled style={{ color: "red", fontSize: 20 }} />
-                      </Popconfirm>,
-                    ]
-              }
-            >
-              {editingId === item.id ? (
-                <div style={{ position: "relative", width: "100%" }}>
-                  <CloseOutlined
-                    onClick={() => setEditingId(null)}
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: 0,
-                      fontSize: 18,
-                      color: "red",
-                      cursor: "pointer",
-                      zIndex: 1,
-                    }}
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "1":
+        return (
+          <Form className="form-edit" form={form} layout="inline" onFinish={handleAdd}>
+            <Form.Item className="input-form" name="name" label="Название" rules={[{ required: true }]}>
+              <Input size="large" />
+            </Form.Item>
+            <Form.Item className="input-form" name="price" label="Цена" rules={[{ required: true }]}>
+              <InputNumber size="large" min={0} style={{ width: "100%" }} />
+            </Form.Item>
+            <Form.Item className="input-form" name="emoji" label="URL" rules={[{ required: true }]}>
+              <Input size="large" />
+            </Form.Item>
+            <Form.Item className="input-form" name="category" label="Категория" rules={[{ required: true }]}>
+              <Select size="large">
+                {categories.map((cat) => (
+                  <Option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item className="input-form">
+              <Button className="btn-form" size="large" type="primary" block htmlType="submit">
+                Добавить товар
+              </Button>
+            </Form.Item>
+          </Form>
+        );
+
+      case "2":
+        return (
+          <List
+            className="custom-list"
+            bordered
+            dataSource={items}
+            renderItem={(item) => (
+              <List.Item
+                actions={
+                  editingId === item.id
+                    ? []
+                    : [
+                        <EditOutlined
+                          key="edit"
+                          style={{ color: "green", fontSize: 20 }}
+                          onClick={() => setEditingId(item.id)}
+                        />,
+                        <Popconfirm
+                          key="delete"
+                          title="Удалить товар?"
+                          onConfirm={() => handleDelete(item.id)}
+                          okText="Да"
+                          cancelText="Нет"
+                        >
+                          <DeleteFilled style={{ color: "red", fontSize: 20 }} />
+                        </Popconfirm>
+                      ]
+                }
+              >
+                {editingId === item.id ? (
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <CloseOutlined
+                      onClick={() => setEditingId(null)}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        fontSize: 18,
+                        color: "red",
+                        cursor: "pointer",
+                        zIndex: 1
+                      }}
+                    />
+                    <Form
+                      initialValues={item}
+                      onFinish={(values) => handleUpdate(item.id, values)}
+                      layout="inline"
+                      style={{
+                        width: "100%",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        paddingRight: 24
+                      }}
+                    >
+                      <Form.Item className="input-form-edit" name="name">
+                        <Input />
+                      </Form.Item>
+                      <Form.Item className="input-form-edit" name="price">
+                        <InputNumber min={0} />
+                      </Form.Item>
+                      <Form.Item className="input-form-edit" name="emoji">
+                        <Input />
+                      </Form.Item>
+                      <Form.Item className="input-form-edit" name="category">
+                        <Select style={{ width: 120 }}>
+                          {categories.map((cat) => (
+                            <Option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                      <Form.Item className="input-form-edit">
+                        <Button htmlType="submit" type="primary">
+                          Сохранить
+                        </Button>
+                      </Form.Item>
+                    </Form>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                    <span>{item.name} — {item.price} ₽</span>
+                  </div>
+                )}
+              </List.Item>
+            )}
+          />
+        );
+
+      case "3":
+        return (
+          <List
+            bordered
+            dataSource={items}
+            renderItem={(item) => (
+              <List.Item>
+                <Space>
+                  <span>{item.name}</span>
+                  <InputNumber
+                    defaultValue={item.price}
+                    min={0}
+                    onChange={(val) => handlePriceChange(item.id, val)}
                   />
-
-                  <Form
-                    initialValues={item}
-                    onFinish={(values) => handleUpdate(item.id, values)}
-                    layout="inline"
-                    style={{
-                      width: "100%",
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                      paddingRight: 24, // чтобы не наезжали поля на крестик
-                    }}
+                  <Button
+                    style={{ position: "absolute", right: 8, top: 10 }}
+                    type="primary"
+                    onClick={() => saveEditedPrice(item.id)}
                   >
-                    <Form.Item className="input-form-edit" name="name">
-                      <Input />
-                    </Form.Item>
-                    <Form.Item className="input-form-edit" name="price">
-                      <InputNumber min={0} />
-                    </Form.Item>
-                    <Form.Item className="input-form-edit" name="emoji">
-                      <Input />
-                    </Form.Item>
-                    <Form.Item className="input-form-edit" name="category">
-                      <Select style={{ width: 120 }}>
-                        {categories.map((cat) => (
-                          <Option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
+                    Сохранить цену
+                  </Button>
+                </Space>
+              </List.Item>
+            )}
+          />
+        );
 
-                    <Form.Item className="input-form-edit">
-                      <Button htmlType="submit" type="primary">
-                        Сохранить
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    width: "100%",
-                  }}
-                >
-                  <span>
-                    {item.name} — {item.price} ₽
-                  </span>
-                </div>
-              )}
-            </List.Item>
-          )}
-        />
-      </TabPane>
+      case "4":
+        return <CategoryManager />;
 
-      <TabPane
-        key="3"
-        tab={
-          <span>
-            <EditOutlined style={{ marginRight: 8 }} />
-            Цены
-          </span>
-        }
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div style={{ position: "relative" }}>
+      <Button
+        icon={<MenuOutlined />}
+        type="default"
+        style={{ position: "absolute", top: -50, right: 0, zIndex: 1000 }}
+        onClick={() => setDrawerVisible(true)}
       >
-        <List
-          bordered
-          dataSource={items}
-          renderItem={(item) => (
-            <List.Item>
-              <Space>
-                <span>{item.name}</span>
-                <InputNumber
-                  defaultValue={item.price}
-                  min={0}
-                  onChange={(val) => handlePriceChange(item.id, val)}
-                />
-                <Button  style={{
-                      position: "absolute",
-                      right: 8,
-                      top: 10,
-                      
-                    }} type="primary" onClick={() => saveEditedPrice(item.id)}>
-                  Сохранить цену
-                </Button>
-              </Space>
-            </List.Item>
-          )}
-        />
-      </TabPane>
-    </Tabs>
+        Меню
+      </Button>
+
+      <Drawer
+        title="Меню"
+        placement="right"
+        onClose={() => setDrawerVisible(false)}
+        open={drawerVisible}
+        width={250}
+        bodyStyle={{ padding: 0 }}
+        
+      >
+        <Menu
+          mode="inline"
+          selectedKeys={[activeTab]}
+          onClick={({ key }) => {
+            setActiveTab(key);
+            setDrawerVisible(false);
+          }}
+          
+          
+        >
+          {tabItems.map((tab) => (
+            <Menu.Item key={tab.key} icon={tab.icon}>
+              {tab.label}
+            </Menu.Item>
+          ))}
+        </Menu>
+      </Drawer>
+
+      <div style={{ marginTop: 64 }}>{renderTabContent()}</div>
+    </div>
   );
 };
 

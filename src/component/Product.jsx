@@ -10,14 +10,6 @@ import {
   AppstoreAddOutlined,
 } from "@ant-design/icons";
 
-const categories = [
-  { id: "1", name: "Блюда" },
-  { id: "6", name: "Фастфуд" },
-  { id: "2", name: "Напитки" },
-  { id: "3", name: "Соки" },
-  { id: "4", name: "Хлеб" },
-];
-
 const Product = () => {
   const [dishes, setDishes] = useState([]);
   const [cart, setCart] = useState(() => {
@@ -25,14 +17,42 @@ const Product = () => {
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  const [selectedCategory, setSelectedCategory] = useState("1");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(
+          "https://44899c88203381ec.mokky.dev/categories"
+        );
+        const allCategory = { id: "all", name: "Все", sortOrder: -1 };
+        const sorted = [
+          allCategory,
+          ...res.data.sort((a, b) => a.sortOrder - b.sortOrder),
+        ];
+        setCategories(sorted);
+
+        // if (sorted.length > 0 && !selectedCategory) {
+        //   setSelectedCategory(sorted[0].id);
+        // }
+      } catch (error) {
+        console.error("Ошибка при загрузке категорий:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchDishes = async () => {
       try {
-        const response = await axios.get("https://44899c88203381ec.mokky.dev/items");
+        const response = await axios.get(
+          "https://44899c88203381ec.mokky.dev/items"
+        );
         setDishes(response.data);
       } catch (error) {
         console.error("Ошибка при загрузке блюд:", error);
@@ -55,7 +75,12 @@ const Product = () => {
       newCart[dishIndex].quantity += 1;
     } else {
       const dish = dishes.find((dish) => dish.id === dishId);
-      newCart.push({ id: dishId, quantity: 1, name: dish.name, price: dish.price });
+      newCart.push({
+        id: dishId,
+        quantity: 1,
+        name: dish.name,
+        price: dish.price,
+      });
     }
 
     setCart(newCart);
@@ -76,11 +101,18 @@ const Product = () => {
     localStorage.setItem("cart", JSON.stringify(newCart));
   };
 
-  const filteredDishes = dishes.filter(
-    (dish) =>
-      dish.category === selectedCategory &&
+  const filteredDishes = dishes
+    .filter(
+      (dish) => selectedCategory === "all" || dish.category === selectedCategory
+    )
+    .filter((dish) =>
       dish.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    );
+
+  // Перемешиваем при категории "all"
+  if (selectedCategory === "all") {
+    filteredDishes.sort(() => Math.random() - 0.5);
+  }
 
   return (
     <div className="product-wrapper">
@@ -143,7 +175,13 @@ const Product = () => {
                     className="product-card-content"
                     onClick={() => handleAddToCart(dish.id)}
                   >
-                    <div className="product-card-emoji"><img src={dish.emoji} alt="" /></div>
+                    <div className="product-card-emoji">
+                      <img style={{
+    width: columnsCount === 2 && "100px",
+  }}
+  src={dish.emoji}
+  alt="" />
+                    </div>
                     <span className="product-card-title">
                       <b>
                         {dish.name.length > 12
