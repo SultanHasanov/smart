@@ -76,7 +76,7 @@ const OrderManager = () => {
   
       const canvas = await html2canvas(el, {
         backgroundColor: "#fff", // фикс темного canvas
-        scale: 2,
+        scale: window.devicePixelRatio || 2,
       });
   
       el.style.backgroundColor = ""; // очищаем фон обратно
