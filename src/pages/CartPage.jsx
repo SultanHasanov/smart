@@ -8,6 +8,7 @@ import {
   ShoppingOutlined,
 } from "@ant-design/icons";
 import AddressInput from "../component/AddressInput";
+import axios from "axios";
 
 const { Text } = Typography;
 const ADMIN_PHONE = "+79298974969";
@@ -89,7 +90,7 @@ const CartPage = () => {
     );
   };
 
-  const sendOrderToWhatsApp = () => {
+  const sendOrderToWhatsApp = async () => {
     const selectedItems = cart.filter((item) => selectedIds.includes(item.id));
 
     if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
@@ -155,6 +156,27 @@ ${cartDetails}
 
     window.open(whatsappURL, "_blank");
     message.success("Заказ отправлен админу!");
+
+     // 2. Отправка на API
+  try {
+    await axios.post("https://44899c88203381ec.mokky.dev/orders", {
+      name: orderData.name,
+      address: orderData.deliveryType === "delivery" ? query : null,
+      items: selectedItems,
+      total: finalTotal,
+      deliveryType: orderData.deliveryType,
+      paymentType: orderData.paymentType,
+      changeFor:
+        orderData.paymentType === "cash" ? orderData.changeFor || null : null,
+      status: "новый",
+      createdAt: Date.now(),
+    });
+
+    message.success("Заказ отправлен админу и сохранён в системе!");
+  } catch (error) {
+    message.error("Ошибка при сохранении заказа на сервере");
+    console.error("Ошибка API:", error);
+  }
 
     setOrderData({
       name: "",

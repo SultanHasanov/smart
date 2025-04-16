@@ -21,10 +21,12 @@ import {
   MenuOutlined,
   DollarOutlined,
   PlusOutlined,
+  ProfileOutlined,
 } from "@ant-design/icons";
 import CategoryManager from "./CategoryManager";
 import "../component/styles/Product.scss";
 import PriceEditorTable from "./PriceEditorTable";
+import OrderManager from "./OrderManager";
 
 const { Option } = Select;
 
@@ -103,6 +105,7 @@ const ProductManager = () => {
     { key: "2", label: "Товары", icon: <EditOutlined /> },
     { key: "3", label: "Цены", icon: <DollarOutlined /> },
     { key: "4", label: "Категории", icon: <AppstoreAddOutlined /> },
+    { key: "5", label: "Заказы", icon: <ProfileOutlined /> },
   ];
 
   const renderTabContent = () => {
@@ -271,6 +274,8 @@ const ProductManager = () => {
 
       case "4":
         return <CategoryManager />;
+        case "5":
+          return <OrderManager />;
 
       default:
         return null;
@@ -282,7 +287,7 @@ const ProductManager = () => {
       <Button
         icon={<MenuOutlined />}
         type="default"
-        style={{ position: "absolute", top: -50, right: 0, zIndex: 1000 }}
+        style={{ position: "absolute", top: 490, right: 0, zIndex: 1000 }}
         onClick={() => setDrawerVisible(true)}
       >
         Меню
@@ -290,10 +295,10 @@ const ProductManager = () => {
 
       <Drawer
         title="Меню"
-        placement="right"
+        placement="bottom"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        width={250}
+        // width={250}
         bodyStyle={{ padding: 0 }}
       >
         <Menu
@@ -305,7 +310,7 @@ const ProductManager = () => {
           }}
         >
           {tabItems.map((tab) => (
-            <Menu.Item key={tab.key} icon={tab.icon}>
+            <Menu.Item style={{border: '0.5px dashed', marginBottom: 7}} key={tab.key} icon={tab.icon}>
               {tab.label}
             </Menu.Item>
           ))}

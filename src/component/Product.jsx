@@ -1,5 +1,5 @@
-import { Button, Input } from "antd";
-import React, { useState, useEffect } from "react";
+import { Button, Input, Skeleton } from "antd";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import "../App.css";
 import "../component/styles/Product.scss"; // Подключаем стили для компонента
@@ -16,10 +16,11 @@ const Product = () => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
-
+  console.log({ dishes });
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
+  const [loading, setLoading] = useState(true);
 
   const [categories, setCategories] = useState([]);
 
@@ -56,10 +57,13 @@ const Product = () => {
         setDishes(response.data);
       } catch (error) {
         console.error("Ошибка при загрузке блюд:", error);
+      } finally {
+        setLoading(false); // <- флаг отключается при завершении загрузки
       }
     };
     fetchDishes();
   }, []);
+  
 
   const getGridTemplateColumns = () => {
     return columnsCount === 2
@@ -101,18 +105,18 @@ const Product = () => {
     localStorage.setItem("cart", JSON.stringify(newCart));
   };
 
-  const filteredDishes = dishes
-    .filter(
-      (dish) => selectedCategory === "all" || dish.category === selectedCategory
-    )
-    .filter((dish) =>
-      dish.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const shuffledAllDishes = useMemo(() => {
+    if (selectedCategory === "all") {
+      return [...dishes].sort(() => Math.random() - 0.5);
+    }
+    return dishes;
+  }, [dishes, selectedCategory]);
+  
 
-  // Перемешиваем при категории "all"
-  if (selectedCategory === "all") {
-    filteredDishes.sort(() => Math.random() - 0.5);
-  }
+  const filteredDishes = shuffledAllDishes
+  .filter(dish => selectedCategory === "all" || dish.category === selectedCategory)
+  .filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
 
   return (
     <div className="product-wrapper">
@@ -162,8 +166,15 @@ const Product = () => {
           className="product-grid"
           style={{ gridTemplateColumns: getGridTemplateColumns() }}
         >
-          {filteredDishes.length === 0 ? (
-            <div className="product-empty">Ничего не найдено</div>
+          {loading ? (
+  Array.from({ length: 6 }).map((_, index) => (
+    <div key={index} className="product-card">
+      <Skeleton.Image style={{ width: "100%", height: 80 }} active />
+      <Skeleton active title={false} paragraph={{ rows: 2 }} />
+    </div>
+  ))
+) : filteredDishes.length === 0 ? (
+  <div className="product-empty">Ничего не найдено</div>
           ) : (
             filteredDishes.map((dish) => {
               const currentDish = cart.find((item) => item.id === dish.id);
@@ -176,11 +187,13 @@ const Product = () => {
                     onClick={() => handleAddToCart(dish.id)}
                   >
                     <div className="product-card-emoji">
-                      <img style={{
-    width: columnsCount === 2 && "100px",
-  }}
-  src={dish.emoji}
-  alt="" />
+                      <img
+                        style={{
+                          width: columnsCount === 2 && "100px",
+                        }}
+                        src={dish.emoji}
+                        alt=""
+                      />
                     </div>
                     <span className="product-card-title">
                       <b>

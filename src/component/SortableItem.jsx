@@ -22,12 +22,24 @@ const SortableItem = ({ id, children }) => {
     marginBottom: 8,
     display: "flex",
     alignItems: "center",
-    gap: 12
+    gap: 12,
+    touchAction: "none", // Отключаем стандартное поведение для мобильных устройств
+    cursor: "grab", // Можно заменить на pointer
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <MenuOutlined {...listeners} style={{ cursor: "grab" }} />
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+    >
+      <MenuOutlined
+        {...listeners}
+        style={{
+          cursor: "grab", // Для мобильных также работает grab или pointer
+          touchAction: "none", // Предотвращаем стандартное поведение на мобильных
+        }}
+      />
       <div style={{ flex: 1 }}>{children}</div>
     </div>
   );

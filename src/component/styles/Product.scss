@@ -61,6 +61,7 @@
 }
 
 .product-empty {
+  position: absolute;
   width: 100%;
   text-align: center;
   margin-top: 30px;
@@ -200,4 +201,9 @@
 
 .ant-table-wrapper .ant-table-tbody > tr > td {
   padding: 5px 10px;
+}
+
+.order-label{
+  display: flex;
+  justify-content: space-between;
 }
