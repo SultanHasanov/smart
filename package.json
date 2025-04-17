@@ -9,8 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-  "deploy": "gh-pages -d dist"
-
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.2",
@@ -21,6 +20,7 @@
     "antd": "^5.24.6",
     "axios": "^1.8.3",
     "dayjs": "^1.11.13",
+    "framer-motion": "^12.7.3",
     "html2canvas": "^1.4.1",
     "jquery": "^3.7.1",
     "pusher-js": "^8.4.0",
