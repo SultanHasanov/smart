@@ -3,10 +3,8 @@ import ReactDOM from "react-dom/client";
 import { HashRouter as Router, Route, Routes } from "react-router-dom";  // Используй Routes вместо Route
 import App from "./App";
 import Admin from "./pages/Admin";
-import Product from "./component/Product";
 import CartPage from "./pages/CartPage";
 import TabIcons from "./component/TabIcons";
-import AppBottomTabs from "./component/TabIcons";
 import Favorites from "./pages/Favorites";
 import Catalog from "./pages/Catalog";
 import Header from "./component/Header";

@@ -54,7 +54,7 @@
 
 .product-grid {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   padding: 0 7px;
   margin: 0 auto;
   width: 100%;
@@ -75,11 +75,19 @@
   justify-content: space-between;
   box-sizing: border-box;
   padding: 5px;
-  border: 1px solid #ccc;
+  // border: 1px solid #ccc;
   border-radius: 8px;
   text-align: center;
   position: relative;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 5px;
+  background-color: #fafafa;
+  text-align: center;
+
   background-color: #f9f9f9;
+  // box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+
 }
 
 .product-card-content {
@@ -91,6 +99,10 @@
   // margin-bottom: 10px;
   img {
     width: 60px;
+    // background-color: #f9f9f9;
+  // border-radius: 8px;
+  // padding: 5px;
+  filter: brightness(0.8) contrast(1.6)
   }
 }
 
@@ -194,6 +206,8 @@
   height: 100px;
   object-fit: cover;
   border-radius: 4px;
+  filter: brightness(0.8) contrast(1.6)
+
 }
 .edited-row {
   background-color: #fff7e6 !important; // светло-жёлтая подсветка

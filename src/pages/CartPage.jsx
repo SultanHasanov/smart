@@ -149,11 +149,11 @@ ${orderData.deliveryType === "delivery" ? `Адрес: ${query}` : ""}
 ${cartDetails}
 Общая сумма: ${finalTotal} ₽`;
 
-    const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
-      whatsappMessage
-    )}`;
+    // const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
+    //   whatsappMessage
+    // )}`;
 
-    window.open(whatsappURL, "_blank");
+    // window.open(whatsappURL, "_blank");
 
      // 2. Отправка на API
   try {

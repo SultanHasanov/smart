@@ -11,6 +11,8 @@ import {
   Space,
   Drawer,
   Menu,
+  AutoComplete,
+  Modal,
 } from "antd";
 import axios from "axios";
 import {
@@ -41,6 +43,23 @@ const ProductManager = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [activeTab, setActiveTab] = useState("1");
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+const [newCategoryName, setNewCategoryName] = useState("");
+
+
+  const [images, setImages] = useState([]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const res = await axios.get("https://44899c88203381ec.mokky.dev/image");
+        setImages(res.data);
+      } catch (err) {
+        console.error("Ошибка загрузки изображений:", err);
+      }
+    };
+    fetchImages();
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -100,6 +119,24 @@ const ProductManager = () => {
     fetchItems();
   };
 
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    try {
+      const res = await axios.post("https://44899c88203381ec.mokky.dev/categories", {
+        name: newCategoryName,
+      });
+      const newCat = res.data;
+      setCategories((prev) => [newCat, ...prev]);
+      form.setFieldsValue({ category: newCat.id }); // авто-выбор новой
+      setCategoryModalOpen(false);
+      setNewCategoryName("");
+      message.success("Категория добавлена");
+    } catch (err) {
+      message.error("Ошибка при добавлении категории");
+    }
+  };
+  
+
   const tabItems = [
     { key: "1", label: "Добавить товар", icon: <PlusOutlined /> },
     { key: "2", label: "Товары", icon: <EditOutlined /> },
@@ -138,24 +175,82 @@ const ProductManager = () => {
               className="input-form"
               name="emoji"
               label="URL"
-              rules={[{ required: true }]}
+              rules={[
+                {
+                  required: true,
+                  message: "Введите или выберите URL картинки",
+                },
+              ]}
             >
-              <Input size="large" />
+              <AutoComplete
+                size="large"
+                options={images.map((img) => ({
+                  value: img.url,
+                  label: (
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      <img
+                        src={img.url}
+                        alt="preview"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                          border: "1px solid #eee",
+                        }}
+                      />
+                      <span style={{ fontSize: 12, wordBreak: "break-all" }}>
+                        {img.url}
+                      </span>
+                    </div>
+                  ),
+                }))}
+                filterOption={(inputValue, option) =>
+                  option?.value.toLowerCase().includes(inputValue.toLowerCase())
+                }
+              />
             </Form.Item>
+
             <Form.Item
-              className="input-form"
-              name="category"
-              label="Категория"
-              rules={[{ required: true }]}
-            >
-              <Select size="large">
-                {categories.map((cat) => (
-                  <Option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+  className="input-form"
+  name="category"
+  label="Категория"
+  rules={[{ required: true }]}
+>
+  <Select
+    size="large"
+    dropdownRender={(menu) => (
+      <>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            padding: 8,
+          }}
+        >
+          <Button
+            size="small"
+            type="link"
+            icon={<PlusOutlined />}
+            onClick={() => setCategoryModalOpen(true)}
+          >
+            Добавить категорию
+          </Button>
+        </div>
+        {menu}
+      </>
+    )}
+  >
+    {categories.map((cat) => (
+      <Option key={cat.id} value={cat.id}>
+        {cat.name}
+      </Option>
+    ))}
+  </Select>
+</Form.Item>
+
             <Form.Item className="input-form">
               <Button
                 className="btn-form"
@@ -274,8 +369,8 @@ const ProductManager = () => {
 
       case "4":
         return <CategoryManager />;
-        case "5":
-          return <OrderManager />;
+      case "5":
+        return <OrderManager />;
 
       default:
         return null;
@@ -283,14 +378,13 @@ const ProductManager = () => {
   };
 
   return (
-    <div >
+    <div>
       <Button
         icon={<MenuOutlined />}
         type="dashed"
         style={{ position: "absolute", bottom: 100, right: 10, zIndex: 1000 }}
         onClick={() => setDrawerVisible(true)}
-      >
-      </Button>
+      ></Button>
 
       <Drawer
         title="Меню"
@@ -309,7 +403,11 @@ const ProductManager = () => {
           }}
         >
           {tabItems.map((tab) => (
-            <Menu.Item style={{border: '0.5px dashed', marginBottom: 7}} key={tab.key} icon={tab.icon}>
+            <Menu.Item
+              style={{ border: "0.5px dashed", marginBottom: 7 }}
+              key={tab.key}
+              icon={tab.icon}
+            >
               {tab.label}
             </Menu.Item>
           ))}
@@ -317,6 +415,25 @@ const ProductManager = () => {
       </Drawer>
 
       <div style={{ marginTop: 64 }}>{renderTabContent()}</div>
+      <Modal
+  title="Новая категория"
+  open={categoryModalOpen}
+  onCancel={() => {
+    setCategoryModalOpen(false);
+    setNewCategoryName("");
+  }}
+  onOk={handleAddCategory}
+  okText="Добавить"
+  cancelText="Отмена"
+>
+  <Input
+    placeholder="Название категории"
+    value={newCategoryName}
+    onChange={(e) => setNewCategoryName(e.target.value)}
+    onPressEnter={handleAddCategory}
+  />
+</Modal>
+
     </div>
   );
 };

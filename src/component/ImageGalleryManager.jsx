@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, message, Tooltip } from "antd";
-import { CopyOutlined, PictureOutlined } from "@ant-design/icons";
+import { Form, Input, Button, message, Tooltip, Popconfirm } from "antd";
+import {
+  CloseOutlined,
+  CopyOutlined,
+  PictureOutlined,
+} from "@ant-design/icons";
 import axios from "axios";
 import "../component/styles/Product.scss"; // Создай тут стили, объясню ниже
 
@@ -47,6 +51,11 @@ const ImageGalleryManager = () => {
     }
   };
 
+  const deleteImg = async (id) => {
+    await axios.delete(`${apiUrl}/${id}`);
+    fetchImages();
+  };
+
   return (
     <div className="image-gallery-wrapper">
       <p style={{ marginBottom: 5 }}>
@@ -84,13 +93,20 @@ const ImageGalleryManager = () => {
         {images.map((img) => (
           <div key={img.id} className="image-card">
             <img src={img.url} alt="" className="image-preview" />
-            <Tooltip title="Скопировать ссылку">
-              <Button
-                type="text"
-                icon={<CopyOutlined />}
-                onClick={() => handleCopy(img.url)}
-              />
-            </Tooltip>
+            <Button
+              type="text"
+              icon={<CopyOutlined />}
+              onClick={() => handleCopy(img.url)}
+            />
+            <Popconfirm
+              key="delete"
+              title="Удалить фото?"
+              onConfirm={() => deleteImg(img.id)}
+              okText="Да"
+              cancelText="Нет"
+            >
+              <Button type="text" icon={<CloseOutlined />} />
+            </Popconfirm>
           </div>
         ))}
       </div>
