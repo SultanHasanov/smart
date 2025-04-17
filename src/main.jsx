@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Route } from "react-router-dom";
 import App from "./App";
 import Admin from "./pages/Admin";
 import Product from "./component/Product";
@@ -12,17 +12,16 @@ import Catalog from "./pages/Catalog";
 import Header from "./component/Header";
 import "./index.css";
 
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Header />
-    <Routes>
+    <Router>
       <Route path="/" element={<App />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/favorites" element={<Favorites />} />
       <Route path="/catalog" element={<Catalog />} />
       <Route path="/login" element={<Admin />} />
-    </Routes>
+    </Router>
     <TabIcons />
   </BrowserRouter>
 );
