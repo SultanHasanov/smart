@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { HashRouter as Router, Route } from "react-router-dom";
+import { HashRouter as Router, Route, Routes } from "react-router-dom";  // Используй Routes вместо Route
 import App from "./App";
 import Admin from "./pages/Admin";
 import Product from "./component/Product";
@@ -13,15 +13,15 @@ import Header from "./component/Header";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
+  <Router>  {/* Используй только HashRouter */}
     <Header />
-    <Router>
+    <Routes>  {/* Заменяй Route на Routes */}
       <Route path="/" element={<App />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/favorites" element={<Favorites />} />
       <Route path="/catalog" element={<Catalog />} />
       <Route path="/login" element={<Admin />} />
-    </Router>
+    </Routes>
     <TabIcons />
-  </BrowserRouter>
+  </Router>
 );
