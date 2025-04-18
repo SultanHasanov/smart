@@ -124,6 +124,12 @@
   // margin-top: 10px;
 }
 
+.product-card-actions2 {
+  display: flex;
+  justify-content: center;
+  
+}
+
 .product-btn-minus {
   background-color: #f44336 !important;
   color: white;
@@ -220,4 +226,15 @@
 .order-label{
   display: flex;
   justify-content: space-between;
+}
+
+.product-btn-add {
+  background-color: #28a745; /* Зеленый */
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
+
+:where(.css-dev-only-do-not-override-1d4w9r2).ant-dropdown{
+  z-index: 0 !important;
 }

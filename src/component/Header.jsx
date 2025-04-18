@@ -1,12 +1,32 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MenuOutlined,
   ShoppingCartOutlined,
 } from "@ant-design/icons";
 
+// Вызов пасхалки (кот-терминал)
+const openHackerCatTerminal = () => {
+  const event = new CustomEvent('hackerCatOpen');
+  window.dispatchEvent(event);
+};
+
 const Header = ({ subtitle = "Быстрая доставка за 30 мин" }) => {
   const navigate = useNavigate();
+  const timeout = useRef(null);
+
+
+  const handleTouchStart = () => {
+    timeout.current = setTimeout(() => {
+      openHackerCatTerminal(); // активирует кота
+    }, 3000); // Удержание 3 секунды
+  };
+
+  const handleTouchEnd = () => {
+    if (timeout.current) {
+      clearTimeout(timeout.current);
+    }
+  };
 
   return (
     <div style={{ backgroundColor: "#fff", borderBottom: "1px solid #eee", position: "sticky", top: 0, zIndex: 100 }}>
@@ -20,10 +40,17 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
         }}
       >
         {/* Меню или кнопка назад */}
-        <MenuOutlined style={{ fontSize: "22px", cursor: "pointer" }} onClick={() => navigate("/")} />
+        <MenuOutlined
+          style={{ fontSize: "22px", cursor: "pointer" }}
+          onClick={() => navigate("/")}
+        />
 
-        {/* Название магазина */}
-        <div style={{ fontSize: "20px", fontWeight: "700", color: "red" }}>
+        {/* Название с пасхалкой */}
+        <div
+          style={{ fontSize: "20px", fontWeight: "700", color: "red", cursor: "pointer", userSelect: "none" }}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           Smart
         </div>
 
@@ -31,7 +58,7 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
         <ShoppingCartOutlined
           onClick={() => navigate("/cart")}
           style={{ fontSize: "22px", cursor: "pointer" }}
-          />
+        />
       </div>
 
       {/* Подзаголовок или статус */}

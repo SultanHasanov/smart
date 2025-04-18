@@ -44,8 +44,7 @@ const ProductManager = () => {
   const [activeTab, setActiveTab] = useState("1");
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
-const [newCategoryName, setNewCategoryName] = useState("");
-
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const [images, setImages] = useState([]);
 
@@ -122,9 +121,12 @@ const [newCategoryName, setNewCategoryName] = useState("");
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
     try {
-      const res = await axios.post("https://44899c88203381ec.mokky.dev/categories", {
-        name: newCategoryName,
-      });
+      const res = await axios.post(
+        "https://44899c88203381ec.mokky.dev/categories",
+        {
+          name: newCategoryName,
+        }
+      );
       const newCat = res.data;
       setCategories((prev) => [newCat, ...prev]);
       form.setFieldsValue({ category: newCat.id }); // авто-выбор новой
@@ -135,7 +137,6 @@ const [newCategoryName, setNewCategoryName] = useState("");
       message.error("Ошибка при добавлении категории");
     }
   };
-  
 
   const tabItems = [
     { key: "1", label: "Добавить товар", icon: <PlusOutlined /> },
@@ -214,42 +215,42 @@ const [newCategoryName, setNewCategoryName] = useState("");
             </Form.Item>
 
             <Form.Item
-  className="input-form"
-  name="category"
-  label="Категория"
-  rules={[{ required: true }]}
->
-  <Select
-    size="large"
-    dropdownRender={(menu) => (
-      <>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            padding: 8,
-          }}
-        >
-          <Button
-            size="small"
-            type="link"
-            icon={<PlusOutlined />}
-            onClick={() => setCategoryModalOpen(true)}
-          >
-            Добавить категорию
-          </Button>
-        </div>
-        {menu}
-      </>
-    )}
-  >
-    {categories.map((cat) => (
-      <Option key={cat.id} value={cat.id}>
-        {cat.name}
-      </Option>
-    ))}
-  </Select>
-</Form.Item>
+              className="input-form"
+              name="category"
+              label="Категория"
+              rules={[{ required: true }]}
+            >
+              <Select
+                size="large"
+                dropdownRender={(menu) => (
+                  <>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        padding: 8,
+                      }}
+                    >
+                      <Button
+                        size="small"
+                        type="link"
+                        icon={<PlusOutlined />}
+                        onClick={() => setCategoryModalOpen(true)}
+                      >
+                        Добавить категорию
+                      </Button>
+                    </div>
+                    {menu}
+                  </>
+                )}
+              >
+                {categories.map((cat) => (
+                  <Option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
 
             <Form.Item className="input-form">
               <Button
@@ -392,7 +393,9 @@ const [newCategoryName, setNewCategoryName] = useState("");
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
         // width={250}
-        bodyStyle={{ padding: 0 }}
+        styles={{
+          body: { padding: 0 },
+        }}
       >
         <Menu
           mode="inline"
@@ -416,24 +419,23 @@ const [newCategoryName, setNewCategoryName] = useState("");
 
       <div style={{ marginTop: 64 }}>{renderTabContent()}</div>
       <Modal
-  title="Новая категория"
-  open={categoryModalOpen}
-  onCancel={() => {
-    setCategoryModalOpen(false);
-    setNewCategoryName("");
-  }}
-  onOk={handleAddCategory}
-  okText="Добавить"
-  cancelText="Отмена"
->
-  <Input
-    placeholder="Название категории"
-    value={newCategoryName}
-    onChange={(e) => setNewCategoryName(e.target.value)}
-    onPressEnter={handleAddCategory}
-  />
-</Modal>
-
+        title="Новая категория"
+        open={categoryModalOpen}
+        onCancel={() => {
+          setCategoryModalOpen(false);
+          setNewCategoryName("");
+        }}
+        onOk={handleAddCategory}
+        okText="Добавить"
+        cancelText="Отмена"
+      >
+        <Input
+          placeholder="Название категории"
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          onPressEnter={handleAddCategory}
+        />
+      </Modal>
     </div>
   );
 };

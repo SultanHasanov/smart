@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Form, Input, Button, message, Tooltip, Popconfirm } from "antd";
 import {
   CloseOutlined,
@@ -7,6 +7,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import "../component/styles/Product.scss"; // Создай тут стили, объясню ниже
+import { AuthContext } from "../store/AuthContext";
 
 const apiUrl = "https://44899c88203381ec.mokky.dev/image";
 
@@ -14,6 +15,8 @@ const ImageGalleryManager = () => {
   const [images, setImages] = useState([]);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+
+  const { isAuthenticated } = useContext(AuthContext);
 
   const fetchImages = async () => {
     try {
@@ -61,33 +64,35 @@ const ImageGalleryManager = () => {
       <p style={{ marginBottom: 5 }}>
         Загружено изображений: <b>{images.length}</b>
       </p>
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleAdd}
-        style={{ marginBottom: 24 }}
-      >
-        <Form.Item
-          name="url"
-          rules={[{ required: true, message: "Введите URL изображения" }]}
+      {isAuthenticated && (
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleAdd}
+          style={{ marginBottom: 24 }}
         >
-          <Input
-            placeholder="https://example.com/image.jpg"
-            style={{ width: 300 }}
-            prefix={<PictureOutlined />}
-          />
-        </Form.Item>
-        <Form.Item>
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={loading}
-            disabled={loading}
+          <Form.Item
+            name="url"
+            rules={[{ required: true, message: "Введите URL изображения" }]}
           >
-            Добавить
-          </Button>
-        </Form.Item>
-      </Form>
+            <Input
+              placeholder="https://example.com/image.jpg"
+              style={{ width: 300 }}
+              prefix={<PictureOutlined />}
+            />
+          </Form.Item>
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              disabled={loading}
+            >
+              Добавить
+            </Button>
+          </Form.Item>
+        </Form>
+      )}
 
       <div className="image-grid">
         {images.map((img) => (

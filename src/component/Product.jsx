@@ -35,10 +35,6 @@ const Product = () => {
           ...res.data.sort((a, b) => a.sortOrder - b.sortOrder),
         ];
         setCategories(sorted);
-
-        // if (sorted.length > 0 && !selectedCategory) {
-        //   setSelectedCategory(sorted[0].id);
-        // }
       } catch (error) {
         console.error("Ошибка при загрузке категорий:", error);
       }
@@ -62,7 +58,6 @@ const Product = () => {
     };
     fetchDishes();
   }, []);
-  
 
   const getGridTemplateColumns = () => {
     return columnsCount === 2
@@ -110,12 +105,10 @@ const Product = () => {
     }
     return dishes;
   }, [dishes, selectedCategory]);
-  
 
   const filteredDishes = shuffledAllDishes
-  .filter(dish => selectedCategory === "all" || dish.category === selectedCategory)
-  .filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
+    .filter(dish => selectedCategory === "all" || dish.category === selectedCategory)
+    .filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="product-wrapper">
@@ -166,14 +159,14 @@ const Product = () => {
           style={{ gridTemplateColumns: getGridTemplateColumns() }}
         >
           {loading ? (
-  Array.from({ length: 6 }).map((_, index) => (
-    <div key={index} className="product-card">
-      <Skeleton.Image style={{ width: "100%", height: 80 }} active />
-      <Skeleton active title={false} paragraph={{ rows: 2 }} />
-    </div>
-  ))
-) : filteredDishes.length === 0 ? (
-  <div className="product-empty">Ничего не найдено</div>
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="product-card">
+                <Skeleton.Image style={{ width: "100%", height: 80 }} active />
+                <Skeleton active title={false} paragraph={{ rows: 2 }} />
+              </div>
+            ))
+          ) : filteredDishes.length === 0 ? (
+            <div className="product-empty">Ничего не найдено</div>
           ) : (
             filteredDishes.map((dish) => {
               const currentDish = cart.find((item) => item.id === dish.id);
@@ -206,28 +199,37 @@ const Product = () => {
                     </div>
                   </div>
 
-                  <div className="product-card-actions">
-                    <Button
-                      size={columnsCount === 3 ? "small" : "large"}
-                      onClick={() => handleDecreaseQuantity(dish.id)}
-                      className="product-btn-minus"
-                    >
-                      <MinusOutlined />
-                    </Button>
-                    <Button
-                      size={columnsCount === 3 ? "small" : "large"}
-                      onClick={() => handleAddToCart(dish.id)}
-                      className="product-btn-plus"
-                    >
-                      <PlusOutlined />
-                    </Button>
+                  <div className={quantity === 0 ? "product-card-actions2" : "product-card-actions"}>
+                    {quantity === 0 ? (
+                      <Button
+                        size={columnsCount === 3 ? "small" : "medium"}
+                        onClick={() => handleAddToCart(dish.id)}
+                        className="product-btn-add"
+                      >
+                        В корзину
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          size={columnsCount === 3 ? "small" : "large"}
+                          onClick={() => handleDecreaseQuantity(dish.id)}
+                          className="product-btn-minus"
+                        >
+                          <MinusOutlined />
+                        </Button>
+                        <Button
+                          size={columnsCount === 3 ? "small" : "large"}
+                          onClick={() => handleAddToCart(dish.id)}
+                          className="product-btn-plus"
+                        >
+                          <PlusOutlined />
+                        </Button>
+                        <span className="product-card-quantity">
+                          <b>{quantity}</b>
+                        </span>
+                      </>
+                    )}
                   </div>
-
-                  {quantity > 0 && (
-                    <span className="product-card-quantity">
-                      <b>{quantity}</b>
-                    </span>
-                  )}
                 </div>
               );
             })

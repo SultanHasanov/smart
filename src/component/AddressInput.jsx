@@ -18,10 +18,9 @@ import {
 const { Text } = Typography;
 const DADATA_API_KEY = "a17c1b8db5c44bf264bf804062ffe577594171e5";
 
-export default function AddressInput({query, setQuery}) {
+export default function AddressInput({query, setQuery, suggestions, setSuggestions}) {
   const [selectedAddress, setSelectedAddress] = useState("");
   console.log("selectedAddress", selectedAddress, query);
-  const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef(null);
   const [hasSelected, setHasSelected] = useState(false);

@@ -9,6 +9,9 @@ import {
 } from "@ant-design/icons";
 import AddressInput from "../component/AddressInput";
 import axios from "axios";
+import "../component/styles/Product.scss";
+import { div } from "framer-motion/client";
+import CartList from "../component/CartList";
 
 const { Text } = Typography;
 const ADMIN_PHONE = "+79298974969";
@@ -18,6 +21,7 @@ const CartPage = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [query, setQuery] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
 
   const [test, setTest] = useState(1);
   useEffect(() => {
@@ -155,28 +159,28 @@ ${cartDetails}
 
     // window.open(whatsappURL, "_blank");
 
-     // 2. Отправка на API
-  try {
-    await axios.post("https://44899c88203381ec.mokky.dev/orders", {
-      name: orderData.name,
-      address: orderData.deliveryType === "delivery" ? query : null,
-      items: selectedItems,
-      deliveryFee: deliveryFee,
-      deliveryText: deliveryText,
-      total: finalTotal,
-      deliveryType: orderData.deliveryType,
-      paymentType: orderData.paymentType,
-      changeFor:
-        orderData.paymentType === "cash" ? orderData.changeFor || null : null,
-      status: "новый",
-      createdAt: Date.now(),
-    });
+    // 2. Отправка на API
+    try {
+      await axios.post("https://44899c88203381ec.mokky.dev/orders", {
+        name: orderData.name,
+        address: orderData.deliveryType === "delivery" ? query : null,
+        items: selectedItems,
+        deliveryFee: deliveryFee,
+        deliveryText: deliveryText,
+        total: finalTotal,
+        deliveryType: orderData.deliveryType,
+        paymentType: orderData.paymentType,
+        changeFor:
+          orderData.paymentType === "cash" ? orderData.changeFor || null : null,
+        status: "новый",
+        createdAt: Date.now(),
+      });
 
-    message.success("Заказ отправлен админу и сохранён в системе!");
-  } catch (error) {
-    message.error("Ошибка при сохранении заказа на сервере");
-    console.error("Ошибка API:", error);
-  }
+      message.success("Заказ отправлен админу и сохранён в системе!");
+    } catch (error) {
+      message.error("Ошибка при сохранении заказа на сервере");
+      console.error("Ошибка API:", error);
+    }
 
     setOrderData({
       name: "",
@@ -193,35 +197,16 @@ ${cartDetails}
   };
 
   return (
-    <>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <div
         style={{
-          padding: "20px",
-          position: "relative",
+          flex: 1,
+          padding: "10px",
           overflowY: "auto",
-          height: "100vh",
+          paddingBottom: 90, // чтобы контент не упирался в кнопку
         }}
       >
         {cart.length !== 0 && <h2>Ваш заказ:</h2>}
-
-        {test === 2 && (
-          <div style={{ marginTop: "10px", display: "flex", gap: 8 }}>
-            {cart.length !== 0 && (
-              <Button
-                danger
-                onClick={handleRemoveSelected}
-                disabled={selectedIds.length === 0}
-              >
-                Удалить выбранные
-              </Button>
-            )}
-
-            <Button style={{color: 'green'}} onClick={() => navigate("/")} icon={<PlusOutlined />}>
-              {cart.length !== 0 ? "Добавить ещё" : "Добавить товары"}
-            </Button>
-          </div>
-        )}
-
 
         {cart.length > 0 ? (
           <>
@@ -240,49 +225,14 @@ ${cartDetails}
                 : "Выбрать всё"}
             </Button>
 
-            {cart.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  marginBottom: "10px",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
-              >
-                <Checkbox
-                  checked={selectedIds.includes(item.id)}
-                  onChange={() => toggleSelected(item.id)}
-                />
-                <Text strong style={{ fontSize: "16px", flex: 1 }}>
-                  {item.name} = {item.price * item.quantity} ₽
-                </Text>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <Button
-                    shape="circle"
-                    icon={<MinusOutlined />}
-                    onClick={() => decreaseQuantity(item.id)}
-                    size="small"
-                  />
-                  <Text style={{ margin: "0 8px" }}>{item.quantity}</Text>
-                  <Button
-                    shape="circle"
-                    icon={<PlusOutlined />}
-                    onClick={() => increaseQuantity(item.id)}
-                    size="small"
-                  />
-                </div>
-                <DeleteFilled
-                  onClick={() => handleRemoveFromCart(item.id)}
-                  style={{
-                    color: "#f44336",
-                    cursor: "pointer",
-                    fontSize: "20px",
-                  }}
-                />
-              </div>
-            ))}
+            <CartList
+              cart={cart}
+              selectedIds={selectedIds}
+              toggleSelected={toggleSelected}
+              increaseQuantity={increaseQuantity}
+              decreaseQuantity={decreaseQuantity}
+              handleRemoveFromCart={handleRemoveFromCart}
+            />
           </>
         ) : (
           <div
@@ -384,37 +334,50 @@ ${cartDetails}
               <Radio.Button value="pickup">Самовывоз</Radio.Button>
               <Radio.Button value="delivery">Доставка</Radio.Button>
             </Radio.Group>
-
-            {orderData.deliveryType === "delivery" && (
-              <AddressInput
-                query={query}
-                setQuery={setQuery}
-                selectedAddress={selectedAddress}
-                setSelectedAddress={setSelectedAddress}
-              />
-            )}
           </div>
         )}
+        {orderData.deliveryType === "delivery" && (
+          <AddressInput
+            query={query}
+            setQuery={setQuery}
+            selectedAddress={selectedAddress}
+            setSelectedAddress={setSelectedAddress}
+            setSuggestions={setSuggestions}
+            suggestions={suggestions}
+          />
+        )}
       </div>
-      {cart.length !== 0 && (
+
+      {cart.length !== 0 && suggestions.length === 0 && (
         <Button
-          style={{
-            position: "sticky",
-            bottom: 75,
-            zIndex: 1000,
-            height: 50,
-            fontSize: 20,
-          }}
+          style={{ height: 50, fontSize: 20, bottom: 60, zIndex: 1000 }}
           size="large"
           type="primary"
           block
-          disabled={selectedIds.length === 0}
           onClick={sendOrderToWhatsApp}
         >
           Оформить заказ
         </Button>
       )}
-    </>
+
+      {test === 2 && (
+        <Button
+          size="large"
+          style={{
+            top: 110,
+
+            fontSize: 20,
+            color: "green",
+            width: "100%",
+            height: 50,
+          }}
+          onClick={() => navigate("/")}
+          icon={<PlusOutlined />}
+        >
+          {cart.length === 0 && "Добавить товары"}
+        </Button>
+      )}
+    </div>
   );
 };
 
