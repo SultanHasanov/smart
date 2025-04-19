@@ -103,15 +103,17 @@ const ImageGalleryManager = () => {
               icon={<CopyOutlined />}
               onClick={() => handleCopy(img.url)}
             />
-            <Popconfirm
-              key="delete"
-              title="Удалить фото?"
-              onConfirm={() => deleteImg(img.id)}
-              okText="Да"
-              cancelText="Нет"
-            >
-              <Button type="text" icon={<CloseOutlined />} />
-            </Popconfirm>
+            {isAuthenticated && (
+              <Popconfirm
+                key="delete"
+                title="Удалить фото?"
+                onConfirm={() => deleteImg(img.id)}
+                okText="Да"
+                cancelText="Нет"
+              >
+                <Button type="text" icon={<CloseOutlined />} />
+              </Popconfirm>
+            )}
           </div>
         ))}
       </div>

@@ -66,6 +66,13 @@ const CartPage = () => {
     const newCart = cart.filter((item) => !selectedIds.includes(item.id));
     updateCart(newCart);
     setSelectedIds([]);
+    setOrderData({
+      name: "",
+      deliveryType: "",
+      paymentType: "",
+      address: query,
+      changeFor: "",
+    })
   };
 
   const increaseQuantity = (dishId) => {
@@ -197,13 +204,11 @@ ${cartDetails}
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+    <>
       <div
         style={{
-          flex: 1,
           padding: "10px",
-          overflowY: "auto",
-          paddingBottom: 90, // чтобы контент не упирался в кнопку
+          // position: "relative",
         }}
       >
         {cart.length !== 0 && <h2>Ваш заказ:</h2>}
@@ -346,25 +351,29 @@ ${cartDetails}
             suggestions={suggestions}
           />
         )}
+        <div style={{ marginBottom: 50 }}>
+          {cart.length !== 0 && suggestions.length === 0 && (
+            <Button
+              style={{
+                height: 50,
+                fontSize: 20,
+              }}
+              size="large"
+              type="primary"
+              block
+              onClick={sendOrderToWhatsApp}
+            >
+              Оформить заказ
+            </Button>
+          )}
+        </div>
       </div>
-
-      {cart.length !== 0 && suggestions.length === 0 && (
-        <Button
-          style={{ height: 50, fontSize: 20, bottom: 60, zIndex: 1000 }}
-          size="large"
-          type="primary"
-          block
-          onClick={sendOrderToWhatsApp}
-        >
-          Оформить заказ
-        </Button>
-      )}
 
       {test === 2 && (
         <Button
           size="large"
           style={{
-            top: 110,
+            top: 60,
 
             fontSize: 20,
             color: "green",
@@ -377,7 +386,7 @@ ${cartDetails}
           {cart.length === 0 && "Добавить товары"}
         </Button>
       )}
-    </div>
+    </>
   );
 };
 
