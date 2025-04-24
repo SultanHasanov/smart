@@ -106,7 +106,7 @@ const OrderManager = () => {
   };
   
   return (
-    <div>
+    <div className="order-manager">
       <h3>Управление заказами</h3>
       {loading ? (
         <Spin size="large" />

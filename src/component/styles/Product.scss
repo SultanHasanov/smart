@@ -238,3 +238,8 @@
 :where(.css-dev-only-do-not-override-1d4w9r2).ant-dropdown{
   z-index: 0 !important;
 }
+
+.order-manager {
+  max-height: calc(100vh - 64px); // минус высота шапки
+  overflow-y: auto;
+}

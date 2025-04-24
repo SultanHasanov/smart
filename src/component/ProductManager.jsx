@@ -31,6 +31,7 @@ import "../component/styles/Product.scss";
 import PriceEditorTable from "./PriceEditorTable";
 import OrderManager from "./OrderManager";
 import BannerManager from "./BannerManager";
+import { audio } from "framer-motion/client";
 
 const { Option } = Select;
 
@@ -429,7 +430,7 @@ const ProductManager = () => {
         </Menu>
       </Drawer>
 
-      <div style={{ marginTop: 64 }}>{renderTabContent()}</div>
+      <div style={{ height: "100vh" }}>{renderTabContent()}</div>
       <Modal
         title="Новая категория"
         open={categoryModalOpen}
