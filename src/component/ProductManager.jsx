@@ -24,11 +24,13 @@ import {
   DollarOutlined,
   PlusOutlined,
   ProfileOutlined,
+  NotificationOutlined,
 } from "@ant-design/icons";
 import CategoryManager from "./CategoryManager";
 import "../component/styles/Product.scss";
 import PriceEditorTable from "./PriceEditorTable";
 import OrderManager from "./OrderManager";
+import BannerManager from "./BannerManager";
 
 const { Option } = Select;
 
@@ -144,6 +146,7 @@ const ProductManager = () => {
     { key: "3", label: "Цены", icon: <DollarOutlined /> },
     { key: "4", label: "Категории", icon: <AppstoreAddOutlined /> },
     { key: "5", label: "Заказы", icon: <ProfileOutlined /> },
+    { key: "6", label: "Баннер", icon: <NotificationOutlined /> },
   ];
 
   const renderTabContent = () => {
@@ -372,6 +375,8 @@ const ProductManager = () => {
         return <CategoryManager />;
       case "5":
         return <OrderManager />;
+      case "6":
+        return <BannerManager />;
 
       default:
         return null;
@@ -383,7 +388,14 @@ const ProductManager = () => {
       <Button
         icon={<MenuOutlined />}
         type="dashed"
-        style={{ position: "absolute", bottom: 100, right: 10, zIndex: 1000 }}
+        style={{
+          position: "absolute",
+          bottom: 100,
+          right: 10,
+          zIndex: 1000,
+          fontSize: 30,
+          padding: 25,
+        }}
         onClick={() => setDrawerVisible(true)}
       ></Button>
 

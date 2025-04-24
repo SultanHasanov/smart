@@ -17,7 +17,7 @@ import {
 import { SortableItem } from "./SortableItem";
 import { Button, Input, Space } from "antd";
 
-const API_URL = "https://44899c88203381ec.mokky.dev/categories";
+const API_URL = "https://chechnya-product.ru/api/admin/categories";
 
 const CategoryManager = () => {
   const [categories, setCategories] = useState([]);

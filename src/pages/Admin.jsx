@@ -3,6 +3,8 @@ import { Input, Button, Form, message } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../store/AuthContext";
+const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
+
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -10,18 +12,25 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (values) => {
+    // Если авторизация отключена, имитируем успешный логин. Удалить в продакшене!
+    if (IS_AUTH_DISABLED) {
+      login("fake-token"); // 🔒 Имитируем логин
+      message.success("Имитация авторизации успешна!");
+      navigate("/favorites");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.post(
         "https://chechnya-product.ru/api/login",
         {
-          username: values.username,
+          identifier: values.username,
           password: values.password,
         }
       );
-
-      if (response.data.token) {
-        login(response.data.token); // ✅ глобально обновит состояние
+      if (response.data.data.token) {
+        login(response.data.data.token); // ✅ глобально обновит состояние
         message.success("Авторизация успешна!");
         navigate("/favorites");
       }
