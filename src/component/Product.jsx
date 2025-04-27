@@ -12,7 +12,10 @@ import {
 } from "@ant-design/icons";
 
 const Product = () => {
-  const [dishes, setDishes] = useState([]);
+  const [dishes, setDishes] = useState(() => {
+    const cachedDishes = localStorage.getItem("dishes");
+    return cachedDishes ? JSON.parse(cachedDishes) : [];
+  });
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
@@ -21,46 +24,66 @@ const Product = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState([]);
-  console.log({ categories });
+  const [categories, setCategories] = useState(() => {
+    const cachedCategories = localStorage.getItem("categories");
+    return cachedCategories ? JSON.parse(cachedCategories) : [];
+  });
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(
-          "https://chechnya-product.ru/api/categories"
-        );
-        const allCategory = { id: "all", name: "Все", sortOrder: -1 };
-        const sorted = res?.data?.data
-          ? [
-              allCategory,
-              ...res.data.data.sort((a, b) => a.sort_order - b.sort_order),
-            ]
-          : [allCategory]; // Handle null/undefined data
-        setCategories(sorted);
-      } catch (error) {
-        console.error("Ошибка при загрузке категорий:", error);
-      }
+    const handleOfflineStatus = () => {
+      setIsOffline(!navigator.onLine);
     };
 
-    fetchCategories();
+    window.addEventListener("online", handleOfflineStatus);
+    window.addEventListener("offline", handleOfflineStatus);
+
+    return () => {
+      window.removeEventListener("online", handleOfflineStatus);
+      window.removeEventListener("offline", handleOfflineStatus);
+    };
   }, []);
 
   useEffect(() => {
-    const fetchDishes = async () => {
-      try {
-        const response = await axios.get(
-          "https://chechnya-product.ru/api/products"
-        );
-        setDishes(response?.data?.data || []);
-      } catch (error) {
-        console.error("Ошибка при загрузке блюд:", error);
-      } finally {
-        setLoading(false); // <- флаг отключается при завершении загрузки
-      }
-    };
-    fetchDishes();
-  }, []);
+    if (!isOffline) {
+      const fetchCategories = async () => {
+        try {
+          const res = await axios.get("https://chechnya-product.ru/api/categories");
+          const allCategory = { id: "all", name: "Все", sortOrder: -1 };
+          const sorted = res?.data?.data
+            ? [
+                allCategory,
+                ...res.data.data.sort((a, b) => a.sort_order - b.sort_order),
+              ]
+            : [allCategory]; // Handle null/undefined data
+          setCategories(sorted);
+          localStorage.setItem("categories", JSON.stringify(sorted)); // Кешируем категории
+        } catch (error) {
+          console.error("Ошибка при загрузке категорий:", error);
+        }
+      };
+
+      fetchCategories();
+    }
+  }, [isOffline]);
+
+  useEffect(() => {
+    if (!isOffline) {
+      const fetchDishes = async () => {
+        try {
+          const response = await axios.get("https://chechnya-product.ru/api/products");
+          setDishes(response?.data?.data || []);
+          localStorage.setItem("dishes", JSON.stringify(response?.data?.data || [])); // Кешируем блюда
+        } catch (error) {
+          console.error("Ошибка при загрузке блюд:", error);
+        } finally {
+          setLoading(false); // <- флаг отключается при завершении загрузки
+        }
+      };
+
+      fetchDishes();
+    }
+  }, [isOffline]);
 
   const getGridTemplateColumns = () => {
     return columnsCount === 2
@@ -110,12 +133,8 @@ const Product = () => {
   }, [dishes, selectedCategory]);
 
   const filteredDishes = shuffledAllDishes
-    .filter(
-      (dish) => selectedCategory === "all" || dish.category_id === selectedCategory
-    )
-    .filter((dish) =>
-      dish.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    .filter((dish) => selectedCategory === "all" || dish.category_id === selectedCategory)
+    .filter((dish) => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="product-wrapper">
@@ -136,9 +155,7 @@ const Product = () => {
             <Button
               size="middle"
               key={category.id}
-              className={`product-category-button ${
-                selectedCategory === category.id ? "active" : ""
-              }`}
+              className={`product-category-button ${selectedCategory === category.id ? "active" : ""}`}
               onClick={() => {
                 setSelectedCategory(category.id);
                 setSearchTerm("");
@@ -153,9 +170,7 @@ const Product = () => {
       <div className="product-toggle">
         <Button
           shape="circle"
-          icon={
-            columnsCount === 3 ? <AppstoreAddOutlined /> : <AppstoreOutlined />
-          }
+          icon={columnsCount === 3 ? <AppstoreAddOutlined /> : <AppstoreOutlined />}
           onClick={() => setColumnsCount(columnsCount === 3 ? 2 : 3)}
         />
       </div>
@@ -181,10 +196,7 @@ const Product = () => {
               const isUnavailable = !dish.availability;
 
               return (
-                <div
-                  key={dish.id}
-                  className={`product-card ${isUnavailable ? "inactive" : ""}`}
-                >
+                <div key={dish.id} className={`product-card ${isUnavailable ? "inactive" : ""}`}>
                   <div
                     className="product-card-content"
                     onClick={() => !isUnavailable && handleAddToCart(dish.id)}
@@ -193,9 +205,7 @@ const Product = () => {
                     <div className="product-card-emoji">
                       {dish.url ? (
                         <img
-                          style={{
-                            width: columnsCount === 2 ? "100px" : "50px",
-                          }}
+                          style={{ width: columnsCount === 2 ? "100px" : "50px" }}
                           src={dish.url}
                           alt=""
                         />
@@ -204,9 +214,7 @@ const Product = () => {
                       )}
                     </div>
                     <span className="product-card-title">
-                      <b>
-                        {dish.name.length > 12 ? dish.name.slice(0, 10) + "..." : dish.name}
-                      </b>
+                      <b>{dish.name.length > 12 ? dish.name.slice(0, 10) + "..." : dish.name}</b>
                     </span>
                     <div className="product-card-price">
                       <b>Цена:</b> {dish.price} ₽

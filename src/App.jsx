@@ -12,7 +12,7 @@ const App = () => {
 
   // Логика для отображения кнопки установки
   useEffect(() => {
-    window.addEventListener("beforeinstallprompt", (e) => {
+    const handleBeforeInstallPrompt = (e) => {
       // Предотвращаем стандартное поведение
       e.preventDefault();
       setDeferredPrompt(e); // Сохраняем событие
@@ -23,10 +23,12 @@ const App = () => {
         message: "Установка приложения",
         description: "Для установки приложения нажмите кнопку ниже.",
       });
-    });
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", () => {});
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
 
