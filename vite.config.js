@@ -18,14 +18,32 @@ const manifest = {
       src: "/icon512_rounded.png",
       type: "image/png",
     },
+    {
+      sizes: "144x144",
+      src: "/icon144.png", // Добавьте иконку этого размера
+      type: "image/png",
+    },
   ],
   orientation: "any",
   display: "standalone",
-
   lang: "ru-RU",
   name: "Smart",
-  start_url: "/",
+  start_url: "/smart/", // Убедитесь, что путь правильный
+  screenshots: [
+    {
+      src: "/screenshot1.png",
+      sizes: "1280x800",
+      type: "image/png",
+      form_factor: "wide",
+    },
+    {
+      src: "/screenshot2.png",
+      sizes: "640x1136",
+      type: "image/png",
+    },
+  ],
 };
+
 
 export default defineConfig({
   base: "/smart/", // 👈 обязательно укажи путь как у репозитория
