@@ -19,7 +19,10 @@ const App = () => {
       setShowInstallButton(true); // Показываем кнопку
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    // Проверяем, показывать ли кнопку только в первый раз
+    if (!localStorage.getItem('isAppInstalled')) {
+      window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    }
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -33,7 +36,7 @@ const App = () => {
       deferredPrompt.userChoice
         .then((choiceResult) => {
           if (choiceResult.outcome === "accepted") {
-            // Можно добавить уведомление о успешной установке
+            localStorage.setItem('isAppInstalled', 'true'); // Запоминаем, что приложение установлено
           } else {
             // Можно добавить уведомление о том, что установка отклонена
           }
