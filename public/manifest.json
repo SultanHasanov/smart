@@ -22,13 +22,13 @@
     "start_url": "/smart/",
     "screenshots": [
       {
-        "src": "/screenshot1.png",
+        "src": "/smart/screenshot1.png",
         "sizes": "1280x800",
         "type": "image/png",
         "form_factor": "wide"
       },
       {
-        "src": "/screenshot2.png",
+        "src": "/smart/screenshot2.png",
         "sizes": "640x1136",
         "type": "image/png"
       }
