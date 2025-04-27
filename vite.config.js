@@ -21,10 +21,10 @@ const manifest = {
   ],
   orientation: "any",
   display: "standalone",
-  dir: "auto",
+ 
   lang: "ru-RU",
   name: "Smart",
-  start_url: "https://sultanhasanov.github.io/smart/",
+  start_url: "/",
 };
 
 export default defineConfig({
