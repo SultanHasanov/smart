@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, notification } from "antd"; // Импортируем компоненты Ant Design
+import { Button } from "antd"; // Импортируем компонент Button из Ant Design
 import Product from "./component/Product";
 import Header from "./component/Header";
 import OfflineDetector from "./component/OfflineDetector";
@@ -17,12 +17,6 @@ const App = () => {
       e.preventDefault();
       setDeferredPrompt(e); // Сохраняем событие
       setShowInstallButton(true); // Показываем кнопку
-
-      // Уведомление
-      notification.info({
-        message: "Установка приложения",
-        description: "Для установки приложения нажмите кнопку ниже.",
-      });
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -39,15 +33,9 @@ const App = () => {
       deferredPrompt.userChoice
         .then((choiceResult) => {
           if (choiceResult.outcome === "accepted") {
-            notification.success({
-              message: "Успешно установлено",
-              description: "Ваше приложение было установлено!",
-            });
+            // Можно добавить уведомление о успешной установке
           } else {
-            notification.error({
-              message: "Отказ от установки",
-              description: "Пользователь отклонил установку приложения.",
-            });
+            // Можно добавить уведомление о том, что установка отклонена
           }
           setDeferredPrompt(null); // Очищаем событие
           setShowInstallButton(false); // Скрываем кнопку
