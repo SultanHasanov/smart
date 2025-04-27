@@ -9,21 +9,17 @@ const manifest = {
     {
       purpose: "maskable",
       sizes: "512x512",
-      src: "/icon512_maskable.png",
+      src: "/smart/icon512_maskable.png", // укажите путь с учетом подкаталога
       type: "image/png",
     },
     {
       purpose: "any",
       sizes: "512x512",
-      src: "/icon512_rounded.png",
-      type: "image/png",
-    },
-    {
-      sizes: "144x144",
-      src: "/icon144.png", // Добавьте иконку этого размера
+      src: "/smart/icon512_rounded.png", // укажите путь с учетом подкаталога
       type: "image/png",
     },
   ],
+
   orientation: "any",
   display: "standalone",
   lang: "ru-RU",
@@ -43,7 +39,6 @@ const manifest = {
     },
   ],
 };
-
 
 export default defineConfig({
   base: "/smart/", // 👈 обязательно укажи путь как у репозитория
