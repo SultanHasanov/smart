@@ -13,6 +13,7 @@ import {
   Menu,
   AutoComplete,
   Modal,
+  Switch,
 } from "antd";
 import axios from "axios";
 import {
@@ -35,7 +36,7 @@ import { audio } from "framer-motion/client";
 
 const { Option } = Select;
 
-const apiUrl = "https://44899c88203381ec.mokky.dev/items";
+const apiUrl = "https://chechnya-product.ru/api/admin/products";
 
 const ProductManager = () => {
   const [items, setItems] = useState([]);
@@ -67,11 +68,11 @@ const ProductManager = () => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "https://44899c88203381ec.mokky.dev/categories"
+          "https://chechnya-product.ru/api/categories"
         );
-        setCategories(res.data);
-        if (res.data.length > 0 && !selectedCategory) {
-          setSelectedCategory(res.data[0].id);
+        setCategories(res.data.data);
+        if (res.data.data.length > 0 && !selectedCategory) {
+          setSelectedCategory(res.data.data[0].id);
         }
       } catch (error) {
         console.error("Ошибка при загрузке категорий:", error);
@@ -81,8 +82,8 @@ const ProductManager = () => {
   }, []);
 
   const fetchItems = async () => {
-    const res = await axios.get(apiUrl);
-    setItems(res.data);
+    const res = await axios.get("https://chechnya-product.ru/api/products");
+    setItems(res?.data?.data || []);
   };
 
   useEffect(() => {
@@ -90,24 +91,73 @@ const ProductManager = () => {
   }, []);
 
   const handleAdd = async (values) => {
-    await axios.post(apiUrl, values);
+    console.log(values);
+    const token = localStorage.getItem('token');
+    await axios.post(apiUrl, values,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+    );
     message.success("Товар добавлен");
     form.resetFields();
     fetchItems();
   };
 
   const handleUpdate = async (id, updatedValues) => {
-    await axios.patch(`${apiUrl}/${id}`, updatedValues);
-    message.success("Товар обновлён");
-    fetchItems();
-    setEditingId(null);
+    const token = localStorage.getItem('token'); // Use the correct token key
+    
+    try {
+      const response = await axios.put(
+        `${apiUrl}/${id}`,
+        updatedValues,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        }
+      );
+      message.success("Товар обновлён");
+      fetchItems();
+      setEditingId(null);
+    } catch (error) {
+      // Enhanced error logging
+      if (error.response) {
+        console.error('Error Response:', error.response.data); // Log the server response data
+        message.error(`Ошибка обновления товара: ${error.response.data.message || error.response.statusText}`);
+      } else {
+        console.error('Request Error:', error.message);
+        message.error("Ошибка обновления товара");
+      }
+    }
   };
+  
+  
+  
 
   const handleDelete = async (id) => {
-    await axios.delete(`${apiUrl}/${id}`);
-    message.success("Товар удалён");
-    fetchItems();
+    // Получаем токен из localStorage или другого хранилища
+    const token = localStorage.getItem('token'); // Используй правильный ключ для токена
+  
+    try {
+      // Отправляем DELETE-запрос с токеном в заголовках
+      await axios.delete(
+        `${apiUrl}/${id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`, // Добавляем токен в заголовок
+          }
+        }
+      );
+      message.success("Товар удалён");
+      fetchItems();  // Обновляем список товаров
+    } catch (error) {
+      message.error("Ошибка удаления товара");
+      console.error(error);
+    }
   };
+  
 
   const handlePriceChange = (id, price) => {
     setPriceEdits((prev) => ({ ...prev, [id]: price }));
@@ -123,14 +173,19 @@ const ProductManager = () => {
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
+    const token = localStorage.getItem('token');
     try {
       const res = await axios.post(
-        "https://44899c88203381ec.mokky.dev/categories",
+        "https://chechnya-product.ru/api/admin/categories",
         {
           name: newCategoryName,
+        },{
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
       );
-      const newCat = res.data;
+      const newCat = res.data.data;
       setCategories((prev) => [newCat, ...prev]);
       form.setFieldsValue({ category: newCat.id }); // авто-выбор новой
       setCategoryModalOpen(false);
@@ -149,6 +204,24 @@ const ProductManager = () => {
     { key: "5", label: "Заказы", icon: <ProfileOutlined /> },
     { key: "6", label: "Баннер", icon: <NotificationOutlined /> },
   ];
+
+  const handleToggleAvailability = async (id) => {
+    // Найти элемент с данным id
+    const item = items.find((item) => item.id === id);
+    
+    if (item) {
+      // Переключить доступность товара
+      const updatedAvailability = !item.availability;
+  
+      // Создать объект обновленных значений
+      const updatedValues = { ...item, availability: updatedAvailability };
+  
+      // Обновить товар через handleUpdate
+      await handleUpdate(id, updatedValues);
+    }
+  };
+  
+  
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -178,7 +251,7 @@ const ProductManager = () => {
             </Form.Item>
             <Form.Item
               className="input-form"
-              name="emoji"
+              name="url"
               label="URL"
               rules={[
                 {
@@ -220,7 +293,7 @@ const ProductManager = () => {
 
             <Form.Item
               className="input-form"
-              name="category"
+              name="category_id"
               label="Категория"
               rules={[{ required: true }]}
             >
@@ -272,6 +345,8 @@ const ProductManager = () => {
 
       case "2":
         return (
+          // Импортируем Switch для тогла
+
           <List
             className="custom-list"
             bordered
@@ -294,10 +369,15 @@ const ProductManager = () => {
                           okText="Да"
                           cancelText="Нет"
                         >
-                          <DeleteFilled
-                            style={{ color: "red", fontSize: 20 }}
-                          />
+                          <DeleteFilled style={{ color: "red", fontSize: 20 }} />
                         </Popconfirm>,
+                        <Switch
+                        key="toggleAvailability"
+                        checked={item.availability}
+                        onChange={() => handleToggleAvailability(item.id)} // Toggle availability
+                        checkedChildren="Активен"
+                        unCheckedChildren="Не активен"
+                      />
                       ]
                 }
               >
@@ -332,10 +412,10 @@ const ProductManager = () => {
                       <Form.Item className="input-form-edit" name="price">
                         <InputNumber min={0} />
                       </Form.Item>
-                      <Form.Item className="input-form-edit" name="emoji">
+                      <Form.Item className="input-form-edit" name="url">
                         <Input />
                       </Form.Item>
-                      <Form.Item className="input-form-edit" name="category">
+                      <Form.Item className="input-form-edit" name="category_id">
                         <Select style={{ width: 120 }}>
                           {categories.map((cat) => (
                             <Option key={cat.id} value={cat.id}>
@@ -367,6 +447,7 @@ const ProductManager = () => {
               </List.Item>
             )}
           />
+          
         );
 
       case "3":

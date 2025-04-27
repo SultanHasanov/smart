@@ -24,27 +24,46 @@ const CategoryManager = () => {
   const [newCategory, setNewCategory] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState("");
+  console.log(categories)
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const res = await axios.get(API_URL);
-      const sorted = res.data.sort((a, b) => a.sortOrder - b.sortOrder);
+      const res = await axios.get("https://chechnya-product.ru/api/categories");
+      const sorted = res.data.data.sort((a, b) => a.sort_order - b.sort_order);
       setCategories(sorted);
     };
     fetchCategories();
   }, []);
 
   const handleAdd = async () => {
-    const response = await axios.post(API_URL, {
-      name: newCategory,
-      sortOrder: categories.length + 1
-    });
-    setCategories(prev => [...prev, response.data]);
-    setNewCategory("");
+    try {
+      const token = localStorage.getItem('token'); // Точное имя ключа укажите здесь
+  
+      const response = await axios.post(API_URL, {
+        name: newCategory,
+        sort_order: categories.length + 1
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      setCategories(prev => [...prev, response.data.data]);
+      setNewCategory("");
+    } catch (error) {
+      console.error('Ошибка при добавлении категории:', error);
+      // Здесь можно обработать ошибку, например, показать уведомление
+    }
   };
+  
 
   const handleDelete = async (id) => {
-    await axios.delete(`${API_URL}/${id}`);
+    const token = localStorage.getItem('token');
+    await axios.delete(`${API_URL}/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     setCategories(prev => prev.filter(cat => cat.id !== id));
   };
 
@@ -54,16 +73,28 @@ const CategoryManager = () => {
   };
 
   const handleSaveEdit = async (id) => {
-    const response = await axios.patch(`${API_URL}/${id}`, {
-      name: editingName
-    });
-
-    setCategories(prev =>
-      prev.map(cat => (cat.id === id ? { ...cat, name: response.data.name } : cat))
-    );
-    setEditingId(null);
-    setEditingName("");
+    try {
+      const token = localStorage.getItem('token'); // Убедитесь, что ключ токена верный
+  
+      const response = await axios.put(`${API_URL}/${id}`, {
+        name: editingName
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      setCategories(prev =>
+        prev.map(cat => (cat.id === id ? { ...cat, name: response.data.data.name } : cat))
+      );
+      setEditingId(null);
+      setEditingName("");
+    } catch (error) {
+      console.error('Ошибка при сохранении изменений категории:', error.response?.data || error.message);
+      // Можно добавить уведомление об ошибке для пользователя
+    }
   };
+  
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -73,29 +104,46 @@ const CategoryManager = () => {
   );
 
   const handleDragEnd = async (event) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = categories.findIndex(c => c.id === active.id);
-    const newIndex = categories.findIndex(c => c.id === over.id);
-
-    const newItems = arrayMove(categories, oldIndex, newIndex);
-
-    const updated = newItems.map((item, index) => ({
-      ...item,
-      sortOrder: (index + 1)
-    }));
-
-    setCategories(updated);
-
-    await Promise.all(
-      updated.map(cat =>
-        axios.patch(`${API_URL}/${cat.id}`, {
-          sortOrder: cat.sortOrder
-        })
-      )
-    );
+    try {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+  
+      const oldIndex = categories.findIndex(c => c.id === active.id);
+      const newIndex = categories.findIndex(c => c.id === over.id);
+  
+      const newItems = arrayMove(categories, oldIndex, newIndex);
+  
+      const updated = newItems.map((item, index) => ({
+        ...item,
+        sort_order: index + 1 // меняем именно sort_order
+      }));
+  
+      setCategories(updated);
+  
+      const token = localStorage.getItem('token');
+  
+      await Promise.all(
+        updated.map(cat =>
+          axios.put(`${API_URL}/${cat.id}`, 
+            { 
+              name: cat.name, 
+              sort_order: cat.sort_order 
+            }, 
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          )
+        )
+      );
+    } catch (error) {
+      console.error('Ошибка при обновлении порядка категорий:', error);
+    }
   };
+  
+  
+  
 
   return (
     <div >

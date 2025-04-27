@@ -8,6 +8,7 @@ import {
   PlusOutlined,
   AppstoreOutlined,
   AppstoreAddOutlined,
+  FileImageOutlined,
 } from "@ant-design/icons";
 
 const Product = () => {
@@ -20,20 +21,22 @@ const Product = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
   const [loading, setLoading] = useState(true);
-
   const [categories, setCategories] = useState([]);
+  console.log({ categories });
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await axios.get(
-          "https://44899c88203381ec.mokky.dev/categories"
+          "https://chechnya-product.ru/api/categories"
         );
         const allCategory = { id: "all", name: "Все", sortOrder: -1 };
-        const sorted = [
-          allCategory,
-          ...res.data.sort((a, b) => a.sortOrder - b.sortOrder),
-        ];
+        const sorted = res?.data?.data
+          ? [
+              allCategory,
+              ...res.data.data.sort((a, b) => a.sort_order - b.sort_order),
+            ]
+          : [allCategory]; // Handle null/undefined data
         setCategories(sorted);
       } catch (error) {
         console.error("Ошибка при загрузке категорий:", error);
@@ -47,9 +50,9 @@ const Product = () => {
     const fetchDishes = async () => {
       try {
         const response = await axios.get(
-          "https://44899c88203381ec.mokky.dev/items"
+          "https://chechnya-product.ru/api/products"
         );
-        setDishes(response.data);
+        setDishes(response?.data?.data || []);
       } catch (error) {
         console.error("Ошибка при загрузке блюд:", error);
       } finally {
@@ -107,8 +110,12 @@ const Product = () => {
   }, [dishes, selectedCategory]);
 
   const filteredDishes = shuffledAllDishes
-    .filter(dish => selectedCategory === "all" || dish.category === selectedCategory)
-    .filter(dish => dish.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    .filter(
+      (dish) => selectedCategory === "all" || dish.category_id === selectedCategory
+    )
+    .filter((dish) =>
+      dish.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   return (
     <div className="product-wrapper">
@@ -171,27 +178,34 @@ const Product = () => {
             filteredDishes.map((dish) => {
               const currentDish = cart.find((item) => item.id === dish.id);
               const quantity = currentDish ? currentDish.quantity : 0;
+              const isUnavailable = !dish.availability;
 
               return (
-                <div key={dish.id} className="product-card">
+                <div
+                  key={dish.id}
+                  className={`product-card ${isUnavailable ? "inactive" : ""}`}
+                >
                   <div
                     className="product-card-content"
-                    onClick={() => handleAddToCart(dish.id)}
+                    onClick={() => !isUnavailable && handleAddToCart(dish.id)}
+                    style={{ pointerEvents: isUnavailable ? "none" : "auto" }}
                   >
                     <div className="product-card-emoji">
-                      <img
-                        style={{
-                          width: columnsCount === 2 && "100px",
-                        }}
-                        src={dish.emoji}
-                        alt=""
-                      />
+                      {dish.url ? (
+                        <img
+                          style={{
+                            width: columnsCount === 2 ? "100px" : "50px",
+                          }}
+                          src={dish.url}
+                          alt=""
+                        />
+                      ) : (
+                        <FileImageOutlined style={{ fontSize: "48px", color: "#ccc" }} />
+                      )}
                     </div>
                     <span className="product-card-title">
                       <b>
-                        {dish.name.length > 12
-                          ? dish.name.slice(0, 10) + "..."
-                          : dish.name}
+                        {dish.name.length > 12 ? dish.name.slice(0, 10) + "..." : dish.name}
                       </b>
                     </span>
                     <div className="product-card-price">
@@ -199,8 +213,12 @@ const Product = () => {
                     </div>
                   </div>
 
-                  <div className={quantity === 0 ? "product-card-actions2" : "product-card-actions"}>
-                    {quantity === 0 ? (
+                  <div
+                    className={quantity === 0 ? "product-card-actions2" : "product-card-actions"}
+                  >
+                    {isUnavailable ? (
+                      <div className="product-card-unavailable">Нет в наличии</div>
+                    ) : quantity === 0 ? (
                       <Button
                         size={columnsCount === 3 ? "small" : "medium"}
                         onClick={() => handleAddToCart(dish.id)}
