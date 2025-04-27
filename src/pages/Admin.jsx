@@ -1,13 +1,14 @@
-import React, { useContext, useState } from "react";
-import { Input, Button, Form, message } from "antd";
+import React, { useContext, useState, useEffect } from "react";
+import { Input, Button, Form, message, notification } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../store/AuthContext";
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
-
 const Login = () => {
   const [loading, setLoading] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null); // Для отложенного предложения установки
+  const [showInstallButton, setShowInstallButton] = useState(false); // Показывать кнопку установки
   const { isAuthenticated, login, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -45,6 +46,44 @@ const Login = () => {
     logout(); // ✅ удалит токен и обновит глобальное состояние
     message.success("Вы вышли из системы.");
   };
+
+  const handleInstall = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt(); // Показываем пользовательский запрос для установки
+      deferredPrompt.userChoice
+        .then((choiceResult) => {
+          if (choiceResult.outcome === "accepted") {
+            notification.success({
+              message: "Успешно установлено",
+              description: "Ваше приложение было установлено!",
+            });
+          } else {
+            notification.error({
+              message: "Отказ от установки",
+              description: "Пользователь отклонил установку приложения.",
+            });
+          }
+          setDeferredPrompt(null);
+          setShowInstallButton(false);
+        });
+    }
+  };
+
+  // Проверка события установки
+  useEffect(() => {
+    const beforeInstallPromptHandler = (e) => {
+      e.preventDefault(); // Останавливаем стандартное поведение браузера
+      setDeferredPrompt(e); // Сохраняем ссылку на отложенное предложение
+      setShowInstallButton(true); // Показываем кнопку для установки
+    };
+
+    window.addEventListener("beforeinstallprompt", beforeInstallPromptHandler);
+
+    // Очистка после демонтирования компонента
+    return () => {
+      window.removeEventListener("beforeinstallprompt", beforeInstallPromptHandler);
+    };
+  }, []);
 
   return (
     <div className="login-container">
@@ -85,6 +124,18 @@ const Login = () => {
             Выйти
           </Button>
         </div>
+      )}
+
+      {/* Кнопка установки приложения, если не установлено */}
+      {showInstallButton && !window.matchMedia('(display-mode: standalone)').matches && (
+        <Button
+          type="primary"
+          size="large"
+          onClick={handleInstall}
+          style={{ position: "fixed", bottom: "20px", right: "20px", zIndex: 1000 }}
+        >
+          Установить приложение
+        </Button>
       )}
     </div>
   );
