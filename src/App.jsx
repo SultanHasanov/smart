@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "antd"; 
 import Product from "./component/Product";
 // import Header from "./component/Header";
 import OfflineDetector from "./component/OfflineDetector";
@@ -24,19 +23,21 @@ const App = () => {
     };
   }, []);
 
-  const handleInstallClick = async () => {
+  const handleInstallClick = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        console.log("Пользователь установил приложение");
-      } else {
-        console.log("Пользователь отказался от установки");
-      }
-      setDeferredPrompt(null);
-      setShowInstallButton(false);
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("Установлено ✅");
+        } else {
+          console.log("Отклонено ❌");
+        }
+        setDeferredPrompt(null);
+        setShowInstallButton(false);
+      });
     }
   };
+
 
   return (
     <div>
@@ -46,21 +47,14 @@ const App = () => {
       <Product />
       <DevTerminal />
 
+      <div>
       {showInstallButton && (
-        <Button
-          type="primary"
-          size="large"
-          style={{
-            position: "fixed",
-            bottom: "20px",
-            right: "20px",
-            zIndex: 1000,
-          }}
-          onClick={handleInstallClick}
-        >
+        <button onClick={handleInstallClick} style={{ position: "fixed", bottom: 20, right: 20 }}>
           Установить приложение
-        </Button>
+        </button>
       )}
+      {/* твои компоненты */}
+    </div>
     </div>
   );
 };
