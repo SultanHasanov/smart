@@ -1,79 +1,55 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Input, Button, Form, message } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../store/AuthContext";
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
+
 const Login = () => {
   const [loading, setLoading] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState(null);
   const { isAuthenticated, login, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+
   useEffect(() => {
-    // Проверка PWA-режима (уже установлено)
-    const isInStandaloneMode = () => 
-      window.matchMedia('(display-mode: standalone)').matches || 
-      window.navigator.standalone ||
-      document.referrer.includes('android-app://');
-
-    if (isInStandaloneMode()) {
-      return;
-    }
-
-    // Проверяем сохранённый prompt в localStorage
-    const savedPrompt = localStorage.getItem('deferredPrompt');
-    if (savedPrompt) {
-      setInstallPrompt(JSON.parse(savedPrompt));
-    }
-
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-      // Сохраняем событие для последующего использования
-      localStorage.setItem('deferredPrompt', JSON.stringify({
-        prompt: () => e.prompt()
-      }));
+    const checkShouldShowButton = () => {
+      // Проверяем условия для показа кнопки:
+      // 1. Приложение не установлено (не в standalone режиме)
+      // 2. Есть deferredPrompt
+      // 3. Пользователь закрыл алерт (installAlertShown === 'true')
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const hasPrompt = !!window.deferredPrompt;
+      const installShown = localStorage.getItem('installAlertShown');
+      
+      return !isStandalone && hasPrompt && installShown === 'true';
     };
 
-    const handleAppInstalled = () => {
-      setInstallPrompt(null);
-      localStorage.removeItem('deferredPrompt');
-    };
+    setShowInstallBtn(checkShouldShowButton());
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
+    // Обновляем при изменении состояния
+    const handleResize = () => setShowInstallBtn(checkShouldShowButton());
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleInstallClick = async () => {
-    if (!installPrompt) return;
-    
-    try {
-      if (installPrompt.prompt) {
-        await installPrompt.prompt();
-        const { outcome } = await installPrompt.userChoice;
-        if (outcome === 'accepted') {
-          setInstallPrompt(null);
-          localStorage.removeItem('deferredPrompt');
+  const handleInstallClick = () => {
+    if (window.deferredPrompt) {
+      window.deferredPrompt.prompt();
+      window.deferredPrompt.userChoice.then(choiceResult => {
+        if (choiceResult.outcome === 'accepted') {
+          localStorage.setItem('installAlertShown', 'false');
         }
-      } else if (installPrompt.prompt instanceof Function) {
-        // Для сохранённого prompt из localStorage
-        installPrompt.prompt();
-      }
-    } catch (error) {
-      console.error('Ошибка при установке:', error);
+      });
     }
   };
 
   const handleLogin = async (values) => {
+    // Если авторизация отключена, имитируем успешный логин. Удалить в продакшене!
     if (IS_AUTH_DISABLED) {
-      login("fake-token");
+      login("fake-token"); // 🔒 Имитируем логин
       message.success("Имитация авторизации успешна!");
       navigate("/favorites");
       return;
@@ -89,7 +65,7 @@ const Login = () => {
         }
       );
       if (response.data.data.token) {
-        login(response.data.data.token);
+        login(response.data.data.token); // ✅ глобально обновит состояние
         message.success("Авторизация успешна!");
         navigate("/favorites");
       }
@@ -101,29 +77,12 @@ const Login = () => {
   };
 
   const handleLogout = () => {
-    logout();
+    logout(); // ✅ удалит токен и обновит глобальное состояние
     message.success("Вы вышли из системы.");
   };
 
   return (
     <div className="login-container">
-      {/* Кнопка установки приложения (отображается всегда, если доступна установка) */}
-      {!installPrompt && (
-        <Button 
-          type="primary" 
-          ghost
-          style={{
-            position: 'fixed',
-            bottom: 20,
-            right: 20,
-            zIndex: 1000
-          }}
-          onClick={handleInstallClick}
-        >
-          Установить приложение
-        </Button>
-      )}
-
       {!isAuthenticated ? (
         <Form
           name="login"
@@ -160,6 +119,16 @@ const Login = () => {
           <Button size="large" type="primary" danger onClick={handleLogout} block>
             Выйти
           </Button>
+
+          {showInstallBtn && (
+        <Button 
+          type="primary"
+          onClick={handleInstallClick}
+          style={{ margin: '16px 0' }}
+        >
+          Установить приложение
+        </Button>
+      )}
         </div>
       )}
     </div>

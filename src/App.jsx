@@ -12,35 +12,29 @@ const App = () => {
   useEffect(() => {
     // Проверяем, было ли уже показано уведомление
     const installShown = localStorage.getItem('installAlertShown');
-    if (!installShown) {
+    if (installShown !== 'false') { // Показываем, если не 'false'
       setShowInstallAlert(true);
-      localStorage.setItem('installAlertShown', 'true');
     }
 
     // Регистрация Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/serviceworker.js', { scope: '/' })
-        .then((registration) => {
-          registration.unregister().then((boolean) => {
-            // Можно добавить логирование или другие действия
-          });
-        })
-        .catch((error) => {
-          console.error('Service Worker registration failed:', error);
+        .catch(error => {
+          console.error('SW registration failed:', error);
         });
     }
 
-    // Обработчик события beforeinstallprompt
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
       setInstallPrompt(event);
+      window.deferredPrompt = event; // Сохраняем для других компонентов
     };
 
-    // Проверка, если приложение уже установлено
     const handleAppInstalled = () => {
-    
+      localStorage.setItem('installAlertShown', 'false');
       setInstallPrompt(null);
+      delete window.deferredPrompt;
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -55,16 +49,18 @@ const App = () => {
   const handleInstallClick = () => {
     if (installPrompt) {
       installPrompt.prompt();
-      installPrompt.userChoice.then((choiceResult) => {
+      installPrompt.userChoice.then(choiceResult => {
         if (choiceResult.outcome === 'accepted') {
-          setInstallPrompt(null);
-          
+          localStorage.setItem('installAlertShown', 'false');
         }
       });
     }
-    setShowInstallAlert(false);
   };
 
+  const handleAlertClose = () => {
+    setShowInstallAlert(false);
+    localStorage.setItem('installAlertShown', 'true'); // Пользователь закрыл алерт
+  };
   return (
     <div>
       <OfflineDetector />
@@ -80,16 +76,12 @@ const App = () => {
           type="info"
           showIcon
           action={
-            <Button 
-              size="small" 
-              type="primary"
-              onClick={handleInstallClick}
-            >
+            <Button size="small" type="primary" onClick={handleInstallClick}>
               Установить
             </Button>
           }
           closable
-          onClose={() => setShowInstallAlert(false)}
+          onClose={handleAlertClose}
           style={{
             position: 'fixed',
             top: 20,
