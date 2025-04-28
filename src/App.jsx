@@ -6,38 +6,38 @@ import DevTerminal from "./component/DevTerminal";
 import SiteBanner from "./component/SiteBanner";
 
 const App = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
-
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallButton(true);
-    };
+    // Регистрация Service Worker и обработка PWA установки
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/serviceworker.js', { scope: '/' })
+        .then((registration) => {
+          registration.unregister().then((boolean) => {
+            // Можно добавить логирование или другие действия
+          });
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  const handleInstallClick = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === "accepted") {
-          console.log("Установлено ✅");
-        } else {
-          console.log("Отклонено ❌");
+      // Обработчик события beforeinstallprompt
+      window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        const installDiv = document.getElementById('divInstallApp');
+        if (installDiv) {
+          installDiv.innerHTML = '<button id="installApp" class="btn btn-outline-secondary ms-1">Установить приложение</button>';
+          
+          const installButton = document.getElementById('installApp');
+          if (installButton) {
+            installButton.addEventListener('click', () => {
+              event.prompt();
+              installDiv.innerHTML = "";
+            });
+          }
         }
-        setDeferredPrompt(null);
-        setShowInstallButton(false);
       });
     }
-  };
-
+  }, []);
 
   return (
     <div>
@@ -47,14 +47,7 @@ const App = () => {
       <Product />
       <DevTerminal />
 
-      <div>
-      {showInstallButton && (
-        <button onClick={handleInstallClick} style={{ position: "fixed", bottom: 20, right: 20 }}>
-          Установить приложение
-        </button>
-      )}
-      {/* твои компоненты */}
-    </div>
+      <div id="divInstallApp"></div>
     </div>
   );
 };
