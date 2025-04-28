@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Alert } from "antd";
+import { Button } from "antd";
 import Product from "./component/Product";
 import OfflineDetector from "./component/OfflineDetector";
 import DevTerminal from "./component/DevTerminal";
@@ -7,17 +7,12 @@ import SiteBanner from "./component/SiteBanner";
 
 const App = () => {
   const [installPrompt, setInstallPrompt] = useState(null);
-  const [showInstallAlert, setShowInstallAlert] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
 
   useEffect(() => {
     // Проверяем, было ли уже показано уведомление
     const installShown = localStorage.getItem('installAlertShown');
-    if (!installShown) {
-      setShowInstallAlert(true);
-      localStorage.setItem('installAlertShown', 'true');
-    }
-
+    
     // Регистрация Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
@@ -36,7 +31,14 @@ const App = () => {
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
       setInstallPrompt(event);
-      setIsModalVisible(true);
+      
+      // Показываем alert только при первом посещении
+      if (!installShown) {
+        alert('Вы можете установить это приложение на свое устройство для лучшего опыта использования!');
+        localStorage.setItem('installAlertShown', 'true');
+      }
+      
+      setShowInstallBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -52,14 +54,10 @@ const App = () => {
       installPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
           setInstallPrompt(null);
+          setShowInstallBanner(false);
         }
       });
     }
-    setIsModalVisible(false);
-  };
-
-  const handleCancelInstall = () => {
-    setIsModalVisible(false);
   };
 
   return (
@@ -69,48 +67,36 @@ const App = () => {
       <Product />
       <DevTerminal />
 
-      {/* Модальное окно для установки PWA */}
-      <Modal
-        title="Установить приложение"
-        visible={isModalVisible}
-        onOk={handleInstallClick}
-        onCancel={handleCancelInstall}
-        okText="Установить"
-        cancelText="Позже"
-      >
-        <p>Хотите установить это приложение на ваше устройство?</p>
-        <p>Это позволит открывать его как обычное приложение и работать офлайн.</p>
-      </Modal>
-
-      {/* Alert при первом открытии */}
-      {showInstallAlert && (
-        <Alert
-          message="Доступно как PWA"
-          description="Вы можете установить это приложение на свое устройство для лучшего опыта использования."
-          type="info"
-          showIcon
-          action={
-            <Button 
-              size="small" 
-              type="primary"
-              onClick={() => {
-                setShowInstallAlert(false);
-                setIsModalVisible(true);
-              }}
-            >
-              Установить
-            </Button>
-          }
-          closable
-          onClose={() => setShowInstallAlert(false)}
-          style={{
-            position: 'fixed',
-            bottom: 20,
-            right: 20,
-            zIndex: 1000,
-            maxWidth: 400
-          }}
-        />
+      {/* Баннер для установки PWA */}
+      {showInstallBanner && (
+        <div style={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          zIndex: 1000,
+          padding: '10px 16px',
+          backgroundColor: '#fff',
+          borderRadius: 4,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span>Установить приложение?</span>
+          <Button 
+            type="primary" 
+            size="small"
+            onClick={handleInstallClick}
+          >
+            Установить
+          </Button>
+          <Button 
+            size="small"
+            onClick={() => setShowInstallBanner(false)}
+          >
+            Позже
+          </Button>
+        </div>
       )}
     </div>
   );
