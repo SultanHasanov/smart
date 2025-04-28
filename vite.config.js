@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
-import manifest from "./public/manifest.webmanifest "; // импортируем манифест
+import manifest from "./public/manifest.json"; // импортируем манифест
 
 export default defineConfig({
   base: "/smart/",
