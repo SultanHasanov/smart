@@ -31,58 +31,76 @@ const Product = () => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const handleOfflineStatus = () => {
-      setIsOffline(!navigator.onLine);
-    };
+    const fetchData = async () => {
+      try {
+        // Пытаемся получить свежие данные
+        const [categoriesRes, dishesRes] = await Promise.all([
+          axios.get("https://chechnya-product.ru/api/categories"),
+          axios.get("https://chechnya-product.ru/api/products")
+        ]);
 
-    window.addEventListener("online", handleOfflineStatus);
-    window.addEventListener("offline", handleOfflineStatus);
+        const allCategory = { id: "all", name: "Все", sortOrder: -1 };
+        const sortedCategories = [
+          allCategory,
+          ...categoriesRes.data.data.sort((a, b) => a.sort_order - b.sort_order)
+        ];
 
-    return () => {
-      window.removeEventListener("online", handleOfflineStatus);
-      window.removeEventListener("offline", handleOfflineStatus);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isOffline) {
-      const fetchCategories = async () => {
-        try {
-          const res = await axios.get("https://chechnya-product.ru/api/categories");
-          const allCategory = { id: "all", name: "Все", sortOrder: -1 };
-          const sorted = res?.data?.data
-            ? [
-                allCategory,
-                ...res.data.data.sort((a, b) => a.sort_order - b.sort_order),
-              ]
-            : [allCategory]; // Handle null/undefined data
-          setCategories(sorted);
-          localStorage.setItem("categories", JSON.stringify(sorted)); // Кешируем категории
-        } catch (error) {
-          console.error("Ошибка при загрузке категорий:", error);
+        setCategories(sortedCategories);
+        setDishes(dishesRes.data.data);
+        
+        // Сохраняем в localStorage
+        localStorage.setItem("categories", JSON.stringify(sortedCategories));
+        localStorage.setItem("dishes", JSON.stringify(dishesRes.data.data));
+      } catch (error) {
+        console.error("Ошибка загрузки данных:", error);
+        
+        // Если онлайн, но ошибка - пытаемся получить из кеша через Service Worker
+        if (navigator.onLine) {
+          const cachedResponse = await caches.match("https://chechnya-product.ru/api/products");
+          if (cachedResponse) {
+            const data = await cachedResponse.json();
+            setDishes(data.data || []);
+          }
         }
-      };
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      fetchCategories();
+    // Если оффлайн, сначала проверяем кеш Service Worker
+    if (isOffline) {
+      caches.match("https://chechnya-product.ru/api/products")
+        .then(response => {
+          if (response) {
+            return response.json();
+          }
+          throw new Error('No cached data');
+        })
+        .then(data => {
+          setDishes(data.data || []);
+          setLoading(false);
+        })
+        .catch(() => {
+          // Если нет в кеше SW, используем localStorage
+          setLoading(false);
+        });
+    } else {
+      fetchData();
     }
   }, [isOffline]);
 
   useEffect(() => {
-    if (!isOffline) {
-      const fetchDishes = async () => {
-        try {
-          const response = await axios.get("https://chechnya-product.ru/api/products");
-          setDishes(response?.data?.data || []);
-          localStorage.setItem("dishes", JSON.stringify(response?.data?.data || [])); // Кешируем блюда
-        } catch (error) {
-          console.error("Ошибка при загрузке блюд:", error);
-        } finally {
-          setLoading(false); // <- флаг отключается при завершении загрузки
-        }
-      };
-
-      fetchDishes();
-    }
+    const handleOnline = () => {
+      if (isOffline) {
+        // При восстановлении соединения обновляем данные
+        setIsOffline(false);
+        setLoading(true);
+        // Здесь можно добавить логику для фонового обновления данных
+      }
+    };
+  
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, [isOffline]);
 
   const getGridTemplateColumns = () => {
