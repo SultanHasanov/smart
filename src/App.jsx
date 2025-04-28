@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "antd";
+import { Button, Alert } from "antd";
 import Product from "./component/Product";
 import OfflineDetector from "./component/OfflineDetector";
 import DevTerminal from "./component/DevTerminal";
@@ -7,12 +7,16 @@ import SiteBanner from "./component/SiteBanner";
 
 const App = () => {
   const [installPrompt, setInstallPrompt] = useState(null);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showInstallAlert, setShowInstallAlert] = useState(false);
 
   useEffect(() => {
     // Проверяем, было ли уже показано уведомление
     const installShown = localStorage.getItem('installAlertShown');
-    
+    if (!installShown) {
+      setShowInstallAlert(true);
+      localStorage.setItem('installAlertShown', 'true');
+    }
+
     // Регистрация Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
@@ -31,20 +35,20 @@ const App = () => {
     const handleBeforeInstallPrompt = (event) => {
       event.preventDefault();
       setInstallPrompt(event);
-      
-      // Показываем alert только при первом посещении
-      if (!installShown) {
-        alert('Вы можете установить это приложение на свое устройство для лучшего опыта использования!');
-        localStorage.setItem('installAlertShown', 'true');
-      }
-      
-      setShowInstallBanner(true);
+    };
+
+    // Проверка, если приложение уже установлено
+    const handleAppInstalled = () => {
+    
+      setInstallPrompt(null);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -54,10 +58,11 @@ const App = () => {
       installPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
           setInstallPrompt(null);
-          setShowInstallBanner(false);
+          
         }
       });
     }
+    setShowInstallAlert(false);
   };
 
   return (
@@ -67,37 +72,35 @@ const App = () => {
       <Product />
       <DevTerminal />
 
-      {/* Баннер для установки PWA */}
-      {showInstallBanner && (
-        <div style={{
-          position: 'fixed',
-          bottom: 20,
-          right: 20,
-          zIndex: 1000,
-          padding: '10px 16px',
-          backgroundColor: '#fff',
-          borderRadius: 4,
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <span>Установить приложение?</span>
-          <Button 
-            type="primary" 
-            size="small"
-            onClick={handleInstallClick}
-          >
-            Установить
-          </Button>
-          <Button 
-            size="small"
-            onClick={() => setShowInstallBanner(false)}
-          >
-            Позже
-          </Button>
-        </div>
+      {/* Alert при первом открытии */}
+      {showInstallAlert && (
+        <Alert
+          message=""
+          description="Установите приложение на телефон"
+          type="info"
+          showIcon
+          action={
+            <Button 
+              size="small" 
+              type="primary"
+              onClick={handleInstallClick}
+            >
+              Установить
+            </Button>
+          }
+          closable
+          onClose={() => setShowInstallAlert(false)}
+          style={{
+            position: 'fixed',
+            top: 20,
+            right: 20,
+            zIndex: 1000,
+            maxWidth: 400
+          }}
+        />
       )}
+
+     
     </div>
   );
 };

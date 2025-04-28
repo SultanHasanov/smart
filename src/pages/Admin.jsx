@@ -12,33 +12,62 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Проверяем, установлено ли приложение
+    // Проверка PWA-режима (уже установлено)
+    const isInStandaloneMode = () => 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      window.navigator.standalone ||
+      document.referrer.includes('android-app://');
+
+    if (isInStandaloneMode()) {
+      return;
+    }
+
+    // Проверяем сохранённый prompt в localStorage
+    const savedPrompt = localStorage.getItem('deferredPrompt');
+    if (savedPrompt) {
+      setInstallPrompt(JSON.parse(savedPrompt));
+    }
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setInstallPrompt(e);
+      // Сохраняем событие для последующего использования
+      localStorage.setItem('deferredPrompt', JSON.stringify({
+        prompt: () => e.prompt()
+      }));
+    };
+
+    const handleAppInstalled = () => {
+      setInstallPrompt(null);
+      localStorage.removeItem('deferredPrompt');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Проверка, если приложение уже установлено
-    window.addEventListener('appinstalled', () => {
-      setInstallPrompt(null);
-    });
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', () => {});
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
-  const handleInstallClick = () => {
-    if (installPrompt) {
-      installPrompt.prompt();
-      installPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    
+    try {
+      if (installPrompt.prompt) {
+        await installPrompt.prompt();
+        const { outcome } = await installPrompt.userChoice;
+        if (outcome === 'accepted') {
           setInstallPrompt(null);
+          localStorage.removeItem('deferredPrompt');
         }
-      });
+      } else if (installPrompt.prompt instanceof Function) {
+        // Для сохранённого prompt из localStorage
+        installPrompt.prompt();
+      }
+    } catch (error) {
+      console.error('Ошибка при установке:', error);
     }
   };
 
@@ -79,7 +108,7 @@ const Login = () => {
   return (
     <div className="login-container">
       {/* Кнопка установки приложения (отображается всегда, если доступна установка) */}
-      {installPrompt && (
+      {!installPrompt && (
         <Button 
           type="primary" 
           ghost
