@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "antd"; 
 import Product from "./component/Product";
-import Header from "./component/Header";
+// import Header from "./component/Header";
 import OfflineDetector from "./component/OfflineDetector";
 import DevTerminal from "./component/DevTerminal";
 import SiteBanner from "./component/SiteBanner";
@@ -40,7 +40,7 @@ const App = () => {
 
   return (
     <div>
-      <Header />
+      {/* <Header /> */}
       <OfflineDetector />
       <SiteBanner />
       <Product />
