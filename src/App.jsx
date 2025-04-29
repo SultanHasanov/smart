@@ -6,61 +6,61 @@ import DevTerminal from "./component/DevTerminal";
 import SiteBanner from "./component/SiteBanner";
 
 const App = () => {
-  const [installPrompt, setInstallPrompt] = useState(null);
-  const [showInstallAlert, setShowInstallAlert] = useState(false);
+  // const [installPrompt, setInstallPrompt] = useState(null);
+  // const [showInstallAlert, setShowInstallAlert] = useState(false);
 
-  useEffect(() => {
-    // Проверяем, было ли уже показано уведомление
-    const installShown = localStorage.getItem('installAlertShown');
-    if (installShown !== 'false') { // Показываем, если не 'false'
-      setShowInstallAlert(true);
-    }
+  // useEffect(() => {
+  //   // Проверяем, было ли уже показано уведомление
+  //   const installShown = localStorage.getItem('installAlertShown');
+  //   if (installShown !== 'false') { // Показываем, если не 'false'
+  //     setShowInstallAlert(true);
+  //   }
 
-    // Регистрация Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker
-        .register('/serviceworker.js', { scope: '/' })
-        .catch(error => {
-          console.error('SW registration failed:', error);
-        });
-    }
+  //   // Регистрация Service Worker
+  //   if ('serviceWorker' in navigator) {
+  //     navigator.serviceWorker
+  //       .register('/serviceworker.js', { scope: '/' })
+  //       .catch(error => {
+  //         console.error('SW registration failed:', error);
+  //       });
+  //   }
 
-    const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-      window.deferredPrompt = event; // Сохраняем для других компонентов
-    };
+  //   const handleBeforeInstallPrompt = (event) => {
+  //     event.preventDefault();
+  //     setInstallPrompt(event);
+  //     window.deferredPrompt = event; // Сохраняем для других компонентов
+  //   };
 
-    const handleAppInstalled = () => {
-      localStorage.setItem('installAlertShown', 'false');
-      setInstallPrompt(null);
-      delete window.deferredPrompt;
-    };
+  //   const handleAppInstalled = () => {
+  //     localStorage.setItem('installAlertShown', 'false');
+  //     setInstallPrompt(null);
+  //     delete window.deferredPrompt;
+  //   };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
+  //   window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  //   window.addEventListener('appinstalled', handleAppInstalled);
 
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  //     window.removeEventListener('appinstalled', handleAppInstalled);
+  //   };
+  // }, []);
 
-  const handleInstallClick = () => {
-    if (installPrompt) {
-      installPrompt.prompt();
-      installPrompt.userChoice.then(choiceResult => {
-        if (choiceResult.outcome === 'accepted') {
-          localStorage.setItem('installAlertShown', 'false');
-        }
-      });
-    }
-  };
+  // const handleInstallClick = () => {
+  //   if (installPrompt) {
+  //     installPrompt.prompt();
+  //     installPrompt.userChoice.then(choiceResult => {
+  //       if (choiceResult.outcome === 'accepted') {
+  //         localStorage.setItem('installAlertShown', 'false');
+  //       }
+  //     });
+  //   }
+  // };
 
-  const handleAlertClose = () => {
-    setShowInstallAlert(false);
-    localStorage.setItem('installAlertShown', 'true'); // Пользователь закрыл алерт
-  };
+  // const handleAlertClose = () => {
+  //   setShowInstallAlert(false);
+  //   localStorage.setItem('installAlertShown', 'true'); // Пользователь закрыл алерт
+  // };
   return (
     <div>
       <OfflineDetector />
@@ -69,7 +69,7 @@ const App = () => {
       <DevTerminal />
 
       {/* Alert при первом открытии */}
-      {showInstallAlert && (
+      {/* {showInstallAlert && (
         <Alert
           message=""
           description="Установите приложение на телефон"
@@ -90,7 +90,7 @@ const App = () => {
             maxWidth: 400
           }}
         />
-      )}
+      )} */}
 
      
     </div>

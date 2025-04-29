@@ -25,7 +25,7 @@
 
 .product-category-button {
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: 6px;
   border: 1px solid #ccc;
   background-color: #fff;
   color: #000;
@@ -50,6 +50,7 @@
 .product-grid-wrapper {
   display: flex;
   justify-content: center;
+  // height: 100%;
 }
 
 .product-grid {
@@ -62,7 +63,7 @@
 
 .product-empty {
   position: absolute;
-  width: 100%;
+  // width: 100%;
   text-align: center;
   margin-top: 30px;
   font-size: 24px;
@@ -146,7 +147,7 @@
   position: absolute;
   top: 3px;
   right: 3px;
-  border: 0.3px solid black;
+  border: 0.3px solid green;
   color: green;
   width: 20px;
   text-align: center;

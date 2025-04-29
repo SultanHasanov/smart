@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
-import { Button, Checkbox, Input, message, Radio, Typography } from "antd";
+import { Button, Input, message, Radio, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import {
-  DeleteFilled,
   PlusOutlined,
-  MinusOutlined,
   ShoppingOutlined,
 } from "@ant-design/icons";
 import AddressInput from "../component/AddressInput";
 import axios from "axios";
 import "../component/styles/Product.scss";
-import { div } from "framer-motion/client";
 import CartList from "../component/CartList";
+import UIStore from "../store/UIStore";
 
 const { Text } = Typography;
 const ADMIN_PHONE = "+79298974969";
@@ -22,11 +20,23 @@ const CartPage = () => {
   const [query, setQuery] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
+  
 
   const [test, setTest] = useState(1);
   useEffect(() => {
     setTest(cart.length !== 0 ? 1 : 2);
   }, [cart.length]);
+
+  useEffect(() => {
+    if (cart.length > 0 && suggestions.length === 0) {
+      UIStore.showOrderButton(sendOrderToWhatsApp);
+    } else {
+      UIStore.hideOrderButton();
+    }
+
+    return () => UIStore.hideOrderButton();
+  }, [cart.length, suggestions.length]);
 
   const [orderData, setOrderData] = useState({
     name: "",
@@ -204,12 +214,13 @@ ${cartDetails}
   };
 
   return (
-    <>
       <div
-        style={{
-          padding: "10px",
-          // position: "relative",
-        }}
+      
+      style={{
+        padding: "10px",
+        // transition: "min-height 0.3s ease",
+        minHeight: isAddressOpen ? 815 : "auto",
+      }}
       >
         {cart.length !== 0 && <h2>Ваш заказ:</h2>}
 
@@ -349,9 +360,10 @@ ${cartDetails}
             setSelectedAddress={setSelectedAddress}
             setSuggestions={setSuggestions}
             suggestions={suggestions}
+            onDropdownOpenChange={setIsAddressOpen}
           />
         )}
-        <div style={{ marginBottom: 50 }}>
+        {/* <div style={{ marginBottom: 50 }}>
           {cart.length !== 0 && suggestions.length === 0 && (
             <Button
               style={{
@@ -366,9 +378,7 @@ ${cartDetails}
               Оформить заказ
             </Button>
           )}
-        </div>
-      </div>
-
+        </div> */}
       {test === 2 && (
         <Button
           size="large"
@@ -386,7 +396,8 @@ ${cartDetails}
           {cart.length === 0 && "Добавить товары"}
         </Button>
       )}
-    </>
+      </div>
+
   );
 };
 

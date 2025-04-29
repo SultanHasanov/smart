@@ -13,6 +13,7 @@ import ProtectedRoute from "./component/ProtectedRoute";
 import { AuthProvider } from "./store/AuthContext";
 
 import { registerSW } from "virtual:pwa-register";
+import OrderButtonOverlay from "./component/OrderButtonOverlay";
 registerSW({
   immediate: true,
 });
@@ -35,6 +36,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/catalog" element={<Catalog />} />
         <Route path="/login" element={<Login />} />
       </Routes>
+      <OrderButtonOverlay />
       <TabIcons />
     </AuthProvider>
   </Router>
