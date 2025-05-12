@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Input, message, Radio, Typography } from "antd";
+import { Button, Form, Input, message, Radio, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PlusOutlined, ShoppingOutlined } from "@ant-design/icons";
 import AddressInput from "../component/AddressInput";
@@ -9,6 +9,7 @@ import CartList from "../component/CartList";
 import CartStore from "../store/CartStore";
 import { observer } from "mobx-react-lite";
 import { toJS } from "mobx";
+import OrderForm from "../component/OrderForm";
 
 const { Text } = Typography;
 const ADMIN_PHONE = "+79298974969";
@@ -22,10 +23,10 @@ const CartPage = () => {
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [test, setTest] = useState(1);
   const navigate = useNavigate();
+  const { Text, Paragraph } = Typography;
 
+  const [form] = Form.useForm();
   const cart = toJS(CartStore.cart);
-
- 
 
   useEffect(() => {
     setTest(cart.length !== 0 ? 1 : 2);
@@ -73,7 +74,10 @@ const CartPage = () => {
     );
   };
   const sendOrderToWhatsApp = useCallback(async () => {
-    const selectedItems = cart.filter((item) => selectedIds.includes(item.product_id));
+    const values = await form.validateFields();
+    const selectedItems = cart.filter((item) =>
+      selectedIds.includes(item.product_id)
+    );
 
     if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
     if (!orderData.name) return message.error("Введите имя!");
@@ -150,11 +154,11 @@ ${cartDetails}
         delivery_type: orderData.deliveryType,
         payment_type: orderData.paymentType,
         change_for:
-           orderData.paymentType === "cash"
-    ? orderData.changeFor.trim() === ""
-      ? null
-      : Number(orderData.changeFor)
-    : null,
+          orderData.paymentType === "cash"
+            ? orderData.changeFor.trim() === ""
+              ? null
+              : Number(orderData.changeFor)
+            : null,
         status: "новый",
       });
 
@@ -166,21 +170,20 @@ ${cartDetails}
         paymentType: "cash",
         changeFor: "",
       });
-  
+
       setSelectedIds([]);
       handleRemoveSelected();
     } catch (error) {
       message.error("Ошибка при сохранении заказа на сервере");
       console.error("Ошибка API:", error);
     }
-
   }, [selectedIds, orderData, query, cart]);
 
   return (
     <div
       style={{
         padding: "5px",
-        marginBottom: 150
+        marginBottom: 150,
         // transition: "min-height 0.3s ease",
         // minHeight: isAddressOpen ? 815 : "auto",
       }}
@@ -251,7 +254,7 @@ ${cartDetails}
       )}
 
       {cart.length !== 0 && (
-        <div style={{ marginTop: "10px" }}>
+        <div style={{ margin: "20px 0" }}>
           <Text
             style={{
               fontSize: 17,
@@ -265,56 +268,13 @@ ${cartDetails}
         </div>
       )}
 
-      {cart.length !== 0 && (
-        <div style={{ marginTop: 20 }}>
-          <Input
-            size="large"
-            placeholder="Имя"
-            value={orderData.name}
-            onChange={(e) =>
-              setOrderData({ ...orderData, name: e.target.value })
-            }
-            style={{ marginBottom: 10 }}
-          />
+      <OrderForm
+        form={form}
+        cart={cart}
+        orderData={orderData}
+        setOrderData={setOrderData}
+      />
 
-          <Radio.Group
-            size="large"
-            value={orderData.paymentType}
-            onChange={(e) =>
-              setOrderData({ ...orderData, paymentType: e.target.value })
-            }
-            style={{ marginBottom: 10 }}
-          >
-            <Radio.Button value="cash">Наличными</Radio.Button>
-            <Radio.Button value="transfer">Перевод</Radio.Button>
-          </Radio.Group>
-
-          {orderData.paymentType === "cash" &&
-            orderData.deliveryType === "delivery" && (
-              <Input
-                size="large"
-                placeholder="С какой суммы нужна сдача?"
-                value={orderData.changeFor}
-                onChange={(e) =>
-                  setOrderData({ ...orderData, changeFor: e.target.value })
-                }
-                style={{ marginBottom: 10 }}
-              />
-            )}
-
-          <Radio.Group
-            size="large"
-            value={orderData.deliveryType}
-            onChange={(e) =>
-              setOrderData({ ...orderData, deliveryType: e.target.value })
-            }
-            style={{ marginBottom: 10 }}
-          >
-            <Radio.Button value="pickup">Самовывоз</Radio.Button>
-            <Radio.Button value="delivery">Доставка</Radio.Button>
-          </Radio.Group>
-        </div>
-      )}
       {orderData.deliveryType === "delivery" && (
         <AddressInput
           query={query}
@@ -344,37 +304,37 @@ ${cartDetails}
         </Button>
       )}
 
-     {cart.length !== 0 &&
-     <div
-     style={{
-       position: "fixed",
-       bottom: 70,
-       left: 0,
-       right: 0,
-       padding: "0 16px",
-       zIndex: 999,
-     }}
-   >
-     <Button
-       type="primary"
-       size="large"
-       block
-       style={{
-         height: 50,
-         fontSize: 16,
-         display: "flex",
-         justifyContent: "space-between",
-       }}
-       onClick={sendOrderToWhatsApp}
-     >
-       <div>{CartStore.totalQuantity} товаров</div>
-       <div>Оформить</div>
-       <div>
-         {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
-       </div>
-     </Button>
-   </div>
-     } 
+      {cart.length !== 0 && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 70,
+            left: 0,
+            right: 0,
+            padding: "0 16px",
+            zIndex: 999,
+          }}
+        >
+          <Button
+            type="primary"
+            size="large"
+            block
+            style={{
+              height: 50,
+              fontSize: 16,
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+            onClick={sendOrderToWhatsApp}
+          >
+            <div>{CartStore.totalQuantity} товаров</div>
+            <div>Оформить</div>
+            <div>
+              {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
+            </div>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
