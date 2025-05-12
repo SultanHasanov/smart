@@ -24,10 +24,10 @@ const CartPage = () => {
   const [test, setTest] = useState(1);
   const navigate = useNavigate();
   const { Text, Paragraph } = Typography;
-
   const [form] = Form.useForm();
   const cart = toJS(CartStore.cart);
-
+  
+  console.log(cart)
   useEffect(() => {
     setTest(cart.length !== 0 ? 1 : 2);
   }, [cart.length]);
@@ -155,10 +155,11 @@ ${cartDetails}
         payment_type: orderData.paymentType,
         change_for:
           orderData.paymentType === "cash"
-            ? orderData.changeFor.trim() === ""
+            ? (orderData.changeFor || "").trim() === ""
               ? null
               : Number(orderData.changeFor)
             : null,
+
         status: "новый",
       });
 
@@ -304,7 +305,7 @@ ${cartDetails}
         </Button>
       )}
 
-      {cart.length !== 0 && (
+      {selectedIds.length !== 0 && (
         <div
           style={{
             position: "fixed",
@@ -327,10 +328,10 @@ ${cartDetails}
             }}
             onClick={sendOrderToWhatsApp}
           >
-            <div>{CartStore.totalQuantity} товаров</div>
+            <div>{selectedIds.length} товаров</div>
             <div>Оформить</div>
             <div>
-              {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
+              {new Intl.NumberFormat("ru-RU").format(calculateTotal())} ₽
             </div>
           </Button>
         </div>
