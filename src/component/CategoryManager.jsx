@@ -32,7 +32,7 @@ const CategoryManager = observer(() => {
   };
 
   return (
-    <div>
+    <div style={{height: "100vh"}}>
       <h3>Категории</h3>
       <Space style={{ marginBottom: 16 }}>
         <Input

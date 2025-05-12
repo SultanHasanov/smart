@@ -32,9 +32,11 @@ import "../component/styles/Product.scss";
 import PriceEditorTable from "./PriceEditorTable";
 import OrderManager from "./OrderManager";
 import BannerManager from "./BannerManager";
-import { audio } from "framer-motion/client";
 import { observer } from "mobx-react-lite";
 import { categoryStore } from "../store/categoryStore";
+import { toJS } from "mobx";
+import BulkProductUploader from "./BulkProductUploader";
+import ProductListEditor from "./ProductListEditor";
 
 const { Option } = Select;
 
@@ -53,7 +55,7 @@ const ProductManager = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const [images, setImages] = useState([]);
-
+  console.log(items);
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -69,6 +71,9 @@ const ProductManager = () => {
   useEffect(() => {
     categoryStore.fetchCategories();
   }, []);
+
+  const categoriesTwo = toJS(categoryStore.categories);
+  console.log(categoriesTwo);
 
   const fetchItems = async () => {
     const res = await axios.get("https://chechnya-product.ru/api/products");
@@ -94,9 +99,9 @@ const ProductManager = () => {
 
   const handleUpdate = async (id, updatedValues) => {
     const token = localStorage.getItem("token"); // Use the correct token key
-
+    console.log(updatedValues);
     try {
-      const response = await axios.put(`${apiUrl}/${id}`, updatedValues, {
+      await axios.put(`${apiUrl}/${id}`, updatedValues, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -180,6 +185,8 @@ const ProductManager = () => {
     switch (activeTab) {
       case "1":
         return (
+          <>
+          
           <Form
             className="form-edit"
             form={form}
@@ -274,7 +281,7 @@ const ProductManager = () => {
                   </>
                 )}
               >
-                {categoryStore.categories.map((cat) => (
+                {categoriesTwo.map((cat) => (
                   <Option key={cat.id} value={cat.id}>
                     {cat.name}
                   </Option>
@@ -294,115 +301,22 @@ const ProductManager = () => {
               </Button>
             </Form.Item>
           </Form>
+          <BulkProductUploader/>
+          </>
         );
 
       case "2":
         return (
-          // Импортируем Switch для тогла
-
-          <List
-            className="custom-list"
-            bordered
-            dataSource={items}
-            renderItem={(item) => (
-              <List.Item
-                actions={
-                  editingId === item.id
-                    ? []
-                    : [
-                        <EditOutlined
-                          key="edit"
-                          style={{ color: "green", fontSize: 20 }}
-                          onClick={() => setEditingId(item.id)}
-                        />,
-                        <Popconfirm
-                          key="delete"
-                          title="Удалить товар?"
-                          onConfirm={() => handleDelete(item.id)}
-                          okText="Да"
-                          cancelText="Нет"
-                        >
-                          <DeleteFilled
-                            style={{ color: "red", fontSize: 20 }}
-                          />
-                        </Popconfirm>,
-                        <Switch
-                          key="toggleAvailability"
-                          checked={item.availability}
-                          onChange={() => handleToggleAvailability(item.id)} // Toggle availability
-                          checkedChildren="Активен"
-                          unCheckedChildren="Не активен"
-                        />,
-                      ]
-                }
-              >
-                {editingId === item.id ? (
-                  <div style={{ position: "relative", width: "100%" }}>
-                    <CloseOutlined
-                      onClick={() => setEditingId(null)}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        fontSize: 18,
-                        color: "red",
-                        cursor: "pointer",
-                        zIndex: 1,
-                      }}
-                    />
-                    <Form
-                      initialValues={item}
-                      onFinish={(values) => handleUpdate(item.id, values)}
-                      layout="inline"
-                      style={{
-                        width: "100%",
-                        flexWrap: "wrap",
-                        alignItems: "center",
-                        paddingRight: 24,
-                      }}
-                    >
-                      <Form.Item className="input-form-edit" name="name">
-                        <Input />
-                      </Form.Item>
-                      <Form.Item className="input-form-edit" name="price">
-                        <InputNumber min={0} />
-                      </Form.Item>
-                      <Form.Item className="input-form-edit" name="url">
-                        <Input />
-                      </Form.Item>
-                      <Form.Item className="input-form-edit" name="category_id">
-                        <Select style={{ width: 120 }}>
-                          {categories.map((cat) => (
-                            <Option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                      <Form.Item className="input-form-edit">
-                        <Button htmlType="submit" type="primary">
-                          Сохранить
-                        </Button>
-                      </Form.Item>
-                    </Form>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      width: "100%",
-                    }}
-                  >
-                    <span>
-                      {item.name} — {item.price} ₽
-                    </span>
-                  </div>
-                )}
-              </List.Item>
-            )}
-          />
-        );
+    <ProductListEditor
+      items={items}
+      editingId={editingId}
+      setEditingId={setEditingId}
+      handleUpdate={handleUpdate}
+      handleDelete={handleDelete}
+      handleToggleAvailability={handleToggleAvailability}
+      categoriesTwo={categoriesTwo}
+    />
+  );
 
       case "3":
         return <PriceEditorTable />;
@@ -465,7 +379,7 @@ const ProductManager = () => {
         </Menu>
       </Drawer>
 
-      <div style={{ height: "100vh" }}>{renderTabContent()}</div>
+      <div style={{marginTop: 10}}>{renderTabContent()}</div>
       <Modal
         title="Новая категория"
         open={categoryModalOpen}

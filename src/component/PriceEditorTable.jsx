@@ -3,15 +3,15 @@ import { Table, InputNumber, Button, message } from "antd";
 import axios from "axios";
 import "./styles/Product.scss"; // для кастомных стилей
 
-const apiUrl = "https://44899c88203381ec.mokky.dev/items";
+const apiUrl = "https://chechnya-product.ru/api/admin/products";
 
 const PriceEditorTable = () => {
   const [items, setItems] = useState([]);
   const [editedPrices, setEditedPrices] = useState({});
 
   const fetchItems = async () => {
-    const res = await axios.get(apiUrl);
-    setItems(res.data);
+    const res = await axios.get('https://chechnya-product.ru/api/products');
+    setItems(res.data.data);
   };
 
   useEffect(() => {
@@ -31,11 +31,15 @@ const PriceEditorTable = () => {
       message.info("Нет изменений для сохранения");
       return;
     }
-
+ const token = localStorage.getItem("token");
     try {
       await Promise.all(
         updates.map(([id, price]) =>
-          axios.patch(`${apiUrl}/${id}`, { price })
+          axios.patch(`${apiUrl}/${id}`, { price },  {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
         )
       );
       message.success("Цены обновлены");
@@ -79,7 +83,7 @@ const PriceEditorTable = () => {
     editedPrices.hasOwnProperty(record.id) ? "edited-row" : "";
 
   return (
-    <div>
+    <div style={{height: "100vh"}}>
       <h3>Редактирование цен</h3>
       <div style={{ marginBottom: 16, display: "flex", gap: 12 }}>
         <Button type="primary" onClick={handleSave}>
@@ -90,6 +94,7 @@ const PriceEditorTable = () => {
         </Button>
       </div>
       <Table
+      style={{height: "100vh"}}
         rowKey="id"
         dataSource={items}
         columns={columns}

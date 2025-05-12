@@ -1,20 +1,21 @@
 import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  MenuOutlined,
-  ShoppingCartOutlined,
-} from "@ant-design/icons";
+import { MenuOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import CartStore from "../store/CartStore";
+import { toJS } from "mobx";
+import { observer } from "mobx-react-lite";
 
 // Вызов пасхалки (кот-терминал)
 const openHackerCatTerminal = () => {
-  const event = new CustomEvent('hackerCatOpen');
+  const event = new CustomEvent("hackerCatOpen");
   window.dispatchEvent(event);
 };
 
 const Header = ({ subtitle = "Быстрая доставка за 30 мин" }) => {
+  const cart = CartStore.cart;
+  // console.log(toJS(cart));
   const navigate = useNavigate();
   const timeout = useRef(null);
-
 
   const handleTouchStart = () => {
     timeout.current = setTimeout(() => {
@@ -29,7 +30,15 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
   };
 
   return (
-    <div style={{ backgroundColor: "#fff", borderBottom: "1px solid #eee", position: "sticky", top: 0, zIndex: 100 }}>
+    <div
+      style={{
+        backgroundColor: "#fff",
+        borderBottom: "1px solid #eee",
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+      }}
+    >
       {/* Верхняя панель */}
       <div
         style={{
@@ -47,7 +56,13 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
 
         {/* Название с пасхалкой */}
         <div
-          style={{ fontSize: "20px", fontWeight: "700", color: "red", cursor: "pointer", userSelect: "none" }}
+          style={{
+            fontSize: "20px",
+            fontWeight: "700",
+            color: "red",
+            cursor: "pointer",
+            userSelect: "none",
+          }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -55,10 +70,15 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
         </div>
 
         {/* Корзина */}
-        <ShoppingCartOutlined
-          onClick={() => navigate("/cart")}
-          style={{ fontSize: "22px", cursor: "pointer" }}
-        />
+        <div style={{ display: "flex", flexDirection: "column",  alignItems: "center" }}>
+          <ShoppingCartOutlined
+            onClick={() => navigate("/cart")}
+            style={{ fontSize: "22px", cursor: "pointer" }}
+          />
+          <span style={{ color: "#1677ff", fontSize: 12, fontWeight: "bold" }}>
+            {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
+          </span>
+        </div>
       </div>
 
       {/* Подзаголовок или статус */}
@@ -69,4 +89,4 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
   );
 };
 
-export default Header;
+export default observer(Header);

@@ -1,12 +1,23 @@
 import React, { useState } from "react";
 import { Button, Checkbox, Typography } from "antd";
-import { MinusOutlined, PlusOutlined, DeleteFilled } from "@ant-design/icons";
+import { MinusOutlined, PlusOutlined, DeleteFilled, DeleteOutlined } from "@ant-design/icons";
+import { toJS } from "mobx";
+import { observer } from "mobx-react-lite";
 
 const { Text } = Typography;
 
-const CartList = ({ cart, selectedIds, toggleSelected, increaseQuantity, decreaseQuantity, handleRemoveFromCart }) => {
+const CartList = ({
+  cart,
+  selectedIds,
+  toggleSelected,
+  increaseQuantity,
+  decreaseQuantity,
+  handleRemoveFromCart,
+}) => {
   const [expanded, setExpanded] = useState(false);
   const VISIBLE_COUNT = 4;
+  console.log("selectedIds", selectedIds);
+  console.log("cart", cart);
 
   if (cart.length === 0) return null;
 
@@ -16,7 +27,7 @@ const CartList = ({ cart, selectedIds, toggleSelected, increaseQuantity, decreas
     <>
       {displayedItems.map((item) => (
         <div
-          key={item.id}
+          key={item.product_id}
           style={{
             marginBottom: "5px",
             display: "flex",
@@ -24,35 +35,50 @@ const CartList = ({ cart, selectedIds, toggleSelected, increaseQuantity, decreas
           }}
         >
           <Checkbox
-            checked={selectedIds.includes(item.id)}
-            onChange={() => toggleSelected(item.id)}
+            checked={selectedIds.includes(item.product_id)}
+            onChange={() => toggleSelected(item.product_id)}
           />
           <Text strong style={{ fontSize: "16px", flex: 1 }}>
             {item.name} = {item.price * item.quantity} ₽
           </Text>
           <div style={{ display: "flex", alignItems: "center" }}>
             <Button
+              disabled={item.quantity <= 1}
               shape="circle"
               icon={<MinusOutlined />}
-              onClick={() => decreaseQuantity(item.id)}
+              onClick={() => decreaseQuantity(item.product_id)}
               size="small"
             />
             <Text style={{ margin: "0 8px" }}>{item.quantity}</Text>
             <Button
+              disabled={item.quantity >= 10}
               shape="circle"
               icon={<PlusOutlined />}
-              onClick={() => increaseQuantity(item.id)}
+              onClick={() => increaseQuantity(item.product_id)}
               size="small"
             />
           </div>
-          <DeleteFilled
-            onClick={() => handleRemoveFromCart(item.id)}
+          <div
+            onClick={() => handleRemoveFromCart(item.product_id)}
             style={{
-              color: "#f44336",
+              backgroundColor: "#fff5f5", // светло-розовый
+              borderRadius: "8px", // скругление углов
+              padding: "4px", // внутренний отступ
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               cursor: "pointer",
-              fontSize: "20px",
+              width: "24px",
+              height: "24px",
             }}
-          />
+          >
+            <DeleteOutlined
+              style={{
+                color: "#f44336", // насыщенно-красный
+                // fontSize: "20px",
+              }}
+            />
+          </div>
         </div>
       ))}
 
@@ -69,4 +95,4 @@ const CartList = ({ cart, selectedIds, toggleSelected, increaseQuantity, decreas
   );
 };
 
-export default CartList;
+export default observer(CartList);

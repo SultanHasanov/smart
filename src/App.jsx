@@ -4,8 +4,11 @@ import Product from "./component/Product";
 import OfflineDetector from "./component/OfflineDetector";
 import DevTerminal from "./component/DevTerminal";
 import SiteBanner from "./component/SiteBanner";
+import axios from "axios";
 
 const App = () => {
+
+
   // const [installPrompt, setInstallPrompt] = useState(null);
   // const [showInstallAlert, setShowInstallAlert] = useState(false);
 

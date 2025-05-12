@@ -12,16 +12,19 @@ import {
   EllipsisOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import CartStore from "../store/CartStore";
+import { observer } from "mobx-react-lite";
+import { toJS } from "mobx";
 
 const Product = () => {
   const [dishes, setDishes] = useState(() => {
     const cachedDishes = localStorage.getItem("dishes");
     return cachedDishes ? JSON.parse(cachedDishes) : [];
   });
-  const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  // const [cart, setCart] = useState(() => {
+  //   const savedCart = localStorage.getItem("cart");
+  //   return savedCart ? JSON.parse(savedCart) : [];
+  // });
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
@@ -31,6 +34,9 @@ const Product = () => {
     return cachedCategories ? JSON.parse(cachedCategories) : [];
   });
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const cart = toJS(CartStore.cart);
+  console.log(toJS(cart))
+  const setCart = CartStore.setCart;
 
   const navigate = useNavigate();
 
@@ -119,41 +125,31 @@ const Product = () => {
   };
 
   const handleAddToCart = (dishId) => {
-    const item = cart.find((item) => item.id === dishId);
-
-    if (item && item.quantity >= 10) return; // Проверка на ограничение 10
-    const newCart = [...cart];
-    const dishIndex = newCart.findIndex((item) => item.id === dishId);
-
-    if (dishIndex > -1) {
-      newCart[dishIndex].quantity += 1;
+    const item = CartStore.cart.find((item) => item.product_id === dishId);
+    if (item && item.quantity >= 10) return;
+  
+    const dish = dishes.find((d) => d.id === dishId);
+    if (!dish) return;
+  
+    const newItem = {
+      product_id: dishId,
+      quantity: 1,
+      name: dish.name,
+      price: dish.price,
+    };
+  
+    if (item) {
+      CartStore.addQuantity(dishId);
     } else {
-      const dish = dishes.find((dish) => dish.id === dishId);
-      newCart.push({
-        id: dishId,
-        quantity: 1,
-        name: dish.name,
-        price: dish.price,
-      });
+      CartStore.setCart([...CartStore.cart, newItem]);
     }
-
-    setCart(newCart);
-    localStorage.setItem("cart", JSON.stringify(newCart));
   };
+  
 
   const handleDecreaseQuantity = (dishId) => {
-    const newCart = [...cart];
-    const dishIndex = newCart.findIndex((item) => item.id === dishId);
-
-    if (dishIndex > -1 && newCart[dishIndex].quantity > 1) {
-      newCart[dishIndex].quantity -= 1;
-    } else {
-      newCart.splice(dishIndex, 1);
-    }
-
-    setCart(newCart);
-    localStorage.setItem("cart", JSON.stringify(newCart));
+    CartStore.decreaseQuantity(dishId);
   };
+  
 
   const shuffledAllDishes = useMemo(() => {
     if (selectedCategory === "all") {
@@ -171,13 +167,10 @@ const Product = () => {
       dish.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-  const calculateTotal = () => {
-    const total = cart.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
-    return new Intl.NumberFormat("ru-RU").format(total);
-  };
+    const calculateTotal = () => {
+      return new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice);
+    };
+    
 
   let charCount = 0;
   const visibleCategories = [];
@@ -292,7 +285,7 @@ const Product = () => {
             <div className="product-empty">Ничего не найдено</div>
           ) : (
             filteredDishes.map((dish) => {
-              const currentDish = cart.find((item) => item.id === dish.id);
+              const currentDish = cart.find((item) => item.product_id === dish.id);
               const quantity = currentDish ? currentDish.quantity : 0;
               const isUnavailable = !dish.availability;
 
@@ -361,7 +354,7 @@ const Product = () => {
                         >
                           <MinusOutlined />
                         </Button>
-                        {cart.find((item) => item.id === dish.id)?.quantity >=
+                        {cart.find((item) => item.product_id === dish.id)?.quantity >=
                           10 && (
                           <div
                             style={{
@@ -380,18 +373,18 @@ const Product = () => {
                           size={columnsCount === 3 ? "small" : "large"}
                           onClick={() => handleAddToCart(dish.id)}
                           disabled={
-                            cart.find((item) => item.id === dish.id)
+                            cart.find((item) => item.product_id === dish.id)
                               ?.quantity >= 10
                           }
                           className="product-btn-plus"
                           style={{
                             opacity:
-                              cart.find((item) => item.id === dish.id)
+                              cart.find((item) => item.product_id === dish.id)
                                 ?.quantity >= 10
                                 ? 0.4
                                 : 1,
                             pointerEvents:
-                              cart.find((item) => item.id === dish.id)
+                              cart.find((item) => item.product_id === dish.id)
                                 ?.quantity >= 10
                                 ? "none"
                                 : "auto",
@@ -449,4 +442,5 @@ const Product = () => {
   );
 };
 
-export default Product;
+export default observer(Product);
+

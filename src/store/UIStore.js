@@ -1,23 +1,23 @@
-// store/UIStore.js
-import { makeAutoObservable } from "mobx";
+// // store/UIStore.js
+// import { makeAutoObservable } from "mobx";
 
-class UIStore {
-  showGlobalOrderButton = false;
-  onClickOrder = null;
+// class UIStore {
+//   showGlobalOrderButton = false;
+//   onClickOrder = null;
 
-  constructor() {
-    makeAutoObservable(this);
-  }
+//   constructor() {
+//     makeAutoObservable(this);
+//   }
 
-  showOrderButton(onClick) {
-    this.showGlobalOrderButton = true;
-    this.onClickOrder = onClick;
-  }
+//   showOrderButton(onClick) {
+//     this.showGlobalOrderButton = true;
+//     this.onClickOrder = onClick;
+//   }
 
-  hideOrderButton() {
-    this.showGlobalOrderButton = false;
-    this.onClickOrder = null;
-  }
-}
+//   hideOrderButton() {
+//     this.showGlobalOrderButton = false;
+//     this.onClickOrder = null;
+//   }
+// }
 
-export default new UIStore();
+// export default new UIStore();
