@@ -374,7 +374,7 @@ const OrderManager = () => {
                         </span>
                       </Button>
                     </Space>
-                    <Link to={`/orders/${order.id}`}>
+                    <Link to={`/order/${order.id}`}>
                       <Button size="small" type="link">
                         Открыть ссылку
                       </Button>
