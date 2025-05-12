@@ -16,8 +16,7 @@ const CartList = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const VISIBLE_COUNT = 4;
-  console.log("selectedIds", selectedIds);
-  console.log("cart", cart);
+ 
 
   if (cart.length === 0) return null;
 

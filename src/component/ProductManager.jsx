@@ -55,7 +55,6 @@ const ProductManager = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const [images, setImages] = useState([]);
-  console.log(items);
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -73,7 +72,6 @@ const ProductManager = () => {
   }, []);
 
   const categoriesTwo = toJS(categoryStore.categories);
-  console.log(categoriesTwo);
 
   const fetchItems = async () => {
     const res = await axios.get("https://chechnya-product.ru/api/products");
@@ -85,7 +83,6 @@ const ProductManager = () => {
   }, []);
 
   const handleAdd = async (values) => {
-    console.log(values);
     const token = localStorage.getItem("token");
     await axios.post(apiUrl, values, {
       headers: {
@@ -99,7 +96,6 @@ const ProductManager = () => {
 
   const handleUpdate = async (id, updatedValues) => {
     const token = localStorage.getItem("token"); // Use the correct token key
-    console.log(updatedValues);
     try {
       await axios.put(`${apiUrl}/${id}`, updatedValues, {
         headers: {
