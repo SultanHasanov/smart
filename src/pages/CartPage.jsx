@@ -24,10 +24,8 @@ const CartPage = () => {
   const navigate = useNavigate();
 
   const cart = toJS(CartStore.cart);
-  console.log("cart", cart);
 
-  console.log("suggestions", suggestions);
-  console.log("selectedIds", selectedIds);
+ 
 
   useEffect(() => {
     setTest(cart.length !== 0 ? 1 : 2);
@@ -52,11 +50,10 @@ const CartPage = () => {
     address: query,
     changeFor: "",
   });
-  console.log("orderData", orderData);
 
   const calculateTotal = () => {
     return cart
-      .filter((item) => selectedIds.includes(item.id))
+      .filter((item) => selectedIds.includes(item.product_id))
       .reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
@@ -76,9 +73,7 @@ const CartPage = () => {
     );
   };
   const sendOrderToWhatsApp = useCallback(async () => {
-    console.log("Отправка заказа в WhatsApp");
     const selectedItems = cart.filter((item) => selectedIds.includes(item.product_id));
-    console.log("selectedItems", selectedItems);
 
     if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
     if (!orderData.name) return message.error("Введите имя!");

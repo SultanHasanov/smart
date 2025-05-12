@@ -35,8 +35,6 @@ const Product = () => {
   });
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const cart = toJS(CartStore.cart);
-  console.log(toJS(cart))
-  const setCart = CartStore.setCart;
 
   const navigate = useNavigate();
 

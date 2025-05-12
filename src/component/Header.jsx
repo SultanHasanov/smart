@@ -13,7 +13,6 @@ const openHackerCatTerminal = () => {
 
 const Header = ({ subtitle = "Быстрая доставка за 30 мин" }) => {
   const cart = CartStore.cart;
-  // console.log(toJS(cart));
   const navigate = useNavigate();
   const timeout = useRef(null);
 

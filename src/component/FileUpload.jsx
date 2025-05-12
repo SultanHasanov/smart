@@ -37,7 +37,6 @@ const FileUpload = () => {
       }
 
       const json = await res.json();
-      console.log('Success:', json);
 
       const uploadedImageUrl = json.url; // Получаем URL изображения
       setImageUrl(uploadedImageUrl);

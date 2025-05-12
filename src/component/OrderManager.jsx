@@ -65,7 +65,6 @@ const OrderManager = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(res.data.data);
-      console.log(res.data.data);
     } catch {
       message.error("Ошибка загрузки заказов");
     } finally {
@@ -193,7 +192,6 @@ const OrderManager = () => {
   const DeliveryTrack = ({ status }) => {
     const [position, setPosition] = useState(0);
     const carRef = useRef(null);
-    console.log(position);
 
     useEffect(() => {
       const stepIndex = statusFlow.indexOf(status);
