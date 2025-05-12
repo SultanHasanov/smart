@@ -97,7 +97,7 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
   };
 
   const dropdownContent = (
-    <Spin spinning={loading} size="small">
+    <Spin spinning={loading} size="small" >
       <List
         dataSource={suggestions}
         renderItem={(item) => (
@@ -109,6 +109,7 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
           </List.Item>
         )}
         style={{
+         
           maxHeight: 200,
           overflowY: "auto",
           borderRadius: 4,
@@ -119,7 +120,7 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
   );
 
   return (
-    <div style={{ width: "100%", marginBottom: 10 }}>
+    <div style={{ width: "100%"}}>
       {selectedAddress && (
         <Space direction="vertical" style={{ marginBottom: 18 }}>
           <Text strong>Выбранный адрес:</Text>
@@ -144,7 +145,7 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
           overflow: { adjustY: false, adjustX: false },
         }}
       >
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", marginBottom: 175 }}>
           <Input
             placeholder="Введите адрес"
             value={query}

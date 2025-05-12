@@ -184,9 +184,10 @@ ${cartDetails}
   return (
     <div
       style={{
-        padding: "10px",
+        padding: "5px",
+        marginBottom: 150
         // transition: "min-height 0.3s ease",
-        minHeight: isAddressOpen ? 815 : "auto",
+        // minHeight: isAddressOpen ? 815 : "auto",
       }}
     >
       {cart.length !== 0 && <h2>Ваш заказ:</h2>}

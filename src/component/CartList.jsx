@@ -24,7 +24,7 @@ const CartList = ({
   const displayedItems = expanded ? cart : cart.slice(0, VISIBLE_COUNT);
 
   return (
-    <>
+    <div>
       {displayedItems.map((item) => (
         <div
           key={item.product_id}
@@ -91,7 +91,7 @@ const CartList = ({
           {expanded ? "Скрыть" : `Показать ещё ${cart.length - VISIBLE_COUNT}`}
         </Button>
       )}
-    </>
+    </div>
   );
 };
 
