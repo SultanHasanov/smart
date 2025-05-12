@@ -32,7 +32,11 @@ import "../component/styles/Product.scss";
 import PriceEditorTable from "./PriceEditorTable";
 import OrderManager from "./OrderManager";
 import BannerManager from "./BannerManager";
-import { audio } from "framer-motion/client";
+import { observer } from "mobx-react-lite";
+import { categoryStore } from "../store/categoryStore";
+import { toJS } from "mobx";
+import BulkProductUploader from "./BulkProductUploader";
+import ProductListEditor from "./ProductListEditor";
 
 const { Option } = Select;
 
@@ -51,7 +55,7 @@ const ProductManager = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
 
   const [images, setImages] = useState([]);
-
+  console.log(items);
   useEffect(() => {
     const fetchImages = async () => {
       try {
@@ -65,21 +69,11 @@ const ProductManager = () => {
   }, []);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(
-          "https://chechnya-product.ru/api/categories"
-        );
-        setCategories(res.data.data);
-        if (res.data.data.length > 0 && !selectedCategory) {
-          setSelectedCategory(res.data.data[0].id);
-        }
-      } catch (error) {
-        console.error("Ошибка при загрузке категорий:", error);
-      }
-    };
-    fetchCategories();
+    categoryStore.fetchCategories();
   }, []);
+
+  const categoriesTwo = toJS(categoryStore.categories);
+  console.log(categoriesTwo);
 
   const fetchItems = async () => {
     const res = await axios.get("https://chechnya-product.ru/api/products");
@@ -92,72 +86,63 @@ const ProductManager = () => {
 
   const handleAdd = async (values) => {
     console.log(values);
-    const token = localStorage.getItem('token');
-    await axios.post(apiUrl, values,
-    {
+    const token = localStorage.getItem("token");
+    await axios.post(apiUrl, values, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-    }
-    );
+    });
     message.success("Товар добавлен");
     form.resetFields();
     fetchItems();
   };
 
   const handleUpdate = async (id, updatedValues) => {
-    const token = localStorage.getItem('token'); // Use the correct token key
-    
+    const token = localStorage.getItem("token"); // Use the correct token key
+    console.log(updatedValues);
     try {
-      const response = await axios.put(
-        `${apiUrl}/${id}`,
-        updatedValues,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          }
-        }
-      );
+      await axios.put(`${apiUrl}/${id}`, updatedValues, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       message.success("Товар обновлён");
       fetchItems();
       setEditingId(null);
     } catch (error) {
       // Enhanced error logging
       if (error.response) {
-        console.error('Error Response:', error.response.data); // Log the server response data
-        message.error(`Ошибка обновления товара: ${error.response.data.message || error.response.statusText}`);
+        console.error("Error Response:", error.response.data); // Log the server response data
+        message.error(
+          `Ошибка обновления товара: ${
+            error.response.data.message || error.response.statusText
+          }`
+        );
       } else {
-        console.error('Request Error:', error.message);
+        console.error("Request Error:", error.message);
         message.error("Ошибка обновления товара");
       }
     }
   };
-  
-  
-  
 
   const handleDelete = async (id) => {
     // Получаем токен из localStorage или другого хранилища
-    const token = localStorage.getItem('token'); // Используй правильный ключ для токена
-  
+    const token = localStorage.getItem("token"); // Используй правильный ключ для токена
+
     try {
       // Отправляем DELETE-запрос с токеном в заголовках
-      await axios.delete(
-        `${apiUrl}/${id}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`, // Добавляем токен в заголовок
-          }
-        }
-      );
+      await axios.delete(`${apiUrl}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Добавляем токен в заголовок
+        },
+      });
       message.success("Товар удалён");
-      fetchItems();  // Обновляем список товаров
+      fetchItems(); // Обновляем список товаров
     } catch (error) {
       message.error("Ошибка удаления товара");
       console.error(error);
     }
   };
-  
 
   const handlePriceChange = (id, price) => {
     setPriceEdits((prev) => ({ ...prev, [id]: price }));
@@ -169,31 +154,6 @@ const ProductManager = () => {
     await axios.patch(`${apiUrl}/${id}`, { price: newPrice });
     message.success("Цена обновлена");
     fetchItems();
-  };
-
-  const handleAddCategory = async () => {
-    if (!newCategoryName.trim()) return;
-    const token = localStorage.getItem('token');
-    try {
-      const res = await axios.post(
-        "https://chechnya-product.ru/api/admin/categories",
-        {
-          name: newCategoryName,
-        },{
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      const newCat = res.data.data;
-      setCategories((prev) => [newCat, ...prev]);
-      form.setFieldsValue({ category: newCat.id }); // авто-выбор новой
-      setCategoryModalOpen(false);
-      setNewCategoryName("");
-      message.success("Категория добавлена");
-    } catch (err) {
-      message.error("Ошибка при добавлении категории");
-    }
   };
 
   const tabItems = [
@@ -208,25 +168,25 @@ const ProductManager = () => {
   const handleToggleAvailability = async (id) => {
     // Найти элемент с данным id
     const item = items.find((item) => item.id === id);
-    
+
     if (item) {
       // Переключить доступность товара
       const updatedAvailability = !item.availability;
-  
+
       // Создать объект обновленных значений
       const updatedValues = { ...item, availability: updatedAvailability };
-  
+
       // Обновить товар через handleUpdate
       await handleUpdate(id, updatedValues);
     }
   };
-  
-  
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "1":
         return (
+          <>
+          
           <Form
             className="form-edit"
             form={form}
@@ -321,7 +281,7 @@ const ProductManager = () => {
                   </>
                 )}
               >
-                {categories.map((cat) => (
+                {categoriesTwo.map((cat) => (
                   <Option key={cat.id} value={cat.id}>
                     {cat.name}
                   </Option>
@@ -341,114 +301,22 @@ const ProductManager = () => {
               </Button>
             </Form.Item>
           </Form>
+          <BulkProductUploader/>
+          </>
         );
 
       case "2":
         return (
-          // Импортируем Switch для тогла
-
-          <List
-            className="custom-list"
-            bordered
-            dataSource={items}
-            renderItem={(item) => (
-              <List.Item
-                actions={
-                  editingId === item.id
-                    ? []
-                    : [
-                        <EditOutlined
-                          key="edit"
-                          style={{ color: "green", fontSize: 20 }}
-                          onClick={() => setEditingId(item.id)}
-                        />,
-                        <Popconfirm
-                          key="delete"
-                          title="Удалить товар?"
-                          onConfirm={() => handleDelete(item.id)}
-                          okText="Да"
-                          cancelText="Нет"
-                        >
-                          <DeleteFilled style={{ color: "red", fontSize: 20 }} />
-                        </Popconfirm>,
-                        <Switch
-                        key="toggleAvailability"
-                        checked={item.availability}
-                        onChange={() => handleToggleAvailability(item.id)} // Toggle availability
-                        checkedChildren="Активен"
-                        unCheckedChildren="Не активен"
-                      />
-                      ]
-                }
-              >
-                {editingId === item.id ? (
-                  <div style={{ position: "relative", width: "100%" }}>
-                    <CloseOutlined
-                      onClick={() => setEditingId(null)}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        fontSize: 18,
-                        color: "red",
-                        cursor: "pointer",
-                        zIndex: 1,
-                      }}
-                    />
-                    <Form
-                      initialValues={item}
-                      onFinish={(values) => handleUpdate(item.id, values)}
-                      layout="inline"
-                      style={{
-                        width: "100%",
-                        flexWrap: "wrap",
-                        alignItems: "center",
-                        paddingRight: 24,
-                      }}
-                    >
-                      <Form.Item className="input-form-edit" name="name">
-                        <Input />
-                      </Form.Item>
-                      <Form.Item className="input-form-edit" name="price">
-                        <InputNumber min={0} />
-                      </Form.Item>
-                      <Form.Item className="input-form-edit" name="url">
-                        <Input />
-                      </Form.Item>
-                      <Form.Item className="input-form-edit" name="category_id">
-                        <Select style={{ width: 120 }}>
-                          {categories.map((cat) => (
-                            <Option key={cat.id} value={cat.id}>
-                              {cat.name}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                      <Form.Item className="input-form-edit">
-                        <Button htmlType="submit" type="primary">
-                          Сохранить
-                        </Button>
-                      </Form.Item>
-                    </Form>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      width: "100%",
-                    }}
-                  >
-                    <span>
-                      {item.name} — {item.price} ₽
-                    </span>
-                  </div>
-                )}
-              </List.Item>
-            )}
-          />
-          
-        );
+    <ProductListEditor
+      items={items}
+      editingId={editingId}
+      setEditingId={setEditingId}
+      handleUpdate={handleUpdate}
+      handleDelete={handleDelete}
+      handleToggleAvailability={handleToggleAvailability}
+      categoriesTwo={categoriesTwo}
+    />
+  );
 
       case "3":
         return <PriceEditorTable />;
@@ -511,7 +379,7 @@ const ProductManager = () => {
         </Menu>
       </Drawer>
 
-      <div style={{ height: "100vh" }}>{renderTabContent()}</div>
+      <div style={{marginTop: 10}}>{renderTabContent()}</div>
       <Modal
         title="Новая категория"
         open={categoryModalOpen}
@@ -519,7 +387,11 @@ const ProductManager = () => {
           setCategoryModalOpen(false);
           setNewCategoryName("");
         }}
-        onOk={handleAddCategory}
+        onOk={() => {
+          categoryStore.addCategory(newCategoryName);
+          setNewCategoryName("");
+          setCategoryModalOpen(false);
+        }}
         okText="Добавить"
         cancelText="Отмена"
       >
@@ -527,11 +399,10 @@ const ProductManager = () => {
           placeholder="Название категории"
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
-          onPressEnter={handleAddCategory}
         />
       </Modal>
     </div>
   );
 };
 
-export default ProductManager;
+export default observer(ProductManager);

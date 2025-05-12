@@ -18,7 +18,7 @@ import {
 const { Text } = Typography;
 const DADATA_API_KEY = "a17c1b8db5c44bf264bf804062ffe577594171e5";
 
-export default function AddressInput({query, setQuery, suggestions, setSuggestions}) {
+export default function AddressInput({query, setQuery, suggestions, setSuggestions,  onDropdownOpenChange}) {
   const [selectedAddress, setSelectedAddress] = useState("");
   console.log("selectedAddress", selectedAddress, query);
   const [loading, setLoading] = useState(false);
@@ -29,6 +29,7 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
   useEffect(() => {
     if (!query || hasSelected) {
       setSuggestions([]);
+      onDropdownOpenChange?.(false);
       return;
     }
 
@@ -36,6 +37,7 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
     debounceRef.current = setTimeout(() => {
       fetchSuggestions(query);
     }, 300);
+    onDropdownOpenChange?.(true);
   }, [query, hasSelected]);
 
   const fetchSuggestions = async (value) => {

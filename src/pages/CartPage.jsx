@@ -1,32 +1,49 @@
-import { useEffect, useState } from "react";
-import { Button, Checkbox, Input, message, Radio, Typography } from "antd";
+import { useCallback, useEffect, useState } from "react";
+import { Button, Input, message, Radio, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
-import {
-  DeleteFilled,
-  PlusOutlined,
-  MinusOutlined,
-  ShoppingOutlined,
-} from "@ant-design/icons";
+import { PlusOutlined, ShoppingOutlined } from "@ant-design/icons";
 import AddressInput from "../component/AddressInput";
 import axios from "axios";
 import "../component/styles/Product.scss";
-import { div } from "framer-motion/client";
 import CartList from "../component/CartList";
+import CartStore from "../store/CartStore";
+import { observer } from "mobx-react-lite";
+import { toJS } from "mobx";
 
 const { Text } = Typography;
 const ADMIN_PHONE = "+79298974969";
 
 const CartPage = () => {
-  const [cart, setCart] = useState([]);
+  // const [cart, setCart] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [query, setQuery] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [suggestions, setSuggestions] = useState([]);
-
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [test, setTest] = useState(1);
+  const navigate = useNavigate();
+
+  const cart = toJS(CartStore.cart);
+  console.log("cart", cart);
+
+  console.log("suggestions", suggestions);
+  console.log("selectedIds", selectedIds);
+
   useEffect(() => {
     setTest(cart.length !== 0 ? 1 : 2);
   }, [cart.length]);
+
+  // useEffect(() => {
+  //   if (cart.length > 0 && suggestions.length === 0) {
+  //     console.log("selectedIds", selectedIds);
+  //     UIStore.showOrderButton(sendOrderToWhatsApp);
+  //   } else {
+  //     UIStore.hideOrderButton();
+  //   }
+
+  //   return () => UIStore.hideOrderButton();
+
+  // }, [cart.length]);
 
   const [orderData, setOrderData] = useState({
     name: "",
@@ -35,20 +52,7 @@ const CartPage = () => {
     address: query,
     changeFor: "",
   });
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
-  }, []);
-
-  const updateCart = (newCart) => {
-    setCart(newCart);
-    localStorage.setItem("cart", JSON.stringify(newCart));
-  };
+  console.log("orderData", orderData);
 
   const calculateTotal = () => {
     return cart
@@ -56,42 +60,13 @@ const CartPage = () => {
       .reduce((total, item) => total + item.price * item.quantity, 0);
   };
 
-  const handleRemoveFromCart = (dishId) => {
-    const newCart = cart.filter((item) => item.id !== dishId);
-    updateCart(newCart);
-    setSelectedIds((prev) => prev.filter((id) => id !== dishId));
-  };
+  const handleRemoveFromCart = (id) => CartStore.removeItem(id);
 
-  const handleRemoveSelected = () => {
-    const newCart = cart.filter((item) => !selectedIds.includes(item.id));
-    updateCart(newCart);
-    setSelectedIds([]);
-    setOrderData({
-      name: "",
-      deliveryType: "",
-      paymentType: "",
-      address: query,
-      changeFor: "",
-    })
-  };
+  const handleRemoveSelected = () => CartStore.clearSelected(selectedIds);
 
-  const increaseQuantity = (dishId) => {
-    const newCart = cart.map((item) =>
-      item.id === dishId ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    updateCart(newCart);
-  };
+  const increaseQuantity = (id) => CartStore.addQuantity(id);
 
-  const decreaseQuantity = (dishId) => {
-    const newCart = cart
-      .map((item) =>
-        item.id === dishId && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-      .filter((item) => item.quantity > 0);
-    updateCart(newCart);
-  };
+  const decreaseQuantity = (id) => CartStore.decreaseQuantity(id);
 
   const toggleSelected = (dishId) => {
     setSelectedIds((prev) =>
@@ -100,8 +75,10 @@ const CartPage = () => {
         : [...prev, dishId]
     );
   };
-  const sendOrderToWhatsApp = async () => {
-    const selectedItems = cart.filter((item) => selectedIds.includes(item.id));
+  const sendOrderToWhatsApp = useCallback(async () => {
+    console.log("Отправка заказа в WhatsApp");
+    const selectedItems = cart.filter((item) => selectedIds.includes(item.product_id));
+    console.log("selectedItems", selectedItems);
 
     if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
     if (!orderData.name) return message.error("Введите имя!");
@@ -168,207 +145,191 @@ ${cartDetails}
 
     // 2. Отправка на API
     try {
-      await axios.post("https://44899c88203381ec.mokky.dev/orders", {
+      await axios.post("https://chechnya-product.ru/api/order", {
         name: orderData.name,
         address: orderData.deliveryType === "delivery" ? query : null,
         items: selectedItems,
-        deliveryFee: deliveryFee,
-        deliveryText: deliveryText,
+        delivery_fee: deliveryFee,
+        delivery_text: deliveryText,
         total: finalTotal,
-        deliveryType: orderData.deliveryType,
-        paymentType: orderData.paymentType,
-        changeFor:
-          orderData.paymentType === "cash" ? orderData.changeFor || null : null,
+        delivery_type: orderData.deliveryType,
+        payment_type: orderData.paymentType,
+        change_for:
+           orderData.paymentType === "cash"
+    ? orderData.changeFor.trim() === ""
+      ? null
+      : Number(orderData.changeFor)
+    : null,
         status: "новый",
-        createdAt: Date.now(),
       });
 
       message.success("Заказ отправлен админу и сохранён в системе!");
+      setOrderData({
+        name: "",
+        deliveryType: "pickup",
+        address: "",
+        paymentType: "cash",
+        changeFor: "",
+      });
+  
+      setSelectedIds([]);
+      handleRemoveSelected();
     } catch (error) {
       message.error("Ошибка при сохранении заказа на сервере");
       console.error("Ошибка API:", error);
     }
 
-    setOrderData({
-      name: "",
-      deliveryType: "pickup",
-      address: "",
-      paymentType: "cash",
-      changeFor: "",
-    });
-
-    // Удаляем только отправленные
-    const remaining = cart.filter((item) => !selectedIds.includes(item.id));
-    updateCart(remaining);
-    setSelectedIds([]);
-  };
+  }, [selectedIds, orderData, query, cart]);
 
   return (
-    <>
-      <div
-        style={{
-          padding: "10px",
-          // position: "relative",
-        }}
-      >
-        {cart.length !== 0 && <h2>Ваш заказ:</h2>}
+    <div
+      style={{
+        padding: "10px",
+        // transition: "min-height 0.3s ease",
+        minHeight: isAddressOpen ? 815 : "auto",
+      }}
+    >
+      {cart.length !== 0 && <h2>Ваш заказ:</h2>}
 
-        {cart.length > 0 ? (
-          <>
-            <Button
-              onClick={() => {
-                if (selectedIds.length === cart.length) {
-                  setSelectedIds([]); // Снимаем всё
-                } else {
-                  setSelectedIds(cart.map((item) => item.id)); // Выбираем всё
-                }
-              }}
-              style={{ marginBottom: 10 }}
-            >
-              {selectedIds.length === cart.length
-                ? "Снять выделение"
-                : "Выбрать всё"}
-            </Button>
-
-            <CartList
-              cart={cart}
-              selectedIds={selectedIds}
-              toggleSelected={toggleSelected}
-              increaseQuantity={increaseQuantity}
-              decreaseQuantity={decreaseQuantity}
-              handleRemoveFromCart={handleRemoveFromCart}
-            />
-          </>
-        ) : (
-          <div
-            style={{
-              height: "50vh",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#ccc",
-              fontSize: "18px",
-              textAlign: "center",
-              padding: "20px",
+      {cart.length > 0 ? (
+        <>
+          <Button
+            onClick={() => {
+              if (selectedIds.length === cart.length) {
+                setSelectedIds([]); // Снимаем всё
+              } else {
+                setSelectedIds(cart.map((item) => item.product_id)); // Выбираем всё
+              }
             }}
+            style={{ marginBottom: 10 }}
           >
-            <ShoppingOutlined style={{ fontSize: 60, marginBottom: 16 }} />
-            <div>Корзина пуста</div>
-          </div>
-        )}
+            {selectedIds.length === cart.length
+              ? "Снять выделение"
+              : "Выбрать всё"}
+          </Button>
 
-        {test === 1 && (
-          <div style={{ marginTop: "10px", display: "flex", gap: 8 }}>
-            {cart.length !== 0 && (
-              <Button
-                danger
-                onClick={handleRemoveSelected}
-                disabled={selectedIds.length === 0}
-              >
-                Удалить выбранные
-              </Button>
-            )}
-
-            <Button onClick={() => navigate("/")} icon={<PlusOutlined />}>
-              {cart.length !== 0 ? "Добавить ещё" : "Добавить товары"}
-            </Button>
-          </div>
-        )}
-
-        {cart.length !== 0 && (
-          <div style={{ marginTop: "10px" }}>
-            <Text
-              style={{
-                fontSize: 17,
-                color: "green",
-                textDecoration: "underline",
-              }}
-              strong
-            >
-              Итоговая сумма: {calculateTotal()} ₽
-            </Text>
-          </div>
-        )}
-
-        {cart.length !== 0 && (
-          <div style={{ marginTop: 20 }}>
-            <Input
-              size="large"
-              placeholder="Имя"
-              value={orderData.name}
-              onChange={(e) =>
-                setOrderData({ ...orderData, name: e.target.value })
-              }
-              style={{ marginBottom: 10 }}
-            />
-
-            <Radio.Group
-              size="large"
-              value={orderData.paymentType}
-              onChange={(e) =>
-                setOrderData({ ...orderData, paymentType: e.target.value })
-              }
-              style={{ marginBottom: 10 }}
-            >
-              <Radio.Button value="cash">Наличными</Radio.Button>
-              <Radio.Button value="transfer">Перевод</Radio.Button>
-            </Radio.Group>
-
-            {orderData.paymentType === "cash" &&
-              orderData.deliveryType === "delivery" && (
-                <Input
-                  size="large"
-                  placeholder="С какой суммы нужна сдача?"
-                  value={orderData.changeFor}
-                  onChange={(e) =>
-                    setOrderData({ ...orderData, changeFor: e.target.value })
-                  }
-                  style={{ marginBottom: 10 }}
-                />
-              )}
-
-            <Radio.Group
-              size="large"
-              value={orderData.deliveryType}
-              onChange={(e) =>
-                setOrderData({ ...orderData, deliveryType: e.target.value })
-              }
-              style={{ marginBottom: 10 }}
-            >
-              <Radio.Button value="pickup">Самовывоз</Radio.Button>
-              <Radio.Button value="delivery">Доставка</Radio.Button>
-            </Radio.Group>
-          </div>
-        )}
-        {orderData.deliveryType === "delivery" && (
-          <AddressInput
-            query={query}
-            setQuery={setQuery}
-            selectedAddress={selectedAddress}
-            setSelectedAddress={setSelectedAddress}
-            setSuggestions={setSuggestions}
-            suggestions={suggestions}
+          <CartList
+            cart={cart}
+            selectedIds={selectedIds}
+            toggleSelected={toggleSelected}
+            increaseQuantity={increaseQuantity}
+            decreaseQuantity={decreaseQuantity}
+            handleRemoveFromCart={handleRemoveFromCart}
           />
-        )}
-        <div style={{ marginBottom: 50 }}>
-          {cart.length !== 0 && suggestions.length === 0 && (
+        </>
+      ) : (
+        <div
+          style={{
+            height: "50vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#ccc",
+            fontSize: "18px",
+            textAlign: "center",
+            padding: "20px",
+          }}
+        >
+          <ShoppingOutlined style={{ fontSize: 60, marginBottom: 16 }} />
+          <div>Корзина пуста</div>
+        </div>
+      )}
+
+      {test === 1 && (
+        <div style={{ marginTop: "10px", display: "flex", gap: 8 }}>
+          {cart.length !== 0 && (
             <Button
-              style={{
-                height: 50,
-                fontSize: 20,
-              }}
-              size="large"
-              type="primary"
-              block
-              onClick={sendOrderToWhatsApp}
+              danger
+              onClick={handleRemoveSelected}
+              disabled={selectedIds.length === 0}
             >
-              Оформить заказ
+              Удалить выбранные
             </Button>
           )}
-        </div>
-      </div>
 
+          <Button onClick={() => navigate("/")} icon={<PlusOutlined />}>
+            {cart.length !== 0 ? "Добавить ещё" : "Добавить товары"}
+          </Button>
+        </div>
+      )}
+
+      {cart.length !== 0 && (
+        <div style={{ marginTop: "10px" }}>
+          <Text
+            style={{
+              fontSize: 17,
+              color: "green",
+              textDecoration: "underline",
+            }}
+            strong
+          >
+            Итоговая сумма: {calculateTotal()} ₽
+          </Text>
+        </div>
+      )}
+
+      {cart.length !== 0 && (
+        <div style={{ marginTop: 20 }}>
+          <Input
+            size="large"
+            placeholder="Имя"
+            value={orderData.name}
+            onChange={(e) =>
+              setOrderData({ ...orderData, name: e.target.value })
+            }
+            style={{ marginBottom: 10 }}
+          />
+
+          <Radio.Group
+            size="large"
+            value={orderData.paymentType}
+            onChange={(e) =>
+              setOrderData({ ...orderData, paymentType: e.target.value })
+            }
+            style={{ marginBottom: 10 }}
+          >
+            <Radio.Button value="cash">Наличными</Radio.Button>
+            <Radio.Button value="transfer">Перевод</Radio.Button>
+          </Radio.Group>
+
+          {orderData.paymentType === "cash" &&
+            orderData.deliveryType === "delivery" && (
+              <Input
+                size="large"
+                placeholder="С какой суммы нужна сдача?"
+                value={orderData.changeFor}
+                onChange={(e) =>
+                  setOrderData({ ...orderData, changeFor: e.target.value })
+                }
+                style={{ marginBottom: 10 }}
+              />
+            )}
+
+          <Radio.Group
+            size="large"
+            value={orderData.deliveryType}
+            onChange={(e) =>
+              setOrderData({ ...orderData, deliveryType: e.target.value })
+            }
+            style={{ marginBottom: 10 }}
+          >
+            <Radio.Button value="pickup">Самовывоз</Radio.Button>
+            <Radio.Button value="delivery">Доставка</Radio.Button>
+          </Radio.Group>
+        </div>
+      )}
+      {orderData.deliveryType === "delivery" && (
+        <AddressInput
+          query={query}
+          setQuery={setQuery}
+          selectedAddress={selectedAddress}
+          setSelectedAddress={setSelectedAddress}
+          setSuggestions={setSuggestions}
+          suggestions={suggestions}
+          onDropdownOpenChange={setIsAddressOpen}
+        />
+      )}
       {test === 2 && (
         <Button
           size="large"
@@ -386,8 +347,40 @@ ${cartDetails}
           {cart.length === 0 && "Добавить товары"}
         </Button>
       )}
-    </>
+
+     {cart.length !== 0 &&
+     <div
+     style={{
+       position: "fixed",
+       bottom: 70,
+       left: 0,
+       right: 0,
+       padding: "0 16px",
+       zIndex: 999,
+     }}
+   >
+     <Button
+       type="primary"
+       size="large"
+       block
+       style={{
+         height: 50,
+         fontSize: 16,
+         display: "flex",
+         justifyContent: "space-between",
+       }}
+       onClick={sendOrderToWhatsApp}
+     >
+       <div>{CartStore.totalQuantity} товаров</div>
+       <div>Оформить</div>
+       <div>
+         {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
+       </div>
+     </Button>
+   </div>
+     } 
+    </div>
   );
 };
 
-export default CartPage;
+export default observer(CartPage);
