@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import html2canvas from "html2canvas";
 import "./styles/Product.scss";
+import { Link } from "react-router-dom";
 
 const { Text, Paragraph } = Typography;
 
@@ -190,43 +191,44 @@ const OrderManager = () => {
   };
 
   const DeliveryTrack = ({ status }) => {
-  const [position, setPosition] = useState(0);
-  const carRef = useRef(null);
-  console.log(position)
+    const [position, setPosition] = useState(0);
+    const carRef = useRef(null);
+    console.log(position);
 
-  useEffect(() => {
-    const stepIndex = statusFlow.indexOf(status);
-    const newPosition = (stepIndex / (statusFlow.length - 1)) * 90;
-    setPosition(newPosition);
-  }, [status]);
+    useEffect(() => {
+      const stepIndex = statusFlow.indexOf(status);
+      const newPosition = (stepIndex / (statusFlow.length - 1)) * 90;
+      setPosition(newPosition);
+    }, [status]);
 
-  return (
-    <div className="delivery-track">
-      <div className="track-line">
-        {statusFlow.map((step, index) => (
+    return (
+      <div className="delivery-track">
+        <div className="track-line">
+          {statusFlow.map((step, index) => (
+            <div
+              key={step}
+              className={`track-step ${
+                index <= statusFlow.indexOf(status) ? "completed" : ""
+              }`}
+            >
+              {step}
+            </div>
+          ))}
           <div
-            key={step}
-            className={`track-step ${index <= statusFlow.indexOf(status) ? "completed" : ""}`}
+            ref={carRef}
+            className="car-icon"
+            style={{
+              left: `${position}%`,
+            }}
           >
-            {step}
+            <span style={{ display: "inline-block", transform: "scaleX(-1)" }}>
+              🚗
+            </span>
           </div>
-        ))}
-        <div
-          ref={carRef}
-          className="car-icon"
-          style={{
-            left: `${position}%`,
-          }}
-        >
-          <span style={{ display: "inline-block", transform: "scaleX(-1)" }}>🚗</span>
-
         </div>
       </div>
-    </div>
-  );
-};
-
-
+    );
+  };
 
   return (
     <>
@@ -319,7 +321,7 @@ const OrderManager = () => {
                           alignItems: "center",
                           border: "none",
                           justifyContent: "center",
-                          backgroundColor: "transparent"
+                          backgroundColor: "transparent",
                         }}
                       >
                         <CheckCircleOutlined
@@ -345,7 +347,7 @@ const OrderManager = () => {
                             alignItems: "center",
                             border: "none",
                             justifyContent: "center",
-                            backgroundColor: "transparent"
+                            backgroundColor: "transparent",
                           }}
                         >
                           <CloseCircleOutlined style={{ fontSize: 20 }} />
@@ -363,7 +365,7 @@ const OrderManager = () => {
                           alignItems: "center",
                           border: "none",
                           justifyContent: "center",
-                          backgroundColor: "transparent"
+                          backgroundColor: "transparent",
                         }}
                       >
                         <ShareAltOutlined
@@ -374,6 +376,11 @@ const OrderManager = () => {
                         </span>
                       </Button>
                     </Space>
+                    <Link to={`/orders/${order.id}`}>
+                      <Button size="small" type="link">
+                        Открыть ссылку
+                      </Button>
+                    </Link>
                     <DeliveryTrack status={order.status} />
                   </div>
                 )}
