@@ -4,7 +4,7 @@ import axios from "axios";
 import { Typography, Spin, Tag, message } from "antd";
 
 const { Paragraph, Text } = Typography;
-const ORDER_API = "https://chechnya-product.ru/api/admin/orders";
+const ORDER_API = "https://chechnya-product.ru/api/orders";
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -53,7 +53,7 @@ const SingleOrder = () => {
   if (!order) return <Text>Заказ не найден</Text>;
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: 20 }}>
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: 5 }}>
       <h2>Заказ #{order.id}</h2>
       <Paragraph>
         <Text strong>Имя:</Text> {order.name}
