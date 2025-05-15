@@ -397,24 +397,28 @@ const OrderManager = () => {
                           Поделиться
                         </span>
                       </Button>
-                       <Button
-    onClick={() => {
-      const url = `${window.location.origin}/orders/${order.id}`;
-      navigator.clipboard.writeText(url);
-      message.success("Ссылка скопирована");
-    }}
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      border: "none",
-      justifyContent: "center",
-      backgroundColor: "transparent",
-    }}
-  >
-    <CopyOutlined style={{ fontSize: 20, color: "#1890ff" }} />
-    <span style={{ fontSize: 12, color: "#1890ff" }}>Скопировать</span>
-  </Button>
+                      <Button
+                        onClick={() => {
+                          const url = `${window.location.origin}/orders/${order.id}`;
+                          navigator.clipboard.writeText(url);
+                          message.success("Ссылка скопирована");
+                        }}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          border: "none",
+                          justifyContent: "center",
+                          backgroundColor: "transparent",
+                        }}
+                      >
+                        <CopyOutlined
+                          style={{ fontSize: 20, color: "#1890ff" }}
+                        />
+                        <span style={{ fontSize: 12, color: "#1890ff" }}>
+                          Скопировать
+                        </span>
+                      </Button>
                     </Space>
 
                     <DeliveryTrack key={order.id} status={order.status} />
