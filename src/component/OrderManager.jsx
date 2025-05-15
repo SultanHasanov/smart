@@ -11,6 +11,7 @@ import {
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
+  CopyOutlined,
   ShareAltOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
@@ -101,38 +102,59 @@ const OrderManager = () => {
     return date.toLocaleString("ru-RU");
   };
 
-  const shareOrder = async (order, el) => {
-    if (!el) return message.error("Карточка не найдена");
-    try {
-      el.style.backgroundColor = "#fff";
-      const canvas = await html2canvas(el, {
-        backgroundColor: "#fff",
-        scale: window.devicePixelRatio || 2,
-      });
-      el.style.backgroundColor = "";
-      const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
-      const file = new File([blob], `order-${order.id}.png`, {
-        type: "image/png",
-      });
+  // const shareOrder = async (order, el) => {
+  //   if (!el) return message.error("Карточка не найдена");
+  //   try {
+  //     el.style.backgroundColor = "#fff";
+  //     const canvas = await html2canvas(el, {
+  //       backgroundColor: "#fff",
+  //       scale: window.devicePixelRatio || 2,
+  //     });
+  //     el.style.backgroundColor = "";
+  //     const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
+  //     const file = new File([blob], `order-${order.id}.png`, {
+  //       type: "image/png",
+  //     });
 
-      if (navigator.canShare?.({ files: [file] })) {
+  //     if (navigator.canShare?.({ files: [file] })) {
+  //       await navigator.share({
+  //         title: `Заказ от ${order.name}`,
+  //         files: [file],
+  //       });
+  //       message.success("Чек скопирован");
+  //     } else {
+  //       message.warning(
+  //         "Устройство не поддерживает шаринг — изображение скачано."
+  //       );
+  //       const link = document.createElement("a");
+  //       link.href = URL.createObjectURL(blob);
+  //       link.download = `order-${order.id}.png`;
+  //       link.click();
+  //     }
+  //   } catch (error) {
+  //     console.error("Ошибка при создании чека:", error);
+  //     message.error("Не удалось создать чек");
+  //   }
+  // };
+
+  const shareOrder = async (order) => {
+    try {
+      const shareUrl = `${window.location.origin}/orders/${order.id}`;
+      const title = `Заказ от ${order.name}`;
+
+      if (navigator.share) {
         await navigator.share({
-          title: `Заказ от ${order.name}`,
-          files: [file],
+          title,
+          text: `Посмотри заказ ${order.name}`,
+          url: shareUrl,
         });
-        message.success("Чек скопирован");
       } else {
-        message.warning(
-          "Устройство не поддерживает шаринг — изображение скачано."
-        );
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `order-${order.id}.png`;
-        link.click();
+        await navigator.clipboard.writeText(shareUrl);
+        message.success("Ссылка скопирована в буфер");
       }
-    } catch (error) {
-      console.error("Ошибка при создании чека:", error);
-      message.error("Не удалось создать чек");
+    } catch (err) {
+      console.error("Ошибка при шаринге:", err);
+      message.error("Не удалось поделиться");
     }
   };
 
@@ -191,12 +213,18 @@ const OrderManager = () => {
 
   const DeliveryTrack = ({ status }) => {
     const [position, setPosition] = useState(0);
-    const carRef = useRef(null);
 
     useEffect(() => {
-      const stepIndex = statusFlow.indexOf(status);
-      const newPosition = (stepIndex / (statusFlow.length - 1)) * 90;
-      setPosition(newPosition);
+      const positionByStatus = {
+        новый: 0,
+        принят: 22.5,
+        "в обработке": 45,
+        "в пути": 67.5,
+        доставлен: 90,
+      };
+
+      setPosition(positionByStatus[status] || 0);
+      console.log(positionByStatus[status]);
     }, [status]);
 
     return (
@@ -213,7 +241,6 @@ const OrderManager = () => {
             </div>
           ))}
           <div
-            ref={carRef}
             className="car-icon"
             style={{
               left: `${position}%`,
@@ -352,11 +379,8 @@ const OrderManager = () => {
                           <span style={{ fontSize: 12 }}>Отклонить</span>
                         </Button>
                       </Popconfirm>
-
                       <Button
-                        onClick={() =>
-                          shareOrder(order, refs.current[order.id])
-                        }
+                        onClick={() => shareOrder(order)}
                         style={{
                           display: "flex",
                           flexDirection: "column",
@@ -373,13 +397,27 @@ const OrderManager = () => {
                           Поделиться
                         </span>
                       </Button>
+                       <Button
+    onClick={() => {
+      const url = `${window.location.origin}/orders/${order.id}`;
+      navigator.clipboard.writeText(url);
+      message.success("Ссылка скопирована");
+    }}
+    style={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      border: "none",
+      justifyContent: "center",
+      backgroundColor: "transparent",
+    }}
+  >
+    <CopyOutlined style={{ fontSize: 20, color: "#1890ff" }} />
+    <span style={{ fontSize: 12, color: "#1890ff" }}>Скопировать</span>
+  </Button>
                     </Space>
-                    <Link to={`/order/${order.id}`}>
-                      <Button size="small" type="link">
-                        Открыть ссылку
-                      </Button>
-                    </Link>
-                    <DeliveryTrack status={order.status} />
+
+                    <DeliveryTrack key={order.id} status={order.status} />
                   </div>
                 )}
               </div>
