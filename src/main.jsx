@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { HashRouter as Router, Route, Routes } from "react-router-dom"; // Используй Routes вместо Route
+import { BrowserRouter  as Router, Route, Routes } from "react-router-dom"; // Используй Routes вместо Route
 import App from "./App";
 import CartPage from "./pages/CartPage";
 import TabIcons from "./component/TabIcons";
