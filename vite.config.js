@@ -3,10 +3,10 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import manifest from "./public/manifest.json";
 
-// const branch = process.env.GITHUB_REF_NAME;
-// const base = branch === "dev" ? "/smart/dev/" : "/smart/";
+
 
 export default defineConfig({
+   base: '/',
   plugins: [
     react(),
     VitePWA({
