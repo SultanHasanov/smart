@@ -420,30 +420,37 @@ const OrderManager = () => {
                         </span>
                       </Button>
                       <Link
-  to={`/orders/${order.id}`}
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    textDecoration: "none",
-  }}
->
-  <Button
-    style={{
-      border: "none",
-      backgroundColor: "transparent",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 0,
-    }}
-  >
-    <span role="img" aria-label="перейти" style={{ fontSize: 20 }}>🔍</span>
-    <span style={{ fontSize: 12, color: "#1890ff" }}>Открыть</span>
-  </Button>
-</Link>
-
+                        to={`/orders/${order.id}`}
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          textDecoration: "none",
+                        }}
+                      >
+                        <Button
+                          style={{
+                            border: "none",
+                            backgroundColor: "transparent",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            padding: 0,
+                          }}
+                        >
+                          <span
+                            role="img"
+                            aria-label="перейти"
+                            style={{ fontSize: 20 }}
+                          >
+                            🔍
+                          </span>
+                          <span style={{ fontSize: 12, color: "#1890ff" }}>
+                            Открыть
+                          </span>
+                        </Button>
+                      </Link>
                     </Space>
 
                     <DeliveryTrack key={order.id} status={order.status} />
