@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "."                # копируем всё, как scp -r .
-          target: "/smart" # куда копировать на сервере
+          target: "/" # куда копировать на сервере
 
       - name: 🚀 Запустить билд и старт на сервере
         uses: appleboy/ssh-action@v1.0.0
@@ -39,7 +39,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /smart
+            cd /
             npm ci
             npm run build
             pm2 restart app || pm2 start npm --name "app" -- run start

@@ -5,13 +5,13 @@
       {
         "purpose": "maskable",
         "sizes": "512x512",
-        "src": "/smart/icon512_maskable.png",
+        "src": "/icon512_maskable.png",
         "type": "image/png"
       },
       {
         "purpose": "any",
         "sizes": "512x512",
-        "src": "/smart/icon512_rounded.png",
+        "src": "/icon512_rounded.png",
         "type": "image/png"
       }
     ],
@@ -19,16 +19,16 @@
     "display": "standalone",
     "lang": "ru-RU",
     "name": "Smart",
-    "start_url": "/smart/",
+    "start_url": "/",
     "screenshots": [
       {
-        "src": "/smart/screenshot1.png",
+        "src": "/screenshot1.png",
         "sizes": "1280x800",
         "type": "image/png",
         "form_factor": "wide"
       },
       {
-        "src": "/smart/screenshot2.png",
+        "src": "/screenshot2.png",
         "sizes": "640x1136",
         "type": "image/png"
       }

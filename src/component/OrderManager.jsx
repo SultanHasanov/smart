@@ -139,7 +139,7 @@ const OrderManager = () => {
 
   const shareOrder = async (order) => {
     try {
-      const shareUrl = `${window.location.origin}/orders/${order.id}`;
+      const shareUrl = `${"https://chechnya-product.ru/api"}/orders/${order.id}`;
       const title = `Заказ от ${order.name}`;
 
       if (navigator.share) {
@@ -399,7 +399,7 @@ const OrderManager = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          const url = `${window.location.origin}/orders/${order.id}`;
+                          const url = `${"https://chechnya-product.ru/api"}/orders/${order.id}`;
                           navigator.clipboard.writeText(url);
                           message.success("Ссылка скопирована");
                         }}
