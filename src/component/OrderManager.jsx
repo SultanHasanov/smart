@@ -139,7 +139,7 @@ const OrderManager = () => {
 
   const shareOrder = async (order) => {
     try {
-      const shareUrl = `${"https://chechnya-product.ru/api"}/orders/${order.id}`;
+      const shareUrl = `${window.location.origin}/orders/${order.id}`;
       const title = `Заказ от ${order.name}`;
 
       if (navigator.share) {
@@ -399,7 +399,7 @@ const OrderManager = () => {
                       </Button>
                       <Button
                         onClick={() => {
-                          const url = `${"https://chechnya-product.ru/api"}/orders/${order.id}`;
+                          const url = `${window.location.origin}/orders/${order.id}`;
                           navigator.clipboard.writeText(url);
                           message.success("Ссылка скопирована");
                         }}
@@ -419,6 +419,31 @@ const OrderManager = () => {
                           Скопировать
                         </span>
                       </Button>
+                      <Link
+  to={`/orders/${order.id}`}
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textDecoration: "none",
+  }}
+>
+  <Button
+    style={{
+      border: "none",
+      backgroundColor: "transparent",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 0,
+    }}
+  >
+    <span role="img" aria-label="перейти" style={{ fontSize: 20 }}>🔍</span>
+    <span style={{ fontSize: 12, color: "#1890ff" }}>Открыть</span>
+  </Button>
+</Link>
+
                     </Space>
 
                     <DeliveryTrack key={order.id} status={order.status} />
