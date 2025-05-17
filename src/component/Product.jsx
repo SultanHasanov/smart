@@ -149,12 +149,13 @@ const Product = () => {
   };
   
 
-  const shuffledAllDishes = useMemo(() => {
-    if (selectedCategory === "all") {
-      return [...dishes].sort(() => Math.random() - 0.5);
-    }
-    return dishes;
-  }, [dishes, selectedCategory]);
+ const shuffledAllDishes = useMemo(() => {
+  if (selectedCategory === "all") {
+    return [...(Array.isArray(dishes) ? dishes : [])].sort(() => Math.random() - 0.5);
+  }
+  return Array.isArray(dishes) ? dishes : [];
+}, [dishes, selectedCategory]);
+
 
   const filteredDishes = shuffledAllDishes
     .filter(
