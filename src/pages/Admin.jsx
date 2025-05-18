@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import InputMask from "react-input-mask";
 import { AuthContext } from "../store/AuthContext";
+import LogsViewer from "../component/LogsViewer";
 
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
@@ -114,6 +115,8 @@ const Login = () => {
         <Button size="large" type="primary" danger onClick={logout} block>
           Выйти
         </Button>
+
+        <LogsViewer/>
         {showInstallBtn && (
           <Button
             type="primary"
@@ -182,20 +185,27 @@ const Login = () => {
             onFinish={handleRegister}
             layout="vertical"
           >
-             <Form.Item
-      label="Имя пользователя"
-      name="username"
-      rules={[
-        { required: true, message: "Пожалуйста, введите имя пользователя!" },
-        { min: 3, message: "Имя пользователя должно содержать не менее 3 символов" },
-      ]}
-    >
-      <Input
-        size="large"
-        placeholder="Введите имя пользователя"
-        maxLength={30}
-      />
-    </Form.Item>
+            <Form.Item
+              label="Имя пользователя"
+              name="username"
+              rules={[
+                {
+                  required: true,
+                  message: "Пожалуйста, введите имя пользователя!",
+                },
+                {
+                  min: 3,
+                  message:
+                    "Имя пользователя должно содержать не менее 3 символов",
+                },
+              ]}
+            >
+              <Input
+                size="large"
+                placeholder="Введите имя пользователя"
+                maxLength={30}
+              />
+            </Form.Item>
             <Form.Item
               label="Номер телефона"
               name="phone"
