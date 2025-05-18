@@ -1,5 +1,14 @@
-import { Button, Form, Input, InputNumber, Modal, Popover, Select, Skeleton } from "antd";
-import React, { useState, useEffect, useMemo } from "react";
+import {
+  Button,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Popover,
+  Select,
+  Skeleton,
+} from "antd";
+import React, { useState, useEffect, useMemo, useContext } from "react";
 import axios from "axios";
 import "../App.css";
 import "../component/styles/Product.scss"; // Подключаем стили для компонента
@@ -17,6 +26,7 @@ import CartStore from "../store/CartStore";
 import { observer } from "mobx-react-lite";
 import { toJS } from "mobx";
 import { categoryStore } from "../store/categoryStore";
+import { AuthContext } from "../store/AuthContext";
 
 const Product = () => {
   const [dishes, setDishes] = useState(() => {
@@ -34,11 +44,12 @@ const Product = () => {
   });
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const cart = toJS(CartStore.cart);
-const [editModalVisible, setEditModalVisible] = useState(false);
-const [currentEditItem, setCurrentEditItem] = useState(null);
-const categoriesTwo = toJS(categoryStore.categories);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [currentEditItem, setCurrentEditItem] = useState(null);
+  const categoriesTwo = toJS(categoryStore.categories);
   const navigate = useNavigate();
-const hasToken = !!localStorage.getItem("token");
+  const hasToken = !!localStorage.getItem("token");
+  const { userRole } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -127,37 +138,36 @@ const hasToken = !!localStorage.getItem("token");
   const handleAddToCart = (dishId) => {
     const item = CartStore.cart.find((item) => item.product_id === dishId);
     if (item && item.quantity >= 10) return;
-  
+
     const dish = dishes.find((d) => d.id === dishId);
     if (!dish) return;
-  
+
     const newItem = {
       product_id: dishId,
       quantity: 1,
       name: dish.name,
       price: dish.price,
     };
-  
+
     if (item) {
       CartStore.addQuantity(dishId);
     } else {
       CartStore.setCart([...CartStore.cart, newItem]);
     }
   };
-  
 
   const handleDecreaseQuantity = (dishId) => {
     CartStore.decreaseQuantity(dishId);
   };
-  
 
- const shuffledAllDishes = useMemo(() => {
-  if (selectedCategory === "all") {
-    return [...(Array.isArray(dishes) ? dishes : [])].sort(() => Math.random() - 0.5);
-  }
-  return Array.isArray(dishes) ? dishes : [];
-}, [dishes, selectedCategory]);
-
+  const shuffledAllDishes = useMemo(() => {
+    if (selectedCategory === "all") {
+      return [...(Array.isArray(dishes) ? dishes : [])].sort(
+        () => Math.random() - 0.5
+      );
+    }
+    return Array.isArray(dishes) ? dishes : [];
+  }, [dishes, selectedCategory]);
 
   const filteredDishes = shuffledAllDishes
     .filter(
@@ -168,10 +178,9 @@ const hasToken = !!localStorage.getItem("token");
       dish.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const calculateTotal = () => {
-      return new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice);
-    };
-    
+  const calculateTotal = () => {
+    return new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice);
+  };
 
   let charCount = 0;
   const visibleCategories = [];
@@ -189,22 +198,26 @@ const hasToken = !!localStorage.getItem("token");
 
   const [form] = Form.useForm();
 
-const handleEditProduct = (values) => {
-  axios
-    .put(`https://chechnya-product.ru/api/admin/products/${currentEditItem.id}`, values, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-    .then((res) => {
-      const updated = dishes.map((item) =>
-        item.id === currentEditItem.id ? res.data.data : item
-      );
-      setDishes(updated);
-      localStorage.setItem("dishes", JSON.stringify(updated));
-      setEditModalVisible(false);
-    });
-};
+  const handleEditProduct = (values) => {
+    axios
+      .put(
+        `https://chechnya-product.ru/api/admin/products/${currentEditItem.id}`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+      .then((res) => {
+        const updated = dishes.map((item) =>
+          item.id === currentEditItem.id ? res.data.data : item
+        );
+        setDishes(updated);
+        localStorage.setItem("dishes", JSON.stringify(updated));
+        setEditModalVisible(false);
+      });
+  };
 
   return (
     <div className="product-wrapper">
@@ -305,7 +318,9 @@ const handleEditProduct = (values) => {
             <div className="product-empty">Ничего не найдено</div>
           ) : (
             filteredDishes.map((dish) => {
-              const currentDish = cart.find((item) => item.product_id === dish.id);
+              const currentDish = cart.find(
+                (item) => item.product_id === dish.id
+              );
               const quantity = currentDish ? currentDish.quantity : 0;
               const isUnavailable = !dish.availability;
 
@@ -313,7 +328,7 @@ const handleEditProduct = (values) => {
                 <div
                   key={dish.id}
                   className={`product-card ${isUnavailable ? "inactive" : ""}`}
-                style={{ position: "relative" }}
+                  style={{ position: "relative" }}
                 >
                   <div
                     className="product-card-content"
@@ -375,8 +390,8 @@ const handleEditProduct = (values) => {
                         >
                           <MinusOutlined />
                         </Button>
-                        {cart.find((item) => item.product_id === dish.id)?.quantity >=
-                          10 && (
+                        {cart.find((item) => item.product_id === dish.id)
+                          ?.quantity >= 10 && (
                           <div
                             style={{
                               padding: "0 4px",
@@ -418,30 +433,29 @@ const handleEditProduct = (values) => {
                         </span>
                       </>
                     )}
-                    {hasToken && (
-  <div
-    className="edit-icon"
-    onClick={(e) => {
-      e.stopPropagation();
-      setCurrentEditItem(dish);
-      form.setFieldsValue(dish);
-      setEditModalVisible(true);
-    }}
-    style={{
-      position: "absolute",
-      top: 5,
-      right: 5,
-      backgroundColor: "rgba(255,255,255,0.9)",
-      borderRadius: "50%",
-      padding: 4,
-      cursor: "pointer",
-      zIndex: 10,
-    }}
-  >
-    <EditOutlined style={{ color: "#333" }} />
-  </div>
-)}
-
+                    {userRole === 'admin' && (
+                      <div
+                        className="edit-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentEditItem(dish);
+                          form.setFieldsValue(dish);
+                          setEditModalVisible(true);
+                        }}
+                        style={{
+                          position: "absolute",
+                          top: 5,
+                          right: 5,
+                          backgroundColor: "rgba(255,255,255,0.9)",
+                          borderRadius: "50%",
+                          padding: 4,
+                          cursor: "pointer",
+                          zIndex: 10,
+                        }}
+                      >
+                        <EditOutlined style={{ color: "#333" }} />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -484,44 +498,43 @@ const handleEditProduct = (values) => {
         </div>
       )}
       <Modal
-  title="Редактировать товар"
-  visible={editModalVisible}
-  onCancel={() => setEditModalVisible(false)}
-  onOk={() => {
-    form
-      .validateFields()
-      .then((values) => {
-        handleEditProduct(values);
-      })
-      .catch(() => {});
-  }}
-  okText="Сохранить"
-  cancelText="Отмена"
->
-  <Form layout="vertical" form={form} initialValues={currentEditItem}>
-    <Form.Item name="name" label="Название" rules={[{ required: true }]}>
-      <Input />
-    </Form.Item>
-    <Form.Item name="price" label="Цена" rules={[{ required: true }]}>
-      <InputNumber min={0} style={{ width: "100%" }} />
-    </Form.Item>
-    <Form.Item name="url" label="URL изображения">
-      <Input />
-    </Form.Item>
-     <Form.Item className="input-form-edit" name="category_id">
-                      <Select style={{ width: 120 }}>
-                        {categories.map((cat) => (
-                          <Option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-  </Form>
-</Modal>
+        title="Редактировать товар"
+        visible={editModalVisible}
+        onCancel={() => setEditModalVisible(false)}
+        onOk={() => {
+          form
+            .validateFields()
+            .then((values) => {
+              handleEditProduct(values);
+            })
+            .catch(() => {});
+        }}
+        okText="Сохранить"
+        cancelText="Отмена"
+      >
+        <Form layout="vertical" form={form} initialValues={currentEditItem}>
+          <Form.Item name="name" label="Название" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="price" label="Цена" rules={[{ required: true }]}>
+            <InputNumber min={0} style={{ width: "100%" }} />
+          </Form.Item>
+          <Form.Item name="url" label="URL изображения">
+            <Input />
+          </Form.Item>
+          <Form.Item className="input-form-edit" name="category_id">
+            <Select style={{ width: 120 }}>
+              {categories.map((cat) => (
+                <Option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
 
 export default observer(Product);
-

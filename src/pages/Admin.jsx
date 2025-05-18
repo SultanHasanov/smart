@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import InputMask from "react-input-mask";
 import { AuthContext } from "../store/AuthContext";
 import LogsViewer from "../component/LogsViewer";
+import UserOrders from "../component/UserOrders";
 
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
@@ -67,7 +68,6 @@ const Login = () => {
       if (response.data.data.token) {
         login(response.data.data.token);
         message.success("Авторизация успешна!");
-        navigate("/favorites");
       }
     } catch (error) {
       message.error("Ошибка авторизации. Проверьте логин и пароль.");
@@ -116,7 +116,8 @@ const Login = () => {
           Выйти
         </Button>
 
-        <LogsViewer/>
+        {/* <LogsViewer/> */}
+        <UserOrders/>
         {showInstallBtn && (
           <Button
             type="primary"

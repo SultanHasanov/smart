@@ -422,15 +422,15 @@ const OrderManager = () => {
                         </span>
                       </Button>
                       <Button
-  type="primary"
-  onClick={() => {
-    CartStore.repeatOrder(order.items); // order.items — список продуктов
-    message.success("Товары добавлены в корзину");
-    navigate("/cart");
-  }}
->
-  Повторить
-</Button>
+                        type="primary"
+                        onClick={() => {
+                          CartStore.repeatOrder(order.items); // order.items — список продуктов
+                          message.success("Товары добавлены в корзину");
+                          navigate("/cart");
+                        }}
+                      >
+                        Повторить
+                      </Button>
                     </Space>
 
                     <DeliveryTrack key={order.id} status={order.status} />

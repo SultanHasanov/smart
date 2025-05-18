@@ -26,7 +26,8 @@ const CartPage = () => {
   const { Text, Paragraph } = Typography;
   const [form] = Form.useForm();
 const cart = toJS(CartStore.cart);
-  
+  const token = localStorage.getItem("token");
+
   
   console.log(cart)
   useEffect(() => {
@@ -165,7 +166,13 @@ ${cartDetails}
             : null,
 
         status: "новый",
-      });
+      },
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+    );
 
       message.success("Заказ отправлен админу и сохранён в системе!");
       setOrderData({
