@@ -37,7 +37,7 @@ const OfflineDetector = () => {
         >
           <Alert
             message="Нет подключения к интернету"
-            description="Проверьте соединение — данные не смогут обновиться."
+            description=""
             type="error"
             showIcon
             banner

@@ -1,8 +1,8 @@
 // store/CartStore.js
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, observable } from "mobx";
 
 class CartStore {
-  cart = [];
+   cart = observable.array([]);
 
   constructor() {
     makeAutoObservable(this);
@@ -29,36 +29,50 @@ class CartStore {
   }
 
   addQuantity(product_id) {
-  this.cart = this.cart.map(item =>
-    item.product_id === product_id ? { ...item, quantity: item.quantity + 1 } : item
-  );
+  const index = this.cart.findIndex(item => item.product_id === product_id);
+  if (index !== -1) {
+    this.cart[index].quantity += 1;
+    this.saveCartToStorage();
+  }
+}
+
+decreaseQuantity(product_id) {
+  const index = this.cart.findIndex(item => item.product_id === product_id);
+  if (index !== -1) {
+    if (this.cart[index].quantity === 1) {
+      this.cart.splice(index, 1);
+    } else {
+      this.cart[index].quantity -= 1;
+    }
+    this.saveCartToStorage();
+  }
+}
+
+removeItem(product_id) {
+  const index = this.cart.findIndex(item => item.product_id === product_id);
+  if (index !== -1) {
+    this.cart.splice(index, 1);
+    this.saveCartToStorage();
+  }
+}
+
+clearSelected(ids) {
+  const filtered = this.cart.filter(item => !ids.includes(item.product_id));
+  this.cart.splice(0, this.cart.length, ...filtered);
   this.saveCartToStorage();
 }
 
-
-  decreaseQuantity(id) {
-  this.cart = this.cart
-    .map(item => {
-      if (item.product_id === id) {
-        return item.quantity === 1
-          ? null // Помечаем для удаления
-          : { ...item, quantity: item.quantity - 1 };
-      }
-      return item;
-    })
-    .filter(Boolean); // Удаляем все null
-  this.saveCartToStorage();
+repeatOrder(items) {
+  this.cart = []; // очищаем текущую корзину
+  items.forEach((item) => {
+    this.cart.push({
+      ...item,
+      quantity: item.quantity || 1, // если вдруг quantity нет
+    });
+  });
 }
 
-  removeItem(id) {
-    this.cart = this.cart.filter(item => item.product_id !== id);
-    this.saveCartToStorage();
-  }
 
-  clearSelected(ids) {
-    this.cart = this.cart.filter(item => !ids.includes(item.product_id));
-    this.saveCartToStorage();
-  }
 
   get totalQuantity() {
     return this.cart.reduce((acc, item) => acc + item.quantity, 0);

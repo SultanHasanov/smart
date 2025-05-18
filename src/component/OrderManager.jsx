@@ -17,7 +17,8 @@ import {
 import axios from "axios";
 import html2canvas from "html2canvas";
 import "./styles/Product.scss";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import CartStore from "../store/CartStore";
 
 const { Text, Paragraph } = Typography;
 
@@ -58,6 +59,7 @@ const OrderManager = () => {
   const [loading, setLoading] = useState(true);
   const refs = useRef({});
   const wsRef = useRef(null);
+  const navigate = useNavigate();
 
   const fetchOrders = async () => {
     try {
@@ -419,38 +421,16 @@ const OrderManager = () => {
                           Скопировать
                         </span>
                       </Button>
-                      <Link
-                        to={`/orders/${order.id}`}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          textDecoration: "none",
-                        }}
-                      >
-                        <Button
-                          style={{
-                            border: "none",
-                            backgroundColor: "transparent",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: 0,
-                          }}
-                        >
-                          <span
-                            role="img"
-                            aria-label="перейти"
-                            style={{ fontSize: 20 }}
-                          >
-                            🔍
-                          </span>
-                          <span style={{ fontSize: 12, color: "#1890ff" }}>
-                            Открыть
-                          </span>
-                        </Button>
-                      </Link>
+                      <Button
+  type="primary"
+  onClick={() => {
+    CartStore.repeatOrder(order.items); // order.items — список продуктов
+    message.success("Товары добавлены в корзину");
+    navigate("/cart");
+  }}
+>
+  Повторить
+</Button>
                     </Space>
 
                     <DeliveryTrack key={order.id} status={order.status} />

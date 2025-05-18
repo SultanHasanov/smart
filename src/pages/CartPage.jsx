@@ -25,7 +25,8 @@ const CartPage = () => {
   const navigate = useNavigate();
   const { Text, Paragraph } = Typography;
   const [form] = Form.useForm();
-  const cart = toJS(CartStore.cart);
+const cart = toJS(CartStore.cart);
+  
   
   console.log(cart)
   useEffect(() => {
@@ -60,8 +61,11 @@ const CartPage = () => {
 
   const handleRemoveFromCart = (id) => CartStore.removeItem(id);
 
-  const handleRemoveSelected = () => CartStore.clearSelected(selectedIds);
-
+  const handleRemoveSelected = () => {
+    
+    CartStore.clearSelected(selectedIds);
+     setSelectedIds([]);
+  }
   const increaseQuantity = (id) => CartStore.addQuantity(id);
 
   const decreaseQuantity = (id) => CartStore.decreaseQuantity(id);
@@ -74,7 +78,7 @@ const CartPage = () => {
     );
   };
   const sendOrderToWhatsApp = useCallback(async () => {
-    const values = await form.validateFields();
+   
     const selectedItems = cart.filter((item) =>
       selectedIds.includes(item.product_id)
     );

@@ -1,4 +1,4 @@
-import { Button, Input, Popover, Skeleton } from "antd";
+import { Button, Form, Input, InputNumber, Modal, Popover, Select, Skeleton } from "antd";
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import "../App.css";
@@ -10,21 +10,20 @@ import {
   AppstoreAddOutlined,
   FileImageOutlined,
   EllipsisOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import CartStore from "../store/CartStore";
 import { observer } from "mobx-react-lite";
 import { toJS } from "mobx";
+import { categoryStore } from "../store/categoryStore";
 
 const Product = () => {
   const [dishes, setDishes] = useState(() => {
     const cachedDishes = localStorage.getItem("dishes");
     return cachedDishes ? JSON.parse(cachedDishes) : [];
   });
-  // const [cart, setCart] = useState(() => {
-  //   const savedCart = localStorage.getItem("cart");
-  //   return savedCart ? JSON.parse(savedCart) : [];
-  // });
+
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
@@ -35,8 +34,11 @@ const Product = () => {
   });
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const cart = toJS(CartStore.cart);
-
+const [editModalVisible, setEditModalVisible] = useState(false);
+const [currentEditItem, setCurrentEditItem] = useState(null);
+const categoriesTwo = toJS(categoryStore.categories);
   const navigate = useNavigate();
+const hasToken = !!localStorage.getItem("token");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -185,6 +187,25 @@ const Product = () => {
     }
   }
 
+  const [form] = Form.useForm();
+
+const handleEditProduct = (values) => {
+  axios
+    .put(`https://chechnya-product.ru/api/admin/products/${currentEditItem.id}`, values, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+    .then((res) => {
+      const updated = dishes.map((item) =>
+        item.id === currentEditItem.id ? res.data.data : item
+      );
+      setDishes(updated);
+      localStorage.setItem("dishes", JSON.stringify(updated));
+      setEditModalVisible(false);
+    });
+};
+
   return (
     <div className="product-wrapper">
       <div className="product-search-container">
@@ -292,6 +313,7 @@ const Product = () => {
                 <div
                   key={dish.id}
                   className={`product-card ${isUnavailable ? "inactive" : ""}`}
+                style={{ position: "relative" }}
                 >
                   <div
                     className="product-card-content"
@@ -396,6 +418,30 @@ const Product = () => {
                         </span>
                       </>
                     )}
+                    {hasToken && (
+  <div
+    className="edit-icon"
+    onClick={(e) => {
+      e.stopPropagation();
+      setCurrentEditItem(dish);
+      form.setFieldsValue(dish);
+      setEditModalVisible(true);
+    }}
+    style={{
+      position: "absolute",
+      top: 5,
+      right: 5,
+      backgroundColor: "rgba(255,255,255,0.9)",
+      borderRadius: "50%",
+      padding: 4,
+      cursor: "pointer",
+      zIndex: 10,
+    }}
+  >
+    <EditOutlined style={{ color: "#333" }} />
+  </div>
+)}
+
                   </div>
                 </div>
               );
@@ -437,6 +483,42 @@ const Product = () => {
           </Button>
         </div>
       )}
+      <Modal
+  title="Редактировать товар"
+  visible={editModalVisible}
+  onCancel={() => setEditModalVisible(false)}
+  onOk={() => {
+    form
+      .validateFields()
+      .then((values) => {
+        handleEditProduct(values);
+      })
+      .catch(() => {});
+  }}
+  okText="Сохранить"
+  cancelText="Отмена"
+>
+  <Form layout="vertical" form={form} initialValues={currentEditItem}>
+    <Form.Item name="name" label="Название" rules={[{ required: true }]}>
+      <Input />
+    </Form.Item>
+    <Form.Item name="price" label="Цена" rules={[{ required: true }]}>
+      <InputNumber min={0} style={{ width: "100%" }} />
+    </Form.Item>
+    <Form.Item name="url" label="URL изображения">
+      <Input />
+    </Form.Item>
+     <Form.Item className="input-form-edit" name="category_id">
+                      <Select style={{ width: 120 }}>
+                        {categories.map((cat) => (
+                          <Option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+  </Form>
+</Modal>
     </div>
   );
 };

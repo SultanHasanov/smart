@@ -48,10 +48,10 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
         }}
       >
         {/* Меню или кнопка назад */}
-        <MenuOutlined
+        {/* <MenuOutlined
           style={{ fontSize: "22px", cursor: "pointer" }}
           onClick={() => navigate("/")}
-        />
+        /> */}
 
         {/* Название с пасхалкой */}
         <div
@@ -64,6 +64,7 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
           }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
+          onClick={() => navigate("/")}
         >
           Smart
         </div>
