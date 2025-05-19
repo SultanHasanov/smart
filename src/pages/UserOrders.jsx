@@ -15,7 +15,8 @@ import {
 import { AuthContext } from "../store/AuthContext";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./styles/Product.scss"; // тот же стиль, что у OrderManager
+import "../component/styles/Product.scss"; // тот же стиль, что у OrderManager
+import { DateTime } from "luxon";
 
 const { Text, Paragraph } = Typography;
 
@@ -96,10 +97,15 @@ const UserOrders = () => {
     setExpandedOrder(expandedOrder === id ? null : id);
   };
 
-  const formatDate = (ts) => {
-    const date = new Date(ts);
-    return date.toLocaleString("ru-RU");
-  };
+ 
+const formatDate = (ts) => {
+  const safeTs = ts.replace(/\.(\d{3})\d*Z$/, '.$1Z');
+  return DateTime
+    .fromISO(safeTs, { zone: 'utc' })
+    .toFormat('dd.MM.yyyy, HH:mm:ss');
+};
+
+
 
   const shareOrder = async (order) => {
     try {
@@ -138,6 +144,7 @@ const UserOrders = () => {
           }
         );
         setOrders(response.data.data || []);
+        console.log(response.data.data)
       } catch (err) {
         console.error("Ошибка получения заказов:", err);
         setError("Не удалось загрузить заказы. Попробуйте позже.");
@@ -196,7 +203,7 @@ const UserOrders = () => {
               {expandedOrder === order.id && (
                 <div className="order-details">
                   <Paragraph>
-                    <Text strong>Дата:</Text> {formatDate(order.date_orders)}
+                    <Text strong>Дата:</Text> {formatDate(order.created_at)}
                   </Paragraph>
                   <Paragraph>
                     <Text strong>Тип:</Text>{" "}

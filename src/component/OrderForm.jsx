@@ -1,8 +1,17 @@
 // OrderForm.jsx
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Form, Input, Radio } from 'antd';
+import { AuthContext } from '../store/AuthContext';
 
 const OrderForm = ({ form, cart, orderData, setOrderData }) => {
+  const { username  } = useContext(AuthContext);
+   useEffect(() => {
+    if (username && !orderData.name) {
+      setOrderData({ ...orderData, name: username });
+      form.setFieldsValue({ name: username }); // для синхронизации формы
+    }
+  }, [username, orderData, setOrderData, form]);
+  
   return (
     cart.length !== 0 && (
       <Form

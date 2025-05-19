@@ -14,6 +14,7 @@ import { AuthProvider } from "./store/AuthContext";
 
 import { registerSW } from "virtual:pwa-register";
 import SingleOrder from "./component/SingleOrder";
+import UserOrders from "./pages/UserOrders";
 registerSW({
   immediate: true,
 });
@@ -25,6 +26,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/orders" element={<UserOrders />} />
         <Route
           path="/favorites"
           element={

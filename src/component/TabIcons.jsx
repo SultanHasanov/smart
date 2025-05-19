@@ -6,12 +6,13 @@ import {
   ShoppingCartOutlined,
   PlusOutlined,
   LoginOutlined,
+  ShoppingOutlined,
 } from '@ant-design/icons';
 import { AuthContext } from '../store/AuthContext';
 
 // Компонент TabIcons с использованием useEffect для отслеживания изменений в localStorage
 const TabIcons = () => {
-  const { isAuthenticated } = useContext(AuthContext);
+   const { token, userRole } = useContext(AuthContext);
   // Обновляем список вкладок с условной проверкой для вкладки Товар
   const TABS = [
     {
@@ -30,8 +31,7 @@ const TabIcons = () => {
       icon: ShoppingCartOutlined,
       label: 'Корзина',
     },
-    // Показываем вкладку Товар только если пользователь авторизован
-    ...(isAuthenticated
+    ...(userRole === 'admin'
       ? [
           {
             to: '/favorites',
@@ -40,11 +40,19 @@ const TabIcons = () => {
           },
         ]
       : []),
-    // Вкладка Войти/Выйти в зависимости от состояния авторизации
+     ...(userRole === 'user'
+      ? [
+          {
+            to: '/orders',
+            icon: ShoppingOutlined,
+            label: 'Заказы',
+          },
+        ]
+      : []),
     {
       to: '/login',
       icon: LoginOutlined,
-      label: isAuthenticated ? 'Выйти' : 'Войти',
+      label: token ? 'Выйти' : 'Войти',
     },
   ];
 

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import InputMask from "react-input-mask";
 import { AuthContext } from "../store/AuthContext";
 import LogsViewer from "../component/LogsViewer";
-import UserOrders from "../component/UserOrders";
+import UserOrders from "./UserOrders";
 
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
@@ -170,7 +170,7 @@ sessionStorage.setItem("savedPassword", values.password);
         </Button>
 
         {/* <LogsViewer/> */}
-        <UserOrders />
+        {/* <UserOrders /> */}
         {showInstallBtn && (
           <Button
             type="primary"
