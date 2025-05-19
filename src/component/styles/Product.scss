@@ -447,3 +447,18 @@
   margin-bottom: 10px !important;
 }
 
+.order-delivered {
+  opacity: 0.5;
+
+  .order-summary {
+    cursor: default;
+  }
+
+  .track-step {
+    color: #aaa !important;
+  }
+
+  .car-icon {
+    display: none;
+  }
+}

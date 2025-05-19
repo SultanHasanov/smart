@@ -184,7 +184,7 @@ const formatDate = (ts) => {
           ));
 
           return (
-            <div key={order.id} className="order-item">
+            <div key={order.id} className={`order-item ${order.status === 'доставлен' ? 'order-delivered' : ''}`}>
               <div
                 className="order-summary"
                 onClick={() => toggleOrderDetails(order.id)}
