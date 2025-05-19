@@ -12,7 +12,7 @@ const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 const PHONE_MASK = "+7 (999) 999-99-99";
 
 const Login = () => {
-  const { isAuthenticated, login, logout } = useContext(AuthContext);
+  const { isAuthenticated, login, logout, username  } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("login");
@@ -56,21 +56,43 @@ const Login = () => {
       navigate("/favorites");
       return;
     }
+
+    // ✅ Нормализуем номер, если он в виде телефона
+    let identifier = values.username;
+    if (identifier.startsWith("+7")) {
+      identifier = "+7" + identifier.replace(/\D/g, "").slice(1); // → +79667283200
+      console.log(identifier);
+    }
+
+    if (values.password.length < 6) {
+      message.error("Пароль должен содержать не менее 6 символов.");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.post(
         "https://chechnya-product.ru/api/login",
         {
-          identifier: values.username,
+          identifier,
           password: values.password,
         }
       );
-      if (response.data.data.token) {
-        login(response.data.data.token);
-        message.success("Авторизация успешна!");
-      }
+
+     if (response.data.data.token) {
+  const token = response.data.data.token;
+  const username = response.data.data.username;
+
+  login(token, username); // ✅ передаём имя
+
+  message.success(`Добро пожаловать, ${username}!`);
+}
+
     } catch (error) {
-      message.error("Ошибка авторизации. Проверьте логин и пароль.");
+      message.error(
+        error.response?.data?.error ||
+          "Ошибка авторизации. Проверьте логин и пароль."
+      );
     } finally {
       setLoading(false);
     }
@@ -78,12 +100,15 @@ const Login = () => {
 
   // Registration handler
   const handleRegister = async (values) => {
-    // Validate phone: strip all except digits, expect +7XXXXXXXXXX (11 digits)
-    const phoneDigits = values.phone.replace(/\D/g, "");
-    if (phoneDigits.length !== 11 || !phoneDigits.startsWith("7")) {
+    console.log(values);
+    const phoneDigits = "+7" + values.phone.replace(/\D/g, "").slice(1);
+    // → "79667283200"
+    console.log(phoneDigits);
+    if (phoneDigits.length !== 12 || !phoneDigits.startsWith("+7")) {
       message.error("Пожалуйста, введите корректный номер телефона.");
       return;
     }
+
     if (values.password.length < 6) {
       message.error("Пароль должен содержать не менее 6 символов.");
       return;
@@ -92,16 +117,16 @@ const Login = () => {
     setLoading(true);
     try {
       await axios.post("https://chechnya-product.ru/api/register", {
-        phone: values.phone,
+        username: values.username,
+        phone: phoneDigits, // ✅ здесь
         password: values.password,
       });
       message.success("Регистрация прошла успешно! Теперь войдите в систему.");
-      // Switch to login tab but keep form values intact
       setActiveTab("login");
     } catch (error) {
+      console.log(error.response?.data?.error);
       message.error(
-        error.response?.data?.message ||
-          "Ошибка регистрации. Попробуйте еще раз."
+        error.response?.data?.error || "Ошибка регистрации. Попробуйте еще раз."
       );
     } finally {
       setLoading(false);
@@ -111,13 +136,13 @@ const Login = () => {
   if (isAuthenticated) {
     return (
       <div className="login-container">
-        <h2>Вы успешно авторизованы</h2>
+        <h2>Здравствуйте, {username || "гость"}!</h2>
         <Button size="large" type="primary" danger onClick={logout} block>
           Выйти
         </Button>
 
         {/* <LogsViewer/> */}
-        <UserOrders/>
+        <UserOrders />
         {showInstallBtn && (
           <Button
             type="primary"
@@ -146,13 +171,56 @@ const Login = () => {
             layout="vertical"
           >
             <Form.Item
-              label="Логин"
+              label="Номер телефона"
               name="username"
               rules={[
-                { required: true, message: "Пожалуйста, введите логин!" },
+                {
+                  required: true,
+                  message: "Пожалуйста, введите номер телефона!",
+                },
+                {
+                  validator: (_, value) => {
+                    if (!value) return Promise.resolve();
+                    const digits = value.replace(/\D/g, "");
+                    if (digits.length === 11 && digits.startsWith("7")) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(
+                      "Номер должен содержать 11 цифр и начинаться с 7"
+                    );
+                  },
+                },
               ]}
             >
-              <Input size="large" placeholder="Логин" />
+              <InputMask
+                mask="+7 (999) 999-99-99"
+                maskChar={null}
+                alwaysShowMask={false}
+                onChange={(e) => {
+                  let raw = e.target.value.replace(/\D/g, "");
+                  if (raw.length > 11) raw = raw.slice(0, 11);
+                  const formatted =
+                    "+7 (" +
+                    raw.slice(1, 4) +
+                    ") " +
+                    raw.slice(4, 7) +
+                    "-" +
+                    raw.slice(7, 9) +
+                    "-" +
+                    raw.slice(9, 11);
+                  loginForm.setFieldsValue({ username: formatted });
+                }}
+              >
+                {(inputProps) => (
+                  <Input
+                    {...inputProps}
+                    size="large"
+                    placeholder="+7 (___) ___-__-__"
+                    inputMode="numeric"
+                    maxLength={18}
+                  />
+                )}
+              </InputMask>
             </Form.Item>
 
             <Form.Item
@@ -223,17 +291,41 @@ const Login = () => {
                       return Promise.resolve();
                     }
                     return Promise.reject(
-                      "Номер должен содержать 11 цифр, начиная с 7"
+                      "Номер должен содержать 11 цифр и начинаться с 7"
                     );
                   },
                 },
               ]}
             >
-              <Input
-                size="large"
-                placeholder="Введите номер телефона, например +7XXXXXXXXXX"
-                maxLength={12}
-              />
+              <InputMask
+                mask="+7 (999) 999-99-99"
+                maskChar={null}
+                alwaysShowMask={false}
+                onChange={(e) => {
+                  let raw = e.target.value.replace(/\D/g, "");
+                  if (raw.length > 11) raw = raw.slice(0, 11);
+                  const formatted =
+                    "+7 (" +
+                    raw.slice(1, 4) +
+                    ") " +
+                    raw.slice(4, 7) +
+                    "-" +
+                    raw.slice(7, 9) +
+                    "-" +
+                    raw.slice(9, 11);
+                  regForm.setFieldsValue({ phone: formatted });
+                }}
+              >
+                {(inputProps) => (
+                  <Input
+                    {...inputProps}
+                    size="large"
+                    placeholder="+7 (___) ___-__-__"
+                    inputMode="numeric"
+                    maxLength={18}
+                  />
+                )}
+              </InputMask>
             </Form.Item>
 
             <Form.Item
