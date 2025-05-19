@@ -22,6 +22,32 @@ const Login = () => {
 
   // For install button (existing)
   const [showInstallBtn, setShowInstallBtn] = useState(false);
+useEffect(() => {
+  if (activeTab === "login") {
+    const savedPhone = sessionStorage.getItem("savedPhone");
+    const savedPassword = sessionStorage.getItem("savedPassword");
+
+    if (savedPhone || savedPassword) {
+      // Преобразуем сохранённый телефон к маске
+      const raw = savedPhone?.replace(/\D/g, "") || "";
+      const formattedPhone =
+        raw.length === 11
+          ? `+7 (${raw.slice(1, 4)}) ${raw.slice(4, 7)}-${raw.slice(7, 9)}-${raw.slice(9, 11)}`
+          : "";
+
+      loginForm.setFieldsValue({
+        username: formattedPhone,
+        password: savedPassword,
+      });
+
+      // ❌ Удаляем, чтобы не подставлялось в будущем
+      sessionStorage.removeItem("savedPhone");
+      sessionStorage.removeItem("savedPassword");
+    }
+  }
+}, [activeTab, loginForm]);
+
+
   useEffect(() => {
     const checkShouldShowButton = () => {
       const isStandalone = window.matchMedia(
@@ -118,10 +144,12 @@ const Login = () => {
     try {
       await axios.post("https://chechnya-product.ru/api/register", {
         username: values.username,
-        phone: phoneDigits, // ✅ здесь
+        phone: phoneDigits,
         password: values.password,
       });
       message.success("Регистрация прошла успешно! Теперь войдите в систему.");
+     sessionStorage.setItem("savedPhone", phoneDigits);
+sessionStorage.setItem("savedPassword", values.password);
       setActiveTab("login");
     } catch (error) {
       console.log(error.response?.data?.error);
