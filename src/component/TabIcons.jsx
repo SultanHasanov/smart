@@ -22,7 +22,7 @@ const TabIcons = () => {
       exact: true,
     },
     {
-      to: '/catalog',
+      to: '/category',
       icon: AppstoreAddOutlined,
       label: 'Каталог',
     },

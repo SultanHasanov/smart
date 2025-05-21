@@ -50,7 +50,15 @@ const Product = () => {
   const navigate = useNavigate();
   const hasToken = !!localStorage.getItem("token");
   const { userRole } = useContext(AuthContext);
-
+useEffect(() => {
+  if (!loading) {
+    const selected = localStorage.getItem("selectedCategory");
+    if (selected) {
+      setSelectedCategory(selected);
+      localStorage.removeItem("selectedCategory");
+    }
+  }
+}, [loading]);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -172,7 +180,7 @@ const Product = () => {
   const filteredDishes = shuffledAllDishes
     .filter(
       (dish) =>
-        selectedCategory === "all" || dish.category_id === selectedCategory
+        selectedCategory === "all" || String(dish.category_id) === String(selectedCategory)
     )
     .filter((dish) =>
       dish.name.toLowerCase().includes(searchTerm.toLowerCase())
