@@ -38,7 +38,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             </ProtectedRoute>
           }
         />
-        <Route path="/catalog" element={<Catalog />} />
+        {/* <Route path="/catalog" element={<Catalog />} /> */}
         <Route path="/login" element={<Login />} />
          <Route path="/orders/:orderId" element={<SingleOrder />} />
       </Routes>

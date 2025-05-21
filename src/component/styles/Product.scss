@@ -463,16 +463,13 @@
   }
 }
 .category-page-wrapper {
- 
+ margin-bottom: 75px;
 }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-}
+
 
 .category-button {
+  margin-bottom: 5px;
   font-size: 16px;
   height: 44px;
   border-radius: 8px;
