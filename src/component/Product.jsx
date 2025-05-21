@@ -453,7 +453,7 @@ useEffect(() => {
                         style={{
                           position: "absolute",
                           top: 5,
-                          right: 5,
+                          left: 5,
                           backgroundColor: "rgba(255,255,255,0.9)",
                           borderRadius: "50%",
                           padding: 4,
