@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Button, Form, Input, message, Radio, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PlusOutlined, ShoppingOutlined } from "@ant-design/icons";
@@ -28,7 +28,8 @@ const CartPage = () => {
   const [form] = Form.useForm();
 const cart = toJS(CartStore.cart);
   const token = localStorage.getItem("token");
-  
+  const isManuallyChanged = useRef(false);
+
   console.log(cart)
   useEffect(() => {
     setTest(cart.length !== 0 ? 1 : 2);
@@ -45,6 +46,13 @@ const cart = toJS(CartStore.cart);
   //   return () => UIStore.hideOrderButton();
 
   // }, [cart.length]);
+useEffect(() => {
+  if (cart.length > 0 && !isManuallyChanged.current) {
+    setSelectedIds(cart.map((item) => item.product_id));
+  }
+}, [cart]);
+
+  
 
   const [orderData, setOrderData] = useState({
     name: "",
@@ -71,13 +79,23 @@ const cart = toJS(CartStore.cart);
 
   const decreaseQuantity = (id) => CartStore.decreaseQuantity(id);
 
+  // const toggleSelected = (dishId) => {
+  //   setSelectedIds((prev) =>
+  //     prev.includes(dishId)
+  //       ? prev.filter((id) => id !== dishId)
+  //       : [...prev, dishId]
+  //   );
+  // };
+
   const toggleSelected = (dishId) => {
-    setSelectedIds((prev) =>
-      prev.includes(dishId)
-        ? prev.filter((id) => id !== dishId)
-        : [...prev, dishId]
-    );
-  };
+  isManuallyChanged.current = true;
+  setSelectedIds((prev) =>
+    prev.includes(dishId)
+      ? prev.filter((id) => id !== dishId)
+      : [...prev, dishId]
+  );
+};
+
  const sendOrderToWhatsApp = useCallback(async () => {
   const selectedItems = cart.filter((item) =>
     selectedIds.includes(item.product_id)
@@ -222,7 +240,7 @@ const whatsappMessage = `
 
       {cart.length > 0 ? (
         <>
-          <Button
+          {/* <Button
             onClick={() => {
               if (selectedIds.length === cart.length) {
                 setSelectedIds([]); // Снимаем всё
@@ -235,7 +253,21 @@ const whatsappMessage = `
             {selectedIds.length === cart.length
               ? "Снять выделение"
               : "Выбрать всё"}
-          </Button>
+          </Button> */}
+          <Button
+  onClick={() => {
+    isManuallyChanged.current = true;
+    if (selectedIds.length === cart.length) {
+      setSelectedIds([]); // Снять всё
+    } else {
+      setSelectedIds(cart.map((item) => item.product_id)); // Выбрать всё
+    }
+  }}
+  style={{ marginBottom: 10 }}
+>
+  {selectedIds.length === cart.length ? "Снять выделение" : "Выбрать всё"}
+</Button>
+
 
           <CartList
             cart={cart}
