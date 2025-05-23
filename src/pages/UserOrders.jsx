@@ -81,13 +81,13 @@ const DeliveryTrack = ({ status }) => {
 };
 
 const UserOrders = () => {
-  const { token, userRole } = useContext(AuthContext);
+  const { token, userRole, userId } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const navigate = useNavigate();
-const wsRef = useRef(null);
+  const wsRef = useRef(null);
   const toggleOrderDetails = (id) => {
     setExpandedOrder(expandedOrder === id ? null : id);
   };
@@ -147,7 +147,7 @@ const wsRef = useRef(null);
 
     fetchOrders();
 
-     const socket = new WebSocket(WS_URL);
+    const socket = new WebSocket(WS_URL);
     wsRef.current = socket;
 
     socket.onopen = () => {
@@ -170,6 +170,8 @@ const wsRef = useRef(null);
           messageData.type === "status_update"
         ) {
           const incoming = messageData.order;
+          if (incoming.user_id !== userId) return; // ⛔ игнор чужие заказы
+
           setOrders((prevOrders) => {
             const exists = prevOrders.find((o) => o.id === incoming.id);
             if (exists) {
@@ -272,56 +274,37 @@ const wsRef = useRef(null);
                   <Paragraph>
                     <Text strong>Сумма:</Text> {order.total}₽
                   </Paragraph>
-                   <Space
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                        }}
-                                      >
+                  <Space
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
                     <div
-                        onClick={() => shareOrder(order)}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          height: 42,
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <ShareAltOutlined
-                          style={{ fontSize: 20, color: "#1890ff" }}
-                        />
-                        <span style={{ fontSize: 12, color: "#1890ff" }}>
-                          Поделиться
-                        </span>
-                      </div>
-                      <div
-                        onClick={() => {
-                          const url = `${window.location.origin}/orders/${order.id}`;
-                          navigator.clipboard.writeText(url);
-                          message.success("Ссылка скопирована");
-                        }}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          justifyContent: "space-between",
-                          height: 42,
-                        }}
-                      >
-                        <CopyOutlined
-                          style={{ fontSize: 20, color: "#1890ff" }}
-                        />
-                        <span style={{ fontSize: 12, color: "#1890ff" }}>
-                          Скопировать
-                        </span>
-                      </div>
-                      {order.status === "доставлен" && (
+                      onClick={() => shareOrder(order)}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        border: "none",
+                        backgroundColor: "transparent",
+                        height: 42,
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <ShareAltOutlined
+                        style={{ fontSize: 20, color: "#1890ff" }}
+                      />
+                      <span style={{ fontSize: 12, color: "#1890ff" }}>
+                        Поделиться
+                      </span>
+                    </div>
                     <div
+                      onClick={() => {
+                        const url = `${window.location.origin}/orders/${order.id}`;
+                        navigator.clipboard.writeText(url);
+                        message.success("Ссылка скопирована");
+                      }}
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -331,22 +314,41 @@ const wsRef = useRef(null);
                         justifyContent: "space-between",
                         height: 42,
                       }}
-                      onClick={() => {
-                        CartStore.repeatOrder(order.items); // order.items — список продуктов
-                        message.success("Товары добавлены в корзину");
-                        navigate("/cart");
-                      }}
                     >
-                      <ReloadOutlined
+                      <CopyOutlined
                         style={{ fontSize: 20, color: "#1890ff" }}
                       />
                       <span style={{ fontSize: 12, color: "#1890ff" }}>
-                        Повторить
+                        Скопировать
                       </span>
                     </div>
-                  )}
+                    {order.status === "доставлен" && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          border: "none",
+                          backgroundColor: "transparent",
+                          justifyContent: "space-between",
+                          height: 42,
+                        }}
+                        onClick={() => {
+                          CartStore.repeatOrder(order.items); // order.items — список продуктов
+                          message.success("Товары добавлены в корзину");
+                          navigate("/cart");
+                        }}
+                      >
+                        <ReloadOutlined
+                          style={{ fontSize: 20, color: "#1890ff" }}
+                        />
+                        <span style={{ fontSize: 12, color: "#1890ff" }}>
+                          Повторить
+                        </span>
+                      </div>
+                    )}
                   </Space>
-                  
+
                   <DeliveryTrack status={order.status} />
                 </div>
               )}

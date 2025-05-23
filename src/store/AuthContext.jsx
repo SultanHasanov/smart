@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [username, setUsername] = useState(localStorage.getItem("username"));
   const [isAuthenticated, setIsAuthenticated] = useState(!!token);
   const [userRole, setUserRole] = useState(null);
+   const [userId, setUserId] = useState(null); // 👈 ДОБАВЛЕН userId
 
   useEffect(() => {
     const currentToken = localStorage.getItem("token");
@@ -16,7 +17,9 @@ export const AuthProvider = ({ children }) => {
     if (currentToken) {
       try {
         const decoded = jwtDecode(currentToken);
+        console.log("Decoded JWT:", decoded);
         setUserRole(decoded.role || null);
+         setUserId(decoded.user_id || null); // 👈 ДОСТАЛ user_id
         setToken(currentToken);
         setUsername(storedUsername || null);
         setIsAuthenticated(true);
@@ -27,6 +30,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setIsAuthenticated(false);
       setUserRole(null);
+        setUserId(null); // 👈 обнуляем
       setUsername(null);
     }
 
@@ -37,7 +41,9 @@ export const AuthProvider = ({ children }) => {
       if (updatedToken) {
         try {
           const decoded = jwtDecode(updatedToken);
+          console.log(decoded)
           setUserRole(decoded.role || null);
+            setUserId(decoded.user_id || null); // 👈
           setToken(updatedToken);
           setUsername(updatedUsername || null);
           setIsAuthenticated(true);
@@ -48,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         setIsAuthenticated(false);
         setUserRole(null);
+          setUserId(null); // 👈
         setUsername(null);
       }
     };
@@ -59,7 +66,9 @@ export const AuthProvider = ({ children }) => {
   const login = (newToken, newUsername) => {
     try {
       const decoded = jwtDecode(newToken);
+      console.log("Decoded JWT:", decoded);
       setUserRole(decoded.role || null);
+        setUserId(decoded.user_id || null); // 👈
     } catch (err) {
       console.error("Ошибка декодирования при логине:", err);
     }
@@ -76,6 +85,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("username");
     setToken(null);
     setUsername(null);
+     setUserId(null); // 👈
     setIsAuthenticated(false);
     setUserRole(null);
   };
@@ -85,6 +95,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         token,
         username,        // 👈 экспортируем имя
+        userId, 
         isAuthenticated,
         userRole,
         login,
