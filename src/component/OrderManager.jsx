@@ -1,23 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  Button,
-  Tag,
-  message,
-  Typography,
-  Spin,
-  Popconfirm,
-  Space,
-} from "antd";
+import { Tag, message, Typography, Spin, Popconfirm, Space } from "antd";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   CopyOutlined,
+  ReloadOutlined,
   ShareAltOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
-import html2canvas from "html2canvas";
 import "./styles/Product.scss";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import CartStore from "../store/CartStore";
 
 const { Text, Paragraph } = Typography;
@@ -103,41 +95,6 @@ const OrderManager = () => {
     const date = new Date(ts);
     return date.toLocaleString("ru-RU");
   };
-
-  // const shareOrder = async (order, el) => {
-  //   if (!el) return message.error("Карточка не найдена");
-  //   try {
-  //     el.style.backgroundColor = "#fff";
-  //     const canvas = await html2canvas(el, {
-  //       backgroundColor: "#fff",
-  //       scale: window.devicePixelRatio || 2,
-  //     });
-  //     el.style.backgroundColor = "";
-  //     const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
-  //     const file = new File([blob], `order-${order.id}.png`, {
-  //       type: "image/png",
-  //     });
-
-  //     if (navigator.canShare?.({ files: [file] })) {
-  //       await navigator.share({
-  //         title: `Заказ от ${order.name}`,
-  //         files: [file],
-  //       });
-  //       message.success("Чек скопирован");
-  //     } else {
-  //       message.warning(
-  //         "Устройство не поддерживает шаринг — изображение скачано."
-  //       );
-  //       const link = document.createElement("a");
-  //       link.href = URL.createObjectURL(blob);
-  //       link.download = `order-${order.id}.png`;
-  //       link.click();
-  //     }
-  //   } catch (error) {
-  //     console.error("Ошибка при создании чека:", error);
-  //     message.error("Не удалось создать чек");
-  //   }
-  // };
 
   const shareOrder = async (order) => {
     try {
@@ -340,24 +297,15 @@ const OrderManager = () => {
                         justifyContent: "space-between",
                       }}
                     >
-                      <Button
-                        onClick={() => updateOrderStatus(order.id, "готов")}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          justifyContent: "center",
-                          backgroundColor: "transparent",
-                        }}
-                      >
+                      <div className="icon_action">
                         <CheckCircleOutlined
                           style={{ fontSize: 20, color: "green" }}
+                          onClick={() => updateOrderStatus(order.id, "готов")}
                         />
                         <span style={{ fontSize: 12, color: "green" }}>
                           Готов
                         </span>
-                      </Button>
+                      </div>
                       <Popconfirm
                         title="Отклонить заказ?"
                         onConfirm={() =>
@@ -366,30 +314,32 @@ const OrderManager = () => {
                         okText="Да"
                         cancelText="Нет"
                       >
-                        <Button
-                          danger
+                        <div
                           style={{
                             display: "flex",
                             flexDirection: "column",
+                            justifyContent: "space-between",
                             alignItems: "center",
                             border: "none",
-                            justifyContent: "center",
                             backgroundColor: "transparent",
+                            height: 42,
+                            color: "red",
                           }}
                         >
                           <CloseCircleOutlined style={{ fontSize: 20 }} />
                           <span style={{ fontSize: 12 }}>Отклонить</span>
-                        </Button>
+                        </div>
                       </Popconfirm>
-                      <Button
+                      <div
                         onClick={() => shareOrder(order)}
                         style={{
                           display: "flex",
                           flexDirection: "column",
                           alignItems: "center",
                           border: "none",
-                          justifyContent: "center",
                           backgroundColor: "transparent",
+                          height: 42,
+                          justifyContent: "space-between",
                         }}
                       >
                         <ShareAltOutlined
@@ -398,8 +348,8 @@ const OrderManager = () => {
                         <span style={{ fontSize: 12, color: "#1890ff" }}>
                           Поделиться
                         </span>
-                      </Button>
-                      <Button
+                      </div>
+                      <div
                         onClick={() => {
                           const url = `${window.location.origin}/orders/${order.id}`;
                           navigator.clipboard.writeText(url);
@@ -410,8 +360,9 @@ const OrderManager = () => {
                           flexDirection: "column",
                           alignItems: "center",
                           border: "none",
-                          justifyContent: "center",
                           backgroundColor: "transparent",
+                          justifyContent: "space-between",
+                          height: 42,
                         }}
                       >
                         <CopyOutlined
@@ -420,17 +371,30 @@ const OrderManager = () => {
                         <span style={{ fontSize: 12, color: "#1890ff" }}>
                           Скопировать
                         </span>
-                      </Button>
-                      <Button
-                        type="primary"
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          border: "none",
+                          backgroundColor: "transparent",
+                          justifyContent: "space-between",
+                          height: 42,
+                        }}
                         onClick={() => {
                           CartStore.repeatOrder(order.items); // order.items — список продуктов
                           message.success("Товары добавлены в корзину");
                           navigate("/cart");
                         }}
                       >
-                        Повторить
-                      </Button>
+                        <ReloadOutlined
+                          style={{ fontSize: 20, color: "#1890ff" }}
+                        />
+                        <span style={{ fontSize: 12, color: "#1890ff" }}>
+                          Повторить
+                        </span>
+                      </div>
                     </Space>
 
                     <DeliveryTrack key={order.id} status={order.status} />

@@ -62,9 +62,11 @@
 }
 
 .product-empty {
-  position: absolute;
-  // width: 100%;
-  text-align: center;
+  // position: absolute;
+  display: flex;
+  justify-content: center;
+  width: 90vw;
+  align-items:center;
   margin-top: 30px;
   font-size: 24px;
   color: #888;
@@ -474,4 +476,13 @@
   height: 44px;
   border-radius: 8px;
   text-align: left;
+}
+.icon_action{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  border: none;
+  background-color: transparent;
+  height: 42px;
 }

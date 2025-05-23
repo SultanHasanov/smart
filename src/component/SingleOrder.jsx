@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Typography, Spin, Tag, message } from "antd";
@@ -25,12 +25,12 @@ const getStatusColor = (status) => {
       return "default";
   }
 };
-
+const WS_URL = "wss://chechnya-product.ru/ws/orders";
 const SingleOrder = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const wsRef = useRef(null);
   const fetchOrder = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -47,6 +47,42 @@ const SingleOrder = () => {
 
   useEffect(() => {
     fetchOrder();
+
+    const socket = new WebSocket(WS_URL);
+    wsRef.current = socket;
+
+    socket.onopen = () => {
+      console.log("✅ WebSocket подключён");
+    };
+
+    socket.onerror = (err) => {
+      console.error("❌ WebSocket ошибка:", err);
+    };
+
+    socket.onclose = () => {
+      console.warn("⚠ WebSocket закрыт");
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const messageData = JSON.parse(event.data);
+        if (
+          messageData.type === "new_order" ||
+          messageData.type === "status_update"
+        ) {
+          const incoming = messageData.order;
+          if (incoming.id === Number(orderId)) {
+            setOrder((prevOrder) => ({ ...prevOrder, ...incoming }));
+          }
+        }
+      } catch (e) {
+        console.error("Ошибка обработки WebSocket-сообщения:", e);
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
   }, [orderId]);
 
   if (loading) return <Spin size="large" />;
@@ -59,7 +95,8 @@ const SingleOrder = () => {
         <Text strong>Имя:</Text> {order.name}
       </Paragraph>
       <Paragraph>
-        <Text strong>Дата:</Text> {new Date(order.date_orders).toLocaleString("ru-RU")}
+        <Text strong>Дата:</Text>{" "}
+        {new Date(order.date_orders).toLocaleString("ru-RU")}
       </Paragraph>
       <Paragraph>
         <Text strong>Статус:</Text>{" "}

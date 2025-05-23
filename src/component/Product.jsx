@@ -50,15 +50,15 @@ const Product = () => {
   const navigate = useNavigate();
   const hasToken = !!localStorage.getItem("token");
   const { userRole } = useContext(AuthContext);
-useEffect(() => {
-  if (!loading) {
-    const selected = localStorage.getItem("selectedCategory");
-    if (selected) {
-      setSelectedCategory(selected);
-      localStorage.removeItem("selectedCategory");
+  useEffect(() => {
+    if (!loading) {
+      const selected = localStorage.getItem("selectedCategory");
+      if (selected) {
+        setSelectedCategory(selected);
+        localStorage.removeItem("selectedCategory");
+      }
     }
-  }
-}, [loading]);
+  }, [loading]);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -168,19 +168,29 @@ useEffect(() => {
     CartStore.decreaseQuantity(dishId);
   };
 
-  const shuffledAllDishes = useMemo(() => {
-    if (selectedCategory === "all") {
-      return [...(Array.isArray(dishes) ? dishes : [])].sort(
-        () => Math.random() - 0.5
-      );
-    }
-    return Array.isArray(dishes) ? dishes : [];
-  }, [dishes, selectedCategory]);
+  // const shuffledAllDishes = useMemo(() => {
+  //   if (selectedCategory === "all") {
+  //     return [...(Array.isArray(dishes) ? dishes : [])].sort(
+  //       () => Math.random() - 0.5
+  //     );
+  //   }
+  //   return Array.isArray(dishes) ? dishes : [];
+  // }, [dishes, selectedCategory]);
 
-  const filteredDishes = shuffledAllDishes
+  // const filteredDishes = shuffledAllDishes
+  //   .filter(
+  //     (dish) =>
+  //       selectedCategory === "all" || String(dish.category_id) === String(selectedCategory)
+  //   )
+  //   .filter((dish) =>
+  //     dish.name.toLowerCase().includes(searchTerm.toLowerCase())
+  //   );
+
+  const filteredDishes = dishes
     .filter(
       (dish) =>
-        selectedCategory === "all" || String(dish.category_id) === String(selectedCategory)
+        selectedCategory === "all" ||
+        String(dish.category_id) === String(selectedCategory)
     )
     .filter((dish) =>
       dish.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -441,7 +451,7 @@ useEffect(() => {
                         </span>
                       </>
                     )}
-                    {userRole === 'admin' && (
+                    {userRole === "admin" && (
                       <div
                         className="edit-icon"
                         onClick={(e) => {
