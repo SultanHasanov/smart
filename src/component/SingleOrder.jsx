@@ -12,7 +12,7 @@ const getStatusColor = (status) => {
       return "orange";
     case "принят":
       return "blue";
-    case "в обработке":
+    case "собирается":
       return "purple";
     case "в пути":
       return "cyan";

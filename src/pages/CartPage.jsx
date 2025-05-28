@@ -57,7 +57,9 @@ const CartPage = () => {
     paymentType: "",
     address: query,
     changeFor: "",
+    order_comment: ""
   });
+  console.log(orderData)
 
   const calculateTotal = () => {
     return cart
@@ -279,6 +281,7 @@ const CartPage = () => {
           name: orderData.name,
           address: orderData.deliveryType === "delivery" ? query : null,
           items: selectedItems,
+          order_comment: orderData.order_comment,
           delivery_fee: deliveryFee,
           delivery_text: deliveryText,
           total: finalTotal,
@@ -334,6 +337,7 @@ const CartPage = () => {
         address: "",
         paymentType: "cash",
         changeFor: "",
+        order_comment: "",
       });
 
       setSelectedIds([]);
@@ -481,6 +485,7 @@ const CartPage = () => {
           onDropdownOpenChange={setIsAddressOpen}
         />
       )}
+
       {test === 2 && (
         <Button
           size="large"

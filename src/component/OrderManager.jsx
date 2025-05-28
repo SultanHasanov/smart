@@ -17,7 +17,7 @@ const { Text, Paragraph } = Typography;
 const ORDER_API = "https://chechnya-product.ru/api/admin/orders";
 const WS_URL = "wss://chechnya-product.ru/ws/orders";
 
-const statusFlow = ["новый", "принят", "в обработке", "в пути", "доставлен"];
+const statusFlow = ["новый", "принят", "собирается", "в пути", "доставлен"];
 
 const getNextStatus = (current) => {
   const idx = statusFlow.indexOf(current);
@@ -32,7 +32,7 @@ const getStatusColor = (status) => {
       return "orange";
     case "принят":
       return "blue";
-    case "в обработке":
+    case "собирается":
       return "purple";
     case "в пути":
       return "cyan";
@@ -71,7 +71,7 @@ const OrderManager = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.patch(
-        `${ORDER_API}/${id}/status`,
+        `${"https://chechnya-product.ru/api/orders"}/${id}/status`,
         { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -177,7 +177,7 @@ const OrderManager = () => {
       const positionByStatus = {
         новый: 0,
         принят: 22.5,
-        "в обработке": 45,
+        собирается: 45,
         "в пути": 67.5,
         доставлен: 90,
       };

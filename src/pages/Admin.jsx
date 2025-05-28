@@ -180,6 +180,8 @@ sessionStorage.setItem("savedPassword", values.password);
             Установить приложение
           </Button>
         )}
+
+        <Footer />
       </div>
     );
   }
@@ -384,8 +386,115 @@ sessionStorage.setItem("savedPassword", values.password);
           </Form>
         </Tabs.TabPane>
       </Tabs>
+      <Footer />
     </div>
   );
 };
+
+import {
+  GithubOutlined,
+  
+  
+} from "@ant-design/icons";
+import { SiTelegram, SiWhatsapp  } from "react-icons/si";
+const iconStyle = {
+  fontSize: "20px",
+  color: "#1890ff",
+};
+
+const Footer = () => (
+  <div
+    style={{
+      position: "fixed",
+      bottom: 80,
+      left: 0,
+      width: "100%",
+      background: "#f9f9f9",
+      borderTop: "1px solid #ddd",
+      padding: "16px 10px",
+      fontSize: "14px",
+      zIndex: 1000,
+    }}
+  >
+    <div style={{ marginBottom: 10 }}>
+      <strong>Контакты:</strong> +7 (928) 123-45-67
+    </div>
+    <div style={{ marginBottom: 16 }}>
+      <strong>Адрес:</strong> Чеченская Республика, Ачхой-Мартан, ул. Мира, д.7
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        gap: 20,
+        flexWrap: "wrap",
+      }}
+    >
+      {/* Разработчик 1 */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <img
+          src="https://randomuser.me/api/portraits/men/32.jpg"
+          alt="Ахмед Абдулаев"
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "1px solid #ccc",
+          }}
+        />
+        <div style={{ textAlign: "left" }}>
+          <div><strong>Имя:</strong> Ахмед Абдулаев</div>
+          <div><strong>Направление:</strong> Frontend (React, UI/UX)</div>
+          <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
+           <a href="https://t.me/ahmed_dev" target="_blank" rel="noopener noreferrer">
+  <SiTelegram style={iconStyle} />
+</a>
+
+            <a href="https://github.com/ahmeddev" target="_blank" rel="noopener noreferrer">
+              <GithubOutlined style={iconStyle} />
+            </a>
+            <a href="https://linkedin.com/in/ahmeddev" target="_blank" rel="noopener noreferrer">
+              <SiWhatsapp  style={iconStyle} />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Разработчик 2 */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <img
+          src="https://randomuser.me/api/portraits/men/44.jpg"
+          alt="Магомед Исаев"
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "1px solid #ccc",
+          }}
+        />
+        <div style={{ textAlign: "left" }}>
+          <div><strong>Имя:</strong> Магомед Исаев</div>
+          <div><strong>Направление:</strong> Backend (Node.js, API, DevOps)</div>
+          <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
+           <a href="https://t.me/ahmed_dev" target="_blank" rel="noopener noreferrer">
+  <SiTelegram style={iconStyle} />
+</a>
+
+            <a href="https://github.com/magomeddev" target="_blank" rel="noopener noreferrer">
+              <GithubOutlined style={iconStyle} />
+            </a>
+            <a href="https://linkedin.com/in/magomeddev" target="_blank" rel="noopener noreferrer">
+              <SiWhatsapp  style={iconStyle} />
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+
 
 export default Login;

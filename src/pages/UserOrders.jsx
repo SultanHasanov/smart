@@ -1,6 +1,18 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import { Typography, Spin, Alert, Tag, Button, message, Space } from "antd";
 import {
+  Typography,
+  Spin,
+  Alert,
+  Tag,
+  Button,
+  message,
+  Space,
+  Popconfirm,
+  Rate,
+  Input,
+} from "antd";
+import {
+  CloseCircleOutlined,
   CopyOutlined,
   ReloadOutlined,
   ShareAltOutlined,
@@ -14,8 +26,9 @@ import CartStore from "../store/CartStore";
 
 const { Text, Paragraph } = Typography;
 const WS_URL = "wss://chechnya-product.ru/ws/orders";
+const ORDER_API = "https://chechnya-product.ru/api/orders";
 
-const statusFlow = ["новый", "принят", "в обработке", "в пути", "доставлен"];
+const statusFlow = ["новый", "принят", "собирается", "в пути", "доставлен"];
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -23,7 +36,7 @@ const getStatusColor = (status) => {
       return "orange";
     case "принят":
       return "blue";
-    case "в обработке":
+    case "собирается":
       return "purple";
     case "в пути":
       return "cyan";
@@ -44,7 +57,7 @@ const DeliveryTrack = ({ status }) => {
     const positionByStatus = {
       новый: 0,
       принят: 22.5,
-      "в обработке": 45,
+      собирается: 45,
       "в пути": 67.5,
       доставлен: 90,
     };
@@ -87,7 +100,7 @@ const UserOrders = () => {
   const [error, setError] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
   const navigate = useNavigate();
-const wsRef = useRef(null);
+  const wsRef = useRef(null);
   const toggleOrderDetails = (id) => {
     setExpandedOrder(expandedOrder === id ? null : id);
   };
@@ -97,6 +110,23 @@ const wsRef = useRef(null);
     return DateTime.fromISO(safeTs, { zone: "utc" }).toFormat(
       "dd.MM.yyyy, HH:mm:ss"
     );
+  };
+
+  const updateOrderStatus = async (id, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${ORDER_API}/${id}/status`,
+        { status: newStatus },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      message.success("Статус обновлён");
+      fetchOrders();
+    } catch {
+      message.error("Ошибка обновления статуса");
+    }
   };
 
   const shareOrder = async (order) => {
@@ -136,7 +166,6 @@ const wsRef = useRef(null);
           }
         );
         setOrders(response.data.data || []);
-        console.log(response.data.data);
       } catch (err) {
         console.error("Ошибка получения заказов:", err);
         setError("Не удалось загрузить заказы. Попробуйте позже.");
@@ -147,7 +176,7 @@ const wsRef = useRef(null);
 
     fetchOrders();
 
-     const socket = new WebSocket(WS_URL);
+    const socket = new WebSocket(WS_URL);
     wsRef.current = socket;
 
     socket.onopen = () => {
@@ -270,58 +299,45 @@ const wsRef = useRef(null);
                     <ul>{itemList}</ul>
                   </Paragraph>
                   <Paragraph>
-                    <Text strong>Сумма:</Text> {order.total}₽
+                    <Text strong>Сумма:</Text> {order.total}
                   </Paragraph>
-                   <Space
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                        }}
-                                      >
+                  {order.order_comment && (
+                    <Paragraph>
+                      <Text strong>Комментарий:</Text> {order.order_comment}
+                    </Paragraph>
+                  )}
+
+                  <Space
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
                     <div
-                        onClick={() => shareOrder(order)}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          height: 42,
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <ShareAltOutlined
-                          style={{ fontSize: 20, color: "#1890ff" }}
-                        />
-                        <span style={{ fontSize: 12, color: "#1890ff" }}>
-                          Поделиться
-                        </span>
-                      </div>
-                      <div
-                        onClick={() => {
-                          const url = `${window.location.origin}/orders/${order.id}`;
-                          navigator.clipboard.writeText(url);
-                          message.success("Ссылка скопирована");
-                        }}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          justifyContent: "space-between",
-                          height: 42,
-                        }}
-                      >
-                        <CopyOutlined
-                          style={{ fontSize: 20, color: "#1890ff" }}
-                        />
-                        <span style={{ fontSize: 12, color: "#1890ff" }}>
-                          Скопировать
-                        </span>
-                      </div>
-                      {order.status === "доставлен" && (
+                      onClick={() => shareOrder(order)}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        border: "none",
+                        backgroundColor: "transparent",
+                        height: 42,
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <ShareAltOutlined
+                        style={{ fontSize: 20, color: "#1890ff" }}
+                      />
+                      <span style={{ fontSize: 12, color: "#1890ff" }}>
+                        Поделиться
+                      </span>
+                    </div>
                     <div
+                      onClick={() => {
+                        const url = `${window.location.origin}/orders/${order.id}`;
+                        navigator.clipboard.writeText(url);
+                        message.success("Ссылка скопирована");
+                      }}
                       style={{
                         display: "flex",
                         flexDirection: "column",
@@ -331,23 +347,156 @@ const wsRef = useRef(null);
                         justifyContent: "space-between",
                         height: 42,
                       }}
-                      onClick={() => {
-                        CartStore.repeatOrder(order.items); // order.items — список продуктов
-                        message.success("Товары добавлены в корзину");
-                        navigate("/cart");
-                      }}
                     >
-                      <ReloadOutlined
+                      <CopyOutlined
                         style={{ fontSize: 20, color: "#1890ff" }}
                       />
                       <span style={{ fontSize: 12, color: "#1890ff" }}>
-                        Повторить
+                        Скопировать
                       </span>
                     </div>
-                  )}
+                    {order.status === "доставлен" && (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          border: "none",
+                          backgroundColor: "transparent",
+                          justifyContent: "space-between",
+                          height: 42,
+                        }}
+                        onClick={() => {
+                          CartStore.repeatOrder(order.items); // order.items — список продуктов
+                          message.success("Товары добавлены в корзину");
+                          navigate("/cart");
+                        }}
+                      >
+                        <ReloadOutlined
+                          style={{ fontSize: 20, color: "#1890ff" }}
+                        />
+                        <span style={{ fontSize: 12, color: "#1890ff" }}>
+                          Повторить
+                        </span>
+                      </div>
+                    )}
+                    {["новый", "принят"].includes(order.status) && (
+                      <Popconfirm
+                        description={`Можно отменить до статуса "собирается"`}
+                        title="Хотите отменить заказ?"
+                        onConfirm={() =>
+                          updateOrderStatus(order.id, "отклонен")
+                        }
+                        okText="Да"
+                        cancelText="Нет"
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            border: "none",
+                            backgroundColor: "transparent",
+                            height: 42,
+                            color: "red",
+                          }}
+                        >
+                          <CloseCircleOutlined style={{ fontSize: 20 }} />
+                          <span style={{ fontSize: 12 }}>Отменить</span>
+                        </div>
+                      </Popconfirm>
+                    )}
                   </Space>
-                  
+
                   <DeliveryTrack status={order.status} />
+                  {order.status === "доставлен" && (
+                    <div style={{ marginTop: 16 }}>
+                      {!order.rating && (
+                        <>
+                          <Typography.Title level={4}>
+                            Оцените заказ
+                          </Typography.Title>
+
+                          <div style={{ marginBottom: 12 }}>
+                            <Text strong>Оценка:</Text>
+                            <Rate
+                              allowClear
+                              value={order.rating}
+                              onChange={(value) => {
+                                setOrders((prev) =>
+                                  prev.map((o) =>
+                                    o.id === order.id
+                                      ? { ...o, rating: value }
+                                      : o
+                                  )
+                                );
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ marginBottom: 12 }}>
+                            <Text strong>Комментарий:</Text>
+                            <Input.TextArea
+                              rows={4}
+                              value={order.reviewText || ""}
+                              onChange={(e) => {
+                                const text = e.target.value;
+                                setOrders((prev) =>
+                                  prev.map((o) =>
+                                    o.id === order.id
+                                      ? { ...o, reviewText: text }
+                                      : o
+                                  )
+                                );
+                              }}
+                              placeholder="Расскажите, как всё прошло"
+                            />
+                          </div>
+
+                          <Button
+                            type="primary"
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem("token");
+                                await axios.patch(
+                                  `https://chechnya-product.ru/api/orders/${order.id}/review`,
+                                  {
+                                    rating: order.rating || 0,
+                                    comment: order.reviewText || "",
+                                  },
+                                  {
+                                    headers: {
+                                      Authorization: `Bearer ${token}`,
+                                    },
+                                  }
+                                );
+                                message.success("Спасибо за отзыв!");
+                              } catch (err) {
+                                console.error("Ошибка отправки отзыва:", err);
+                                message.error("Не удалось отправить отзыв");
+                              }
+                            }}
+                            disabled={!order.rating}
+                          >
+                            Отправить отзыв
+                          </Button>
+                        </>
+                      )}
+
+                      {order.rating !== null && (
+                        <div style={{ marginTop: 16 }}>
+                          <Typography.Title level={4}>
+                            Ваш отзыв
+                          </Typography.Title>
+                          <Rate disabled defaultValue={order.rating} />
+                          <Typography.Paragraph style={{ marginTop: 8 }}>
+                            {order.comment || "Без комментариев"}
+                          </Typography.Paragraph>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

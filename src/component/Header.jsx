@@ -1,8 +1,11 @@
 import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { MenuOutlined, ShoppingCartOutlined } from "@ant-design/icons";
+import {
+  MenuOutlined,
+  ShoppingCartOutlined,
+  CommentOutlined,
+} from "@ant-design/icons";
 import CartStore from "../store/CartStore";
-import { toJS } from "mobx";
 import { observer } from "mobx-react-lite";
 
 // Вызов пасхалки (кот-терминал)
@@ -12,7 +15,6 @@ const openHackerCatTerminal = () => {
 };
 
 const Header = ({ subtitle = "Быстрая доставка за 30 мин" }) => {
-  const cart = CartStore.cart;
   const navigate = useNavigate();
   const timeout = useRef(null);
 
@@ -47,12 +49,6 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
           padding: "12px 16px 8px",
         }}
       >
-        {/* Меню или кнопка назад */}
-        {/* <MenuOutlined
-          style={{ fontSize: "22px", cursor: "pointer" }}
-          onClick={() => navigate("/")}
-        /> */}
-
         {/* Название с пасхалкой */}
         <div
           style={{
@@ -69,15 +65,25 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
           Smart
         </div>
 
-        {/* Корзина */}
-        <div style={{ display: "flex", flexDirection: "column",  alignItems: "center" }}>
-          <ShoppingCartOutlined
-            onClick={() => navigate("/cart")}
-            style={{ fontSize: "22px", cursor: "pointer" }}
+        {/* Иконки справа */}
+        <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          {/* Отзывы */}
+          <CommentOutlined
+            onClick={() => navigate("/reviews")}
+            style={{ fontSize: "22px", cursor: "pointer", color: "#555" }}
+            title="Отзывы пользователей"
           />
-          <span style={{ color: "#1677ff", fontSize: 12, fontWeight: "bold" }}>
-            {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
-          </span>
+
+          {/* Корзина */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <ShoppingCartOutlined
+              onClick={() => navigate("/cart")}
+              style={{ fontSize: "22px", cursor: "pointer" }}
+            />
+            <span style={{ color: "#1677ff", fontSize: 12, fontWeight: "bold" }}>
+              {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
+            </span>
+          </div>
         </div>
       </div>
 
