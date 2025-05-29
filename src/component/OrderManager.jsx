@@ -91,10 +91,11 @@ const OrderManager = () => {
     }
   };
 
-  const formatDate = (ts) => {
-    const date = new Date(ts);
-    return date.toLocaleString("ru-RU");
-  };
+ const formatDate = (ts) => {
+  const date = new Date(ts);
+  return date.toLocaleString("ru-RU", { timeZone: "UTC" });
+};
+
 
   const shareOrder = async (order) => {
     try {

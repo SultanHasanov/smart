@@ -14,7 +14,8 @@ const openHackerCatTerminal = () => {
   window.dispatchEvent(event);
 };
 
-const Header = ({ subtitle = "Быстрая доставка за 30 мин" }) => {
+const Header = ({  
+ }) => {
   const navigate = useNavigate();
   const timeout = useRef(null);
 
@@ -68,11 +69,7 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
         {/* Иконки справа */}
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
           {/* Отзывы */}
-          <CommentOutlined
-            onClick={() => navigate("/reviews")}
-            style={{ fontSize: "22px", cursor: "pointer", color: "#555" }}
-            title="Отзывы пользователей"
-          />
+          
 
           {/* Корзина */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -88,8 +85,24 @@ const Header = ({ subtitle = "Быстрая доставка за 30 мин" })
       </div>
 
       {/* Подзаголовок или статус */}
-      <div style={{ padding: "0 16px 10px", fontSize: "14px", color: "#888" }}>
-        {subtitle}
+      <div style={{ padding: "0 16px", fontSize: "14px", color: "green" }}>
+        <div
+  onClick={() => navigate("/reviews")}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    fontSize: 18,
+    color: "#1677ff",
+    cursor: "pointer",
+    fontWeight: "500",
+    userSelect: "none",
+  }}
+  title="Смотреть все отзывы"
+>
+  <CommentOutlined style={{ fontSize: 18 }} />
+  <span>Отзывы пользователей</span>
+</div>
       </div>
     </div>
   );

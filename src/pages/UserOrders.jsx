@@ -106,11 +106,10 @@ const UserOrders = () => {
   };
 
   const formatDate = (ts) => {
-    const safeTs = ts.replace(/\.(\d{3})\d*Z$/, ".$1Z");
-    return DateTime.fromISO(safeTs, { zone: "utc" }).toFormat(
-      "dd.MM.yyyy, HH:mm:ss"
-    );
-  };
+  const date = new Date(ts);
+  return date.toLocaleString("ru-RU", { timeZone: "UTC" });
+};
+
 
   const updateOrderStatus = async (id, newStatus) => {
     try {
@@ -165,7 +164,13 @@ const UserOrders = () => {
             },
           }
         );
-        setOrders(response.data.data || []);
+        setOrders(
+  (response.data.data || []).map((order) => ({
+    ...order,
+    reviewText: order.comment ?? "", // сохраняем локально
+  }))
+);
+
       } catch (err) {
         console.error("Ошибка получения заказов:", err);
         setError("Не удалось загрузить заказы. Попробуйте позже.");
@@ -410,93 +415,97 @@ const UserOrders = () => {
                   </Space>
 
                   <DeliveryTrack status={order.status} />
-                  {order.status === "доставлен" && (
-                    <div style={{ marginTop: 16 }}>
-                      {!order.rating && (
-                        <>
-                          <Typography.Title level={4}>
-                            Оцените заказ
-                          </Typography.Title>
+                 {order.status === "доставлен" && (
+  <div style={{ marginTop: 16 }}>
+    {order.rating === null || order.comment === null ? (
+      <>
+        <Typography.Title level={4}>Оцените заказ</Typography.Title>
 
-                          <div style={{ marginBottom: 12 }}>
-                            <Text strong>Оценка:</Text>
-                            <Rate
-                              allowClear
-                              value={order.rating}
-                              onChange={(value) => {
-                                setOrders((prev) =>
-                                  prev.map((o) =>
-                                    o.id === order.id
-                                      ? { ...o, rating: value }
-                                      : o
-                                  )
-                                );
-                              }}
-                            />
-                          </div>
+        <div style={{ marginBottom: 12 }}>
+          <Text strong>Оценка:</Text>
+          <Rate
+            allowClear
+            value={order.rating}
+            onChange={(value) => {
+              setOrders((prev) =>
+                prev.map((o) =>
+                  o.id === order.id ? { ...o, rating: value } : o
+                )
+              );
+            }}
+          />
+        </div>
 
-                          <div style={{ marginBottom: 12 }}>
-                            <Text strong>Комментарий:</Text>
-                            <Input.TextArea
-                              rows={4}
-                              value={order.reviewText || ""}
-                              onChange={(e) => {
-                                const text = e.target.value;
-                                setOrders((prev) =>
-                                  prev.map((o) =>
-                                    o.id === order.id
-                                      ? { ...o, reviewText: text }
-                                      : o
-                                  )
-                                );
-                              }}
-                              placeholder="Расскажите, как всё прошло"
-                            />
-                          </div>
+        <div style={{ marginBottom: 12 }}>
+          <Text strong>Комментарий:</Text>
+          <Input.TextArea
+            rows={4}
+            value={order.reviewText || ""}
+            onChange={(e) => {
+              const text = e.target.value;
+              setOrders((prev) =>
+                prev.map((o) =>
+                  o.id === order.id ? { ...o, reviewText: text } : o
+                )
+              );
+            }}
+            placeholder="Расскажите, как всё прошло"
+          />
+        </div>
 
-                          <Button
-                            type="primary"
-                            onClick={async () => {
-                              try {
-                                const token = localStorage.getItem("token");
-                                await axios.patch(
-                                  `https://chechnya-product.ru/api/orders/${order.id}/review`,
-                                  {
-                                    rating: order.rating || 0,
-                                    comment: order.reviewText || "",
-                                  },
-                                  {
-                                    headers: {
-                                      Authorization: `Bearer ${token}`,
-                                    },
-                                  }
-                                );
-                                message.success("Спасибо за отзыв!");
-                              } catch (err) {
-                                console.error("Ошибка отправки отзыва:", err);
-                                message.error("Не удалось отправить отзыв");
-                              }
-                            }}
-                            disabled={!order.rating}
-                          >
-                            Отправить отзыв
-                          </Button>
-                        </>
-                      )}
+        <Button
+          type="primary"
+          onClick={async () => {
+            try {
+              const token = localStorage.getItem("token");
+              await axios.patch(
+                `https://chechnya-product.ru/api/orders/${order.id}/review`,
+                {
+                  rating: order.rating || 0,
+                  comment: order.reviewText || "",
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              message.success("Спасибо за отзыв!");
 
-                      {order.rating !== null && (
-                        <div style={{ marginTop: 16 }}>
-                          <Typography.Title level={4}>
-                            Ваш отзыв
-                          </Typography.Title>
-                          <Rate disabled defaultValue={order.rating} />
-                          <Typography.Paragraph style={{ marginTop: 8 }}>
-                            {order.comment || "Без комментариев"}
-                          </Typography.Paragraph>
-                        </div>
-                      )}
-                    </div>
-                  )}
+              // обновляем order.comment и rating
+              setOrders((prev) =>
+                prev.map((o) =>
+                  o.id === order.id
+                    ? {
+                        ...o,
+                        comment: o.reviewText,
+                        rating: o.rating,
+                      }
+                    : o
+                )
+              );
+            } catch (err) {
+              console.error("Ошибка отправки отзыва:", err);
+              message.error("Не удалось отправить отзыв");
+            }
+          }}
+          disabled={!order.rating}
+        >
+          Отправить отзыв
+        </Button>
+      </>
+    ) : (
+      <div style={{ marginTop: 16 }}>
+        <Typography.Title level={4}>Ваш отзыв</Typography.Title>
+        <Rate disabled defaultValue={order.rating} />
+        <Typography.Paragraph style={{ marginTop: 8 }}>
+          {order.comment || "Без комментариев"}
+        </Typography.Paragraph>
+      </div>
+    )}
+  </div>
+)}
+
                 </div>
               )}
             </div>

@@ -8,6 +8,10 @@ const { Title, Paragraph, Text } = Typography;
 const ReviewsPage = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
+  const formatDate = (ts) => {
+    const date = new Date(ts);
+    return date.toLocaleString("ru-RU", { timeZone: "UTC" });
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -40,7 +44,7 @@ const ReviewsPage = () => {
   }, []);
 
   return (
-    <div>
+    <div style={{ marginBottom: 75 }}>
       <Title level={2}>Отзывы пользователей</Title>
 
       {loading ? (
@@ -50,27 +54,38 @@ const ReviewsPage = () => {
           itemLayout="vertical"
           dataSource={reviews}
           renderItem={(order) => (
-             <div
+            <div
               style={{
-                background: '#fff',
-                padding: '20px',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-                marginBottom: '10px',
+                background: "#fff",
+                padding: "20px",
+                borderRadius: "12px",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)",
+                marginBottom: "10px",
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
                 <Title level={5} style={{ margin: 0 }}>
-                  {order.name || 'Гость'}
+                  {order.name || "Гость"}
                 </Title>
                 <Rate disabled defaultValue={order.rating} />
               </div>
-              <Paragraph style={{ marginTop: '12px', fontSize: '15px' }}>
-                {order.comment || 'Без комментариев'}
+              <Paragraph style={{ marginTop: "12px", fontSize: "15px" }}>
+                {order.comment || "Без комментариев"}
               </Paragraph>
-              <Text type="secondary" style={{ fontSize: '13px' }}>
+              <Text type="secondary" style={{ fontSize: "13px" }}>
                 ID заказа: {order.id}
               </Text>
+              <Paragraph>
+                <Text type="secondary" style={{ fontSize: "13px" }}>
+                  Дата: {formatDate(order.created_at)}
+                </Text>
+              </Paragraph>
             </div>
           )}
         />
