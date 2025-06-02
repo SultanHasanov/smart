@@ -18,6 +18,7 @@ import UserOrders from "./pages/UserOrders";
 import CategoryPage from "./pages/CategoryPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ReviewsPage from "./pages/ReviewsPage";
+import OrderManager from "./pages/OrderManager";
 registerSW({
   immediate: true,
 });
@@ -31,6 +32,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="/cart" element={<CartPage />} />
         <Route path="/category" element={<CategoryPage />} />
         <Route path="/reviews" element={<ReviewsPage />} />
+        <Route path="/admin-orders" element={ <OrderManager/>} />
       <Route path="*" element={<NotFoundPage />} />
 
         <Route path="/orders" element={<UserOrders />} />

@@ -440,6 +440,7 @@ const UserOrders = () => {
           <Text strong>Комментарий:</Text>
           <Input.TextArea
             rows={4}
+            maxLength={300} showCount
             value={order.reviewText || ""}
             onChange={(e) => {
               const text = e.target.value;

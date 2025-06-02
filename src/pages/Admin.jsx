@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Input, Button, Form, message, Tabs } from "antd";
+import { Input, Button, Form, message, Tabs, Drawer, Menu } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import InputMask from "react-input-mask";
@@ -12,41 +12,49 @@ const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 const PHONE_MASK = "+7 (999) 999-99-99";
 
 const Login = () => {
-  const { isAuthenticated, login, logout, username  } = useContext(AuthContext);
+  const { isAuthenticated, login, logout, username, userRole } =
+    useContext(AuthContext);
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("login");
   const [loading, setLoading] = useState(false);
   const [regForm] = Form.useForm();
   const [loginForm] = Form.useForm();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const toggleSettingsDrawer = () => {
+    navigate("/favorites");
+  };
 
   // For install button (existing)
   const [showInstallBtn, setShowInstallBtn] = useState(false);
-useEffect(() => {
-  if (activeTab === "login") {
-    const savedPhone = sessionStorage.getItem("savedPhone");
-    const savedPassword = sessionStorage.getItem("savedPassword");
+  useEffect(() => {
+    if (activeTab === "login") {
+      const savedPhone = sessionStorage.getItem("savedPhone");
+      const savedPassword = sessionStorage.getItem("savedPassword");
 
-    if (savedPhone || savedPassword) {
-      // Преобразуем сохранённый телефон к маске
-      const raw = savedPhone?.replace(/\D/g, "") || "";
-      const formattedPhone =
-        raw.length === 11
-          ? `+7 (${raw.slice(1, 4)}) ${raw.slice(4, 7)}-${raw.slice(7, 9)}-${raw.slice(9, 11)}`
-          : "";
+      if (savedPhone || savedPassword) {
+        // Преобразуем сохранённый телефон к маске
+        const raw = savedPhone?.replace(/\D/g, "") || "";
+        const formattedPhone =
+          raw.length === 11
+            ? `+7 (${raw.slice(1, 4)}) ${raw.slice(4, 7)}-${raw.slice(
+                7,
+                9
+              )}-${raw.slice(9, 11)}`
+            : "";
 
-      loginForm.setFieldsValue({
-        username: formattedPhone,
-        password: savedPassword,
-      });
+        loginForm.setFieldsValue({
+          username: formattedPhone,
+          password: savedPassword,
+        });
 
-      // ❌ Удаляем, чтобы не подставлялось в будущем
-      sessionStorage.removeItem("savedPhone");
-      sessionStorage.removeItem("savedPassword");
+        // ❌ Удаляем, чтобы не подставлялось в будущем
+        sessionStorage.removeItem("savedPhone");
+        sessionStorage.removeItem("savedPassword");
+      }
     }
-  }
-}, [activeTab, loginForm]);
-
+  }, [activeTab, loginForm]);
 
   useEffect(() => {
     const checkShouldShowButton = () => {
@@ -105,15 +113,14 @@ useEffect(() => {
         }
       );
 
-     if (response.data.data.token) {
-  const token = response.data.data.token;
-  const username = response.data.data.username;
+      if (response.data.data.token) {
+        const token = response.data.data.token;
+        const username = response.data.data.username;
 
-  login(token, username); // ✅ передаём имя
+        login(token, username); // ✅ передаём имя
 
-  message.success(`Добро пожаловать, ${username}!`);
-}
-
+        message.success(`Добро пожаловать, ${username}!`);
+      }
     } catch (error) {
       message.error(
         error.response?.data?.error ||
@@ -148,8 +155,8 @@ useEffect(() => {
         password: values.password,
       });
       message.success("Регистрация прошла успешно! Теперь войдите в систему.");
-     sessionStorage.setItem("savedPhone", phoneDigits);
-sessionStorage.setItem("savedPassword", values.password);
+      sessionStorage.setItem("savedPhone", phoneDigits);
+      sessionStorage.setItem("savedPassword", values.password);
       setActiveTab("login");
     } catch (error) {
       console.log(error.response?.data?.error);
@@ -165,6 +172,19 @@ sessionStorage.setItem("savedPassword", values.password);
     return (
       <div className="login-container">
         <h2>Здравствуйте, {username || "гость"}!</h2>
+        {userRole === "admin" && (
+          <Button
+            icon={<SettingOutlined />}
+            size="large"
+            type="default"
+            onClick={toggleSettingsDrawer}
+            style={{ marginBottom: 16 }}
+            block
+          >
+            Настройки
+          </Button>
+        )}
+
         <Button size="large" type="primary" danger onClick={logout} block>
           Выйти
         </Button>
@@ -393,10 +413,10 @@ sessionStorage.setItem("savedPassword", values.password);
 
 import {
   GithubOutlined,
-  
-  
+  PlusOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
-import { SiTelegram, SiWhatsapp  } from "react-icons/si";
+import { SiTelegram, SiWhatsapp } from "react-icons/si";
 const iconStyle = {
   fontSize: "20px",
   color: "#1890ff",
@@ -444,18 +464,34 @@ const Footer = () => (
           }}
         />
         <div style={{ textAlign: "left" }}>
-          <div><strong>Имя:</strong> Ахмед Абдулаев</div>
-          <div><strong>Направление:</strong> Frontend (React, UI/UX)</div>
+          <div>
+            <strong>Имя:</strong> Ахмед Абдулаев
+          </div>
+          <div>
+            <strong>Направление:</strong> Frontend (React, UI/UX)
+          </div>
           <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
-           <a href="https://t.me/ahmed_dev" target="_blank" rel="noopener noreferrer">
-  <SiTelegram style={iconStyle} />
-</a>
+            <a
+              href="https://t.me/ahmed_dev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <SiTelegram style={iconStyle} />
+            </a>
 
-            <a href="https://github.com/ahmeddev" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://github.com/ahmeddev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <GithubOutlined style={iconStyle} />
             </a>
-            <a href="https://linkedin.com/in/ahmeddev" target="_blank" rel="noopener noreferrer">
-              <SiWhatsapp  style={iconStyle} />
+            <a
+              href="https://linkedin.com/in/ahmeddev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <SiWhatsapp style={iconStyle} />
             </a>
           </div>
         </div>
@@ -475,18 +511,34 @@ const Footer = () => (
           }}
         />
         <div style={{ textAlign: "left" }}>
-          <div><strong>Имя:</strong> Магомед Исаев</div>
-          <div><strong>Направление:</strong> Backend (Node.js, API, DevOps)</div>
+          <div>
+            <strong>Имя:</strong> Магомед Исаев
+          </div>
+          <div>
+            <strong>Направление:</strong> Backend (Node.js, API, DevOps)
+          </div>
           <div style={{ marginTop: 4, display: "flex", gap: 8 }}>
-           <a href="https://t.me/ahmed_dev" target="_blank" rel="noopener noreferrer">
-  <SiTelegram style={iconStyle} />
-</a>
+            <a
+              href="https://t.me/ahmed_dev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <SiTelegram style={iconStyle} />
+            </a>
 
-            <a href="https://github.com/magomeddev" target="_blank" rel="noopener noreferrer">
+            <a
+              href="https://github.com/magomeddev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <GithubOutlined style={iconStyle} />
             </a>
-            <a href="https://linkedin.com/in/magomeddev" target="_blank" rel="noopener noreferrer">
-              <SiWhatsapp  style={iconStyle} />
+            <a
+              href="https://linkedin.com/in/magomeddev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <SiWhatsapp style={iconStyle} />
             </a>
           </div>
         </div>
@@ -494,7 +546,5 @@ const Footer = () => (
     </div>
   </div>
 );
-
-
 
 export default Login;

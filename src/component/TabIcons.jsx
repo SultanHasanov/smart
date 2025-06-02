@@ -104,11 +104,11 @@ const TabIcons = () => {
     ...(userRole === 'admin'
       ? [
           {
-            to: '/favorites',
-            icon: PlusOutlined,
+            to: '/admin-orders',
+            icon: ShoppingOutlined,
             label: (
           <div style={{ position: 'relative' }}>
-            Товар
+            Заказы
             {newOrdersCount !== 0  && (
               <span
                 style={{

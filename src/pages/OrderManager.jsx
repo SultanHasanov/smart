@@ -8,7 +8,7 @@ import {
   ShareAltOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
-import "./styles/Product.scss";
+import "../component/styles/Product.scss";
 import { useNavigate } from "react-router-dom";
 import CartStore from "../store/CartStore";
 
@@ -222,7 +222,17 @@ const OrderManager = () => {
         <Spin size="large" />
       ) : (
         <div className="order-list">
-          {orders.map((order) => {
+          {[...orders]
+  .sort((a, b) => {
+    const statusWeight = (status) => {
+      if (status === "новый") return -1;
+      if (status === "доставлен") return 2;
+      return 0;
+    };
+    return statusWeight(a.status) - statusWeight(b.status);
+  })
+  .map((order) => {
+
             const itemList = order.items?.map((item) => (
               <li key={item.id}>
                 {item.name} x{item.quantity} = {item.price * item.quantity}₽

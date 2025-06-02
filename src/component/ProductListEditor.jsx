@@ -30,7 +30,7 @@ const ProductListEditor = ({
   return (
     <div style={{height: "100vh"}}>
 
-        
+        <h3>Редактирование товара</h3>
         <List
           className="custom-list"
           bordered

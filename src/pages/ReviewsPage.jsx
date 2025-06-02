@@ -1,4 +1,4 @@
-// ReviewsPage.tsx
+
 import React, { useEffect, useState } from "react";
 import { List, Typography, Rate, Card, Spin, message } from "antd";
 import axios from "axios";
@@ -19,7 +19,7 @@ const ReviewsPage = () => {
       const token = localStorage.getItem("token");
       try {
         const response = await axios.get(
-          "https://chechnya-product.ru/api/admin/orders",
+          "https://chechnya-product.ru/api/order-reviews",
           {
             headers: { Authorization: `Bearer ${token}` },
           }

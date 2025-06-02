@@ -30,7 +30,7 @@ import {
 import CategoryManager from "./CategoryManager";
 import "../component/styles/Product.scss";
 import PriceEditorTable from "./PriceEditorTable";
-import OrderManager from "./OrderManager";
+import OrderManager from "../pages/OrderManager";
 import BannerManager from "./BannerManager";
 import { observer } from "mobx-react-lite";
 import { categoryStore } from "../store/categoryStore";
@@ -182,7 +182,7 @@ const ProductManager = () => {
       case "1":
         return (
           <>
-          
+          <h3>Добавить товар</h3>
           <Form
             className="form-edit"
             form={form}
@@ -335,19 +335,19 @@ const ProductManager = () => {
         icon={<MenuOutlined />}
         type="dashed"
         style={{
-          position: "absolute",
-          bottom: 100,
+          position: "fixed",
           right: 10,
           zIndex: 1000,
-          fontSize: 30,
-          padding: 25,
+          fontSize: 20,
+          padding: 20,
+          top: 95,
         }}
         onClick={() => setDrawerVisible(true)}
       ></Button>
 
       <Drawer
         title="Меню"
-        placement="bottom"
+        placement="right"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
         // width={250}
