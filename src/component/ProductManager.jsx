@@ -14,6 +14,7 @@ import {
   AutoComplete,
   Modal,
   Switch,
+  Upload,
 } from "antd";
 import axios from "axios";
 import {
@@ -182,137 +183,254 @@ const ProductManager = () => {
       case "1":
         return (
           <>
-          <h3>Добавить товар</h3>
-          <Form
-            className="form-edit"
-            form={form}
-            layout="inline"
-            onFinish={handleAdd}
-          >
-            <Form.Item
-              className="input-form"
-              name="name"
-              label="Название"
-              rules={[{ required: true }]}
+            <h3>Добавить товар</h3>
+            <Form
+              className="form-edit"
+              form={form}
+              layout="inline"
+              onFinish={handleAdd}
             >
-              <Input size="large" />
-            </Form.Item>
-            <Form.Item
-              className="input-form"
-              name="price"
-              label="Цена"
-              rules={[{ required: true }]}
-            >
-              <InputNumber size="large" min={0} style={{ width: "100%" }} />
-            </Form.Item>
-            <Form.Item
-              className="input-form"
-              name="url"
-              label="URL"
-              rules={[
+              <Form.Item
+                className="input-form"
+                name="name"
+                label="Название"
+                rules={[{ required: true }]}
+              >
+                <Input size="large" />
+              </Form.Item>
+              <Form.Item
+                className="input-form"
+                name="price"
+                label="Цена"
+                rules={[{ required: true }]}
+              >
+                <InputNumber size="large" min={0} style={{ width: "100%" }} />
+              </Form.Item>
+              <Form.Item
+  className="input-form"
+  label="Загрузить фото"
+  shouldUpdate={(prevValues, currentValues) => prevValues.url !== currentValues.url}
+>
+  {({ getFieldValue, setFieldsValue }) => {
+    const url = getFieldValue("url");
+
+    return url ? (
+      <div
+        style={{
+          position: "relative",
+          width: 120,
+          height: 120,
+          border: "1px solid #ccc",
+          borderRadius: 8,
+          overflow: "hidden",
+          display: "inline-block",
+        }}
+      >
+        <img
+          src={url}
+          alt="uploaded"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+        <Button
+          shape="circle"
+          size="small"
+          icon={<CloseOutlined />}
+          style={{
+            position: "absolute",
+            top: 4,
+            right: 4,
+            background: "rgba(255,255,255,0.8)",
+          }}
+          onClick={async () => {
+            const token = localStorage.getItem("token");
+            const filename = url?.split("/")?.pop();
+
+            if (!filename) {
+              message.error("Невозможно определить имя файла");
+              return;
+            }
+
+            try {
+              await axios.delete(
+                `https://chechnya-product.ru/api/admin/upload/${filename}`,
                 {
-                  required: true,
-                  message: "Введите или выберите URL картинки",
-                },
-              ]}
-            >
-              <AutoComplete
-                size="large"
-                options={images.map((img) => ({
-                  value: img.url,
-                  label: (
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <img
-                        src={img.url}
-                        alt="preview"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          objectFit: "cover",
-                          borderRadius: 4,
-                          border: "1px solid #eee",
-                        }}
-                      />
-                      <span style={{ fontSize: 12, wordBreak: "break-all" }}>
-                        {img.url}
-                      </span>
-                    </div>
-                  ),
-                }))}
-                filterOption={(inputValue, option) =>
-                  option?.value.toLowerCase().includes(inputValue.toLowerCase())
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
                 }
-              />
-            </Form.Item>
+              );
+              message.success("Фото удалено");
+              setFieldsValue({ url: null });
+            } catch (err) {
+              console.error(err);
+              message.error("Ошибка удаления фото");
+            }
+          }}
+        />
+      </div>
+    ) : (
+      <Upload
+        name="file"
+        showUploadList={false}
+        customRequest={async ({ file, onSuccess, onError }) => {
+          const formData = new FormData();
+          formData.append("image", file);
 
-            <Form.Item
-              className="input-form"
-              name="category_id"
-              label="Категория"
-              rules={[{ required: true }]}
-            >
-              <Select
-                size="large"
-                dropdownRender={(menu) => (
-                  <>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        padding: 8,
-                      }}
-                    >
-                      <Button
-                        size="small"
-                        type="link"
-                        icon={<PlusOutlined />}
-                        onClick={() => setCategoryModalOpen(true)}
+          try {
+            const token = localStorage.getItem("token");
+            const response = await axios.post(
+              "https://chechnya-product.ru/api/admin/upload",
+              formData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            const imageUrl =
+              response.data?.url || response.data?.data?.url;
+            if (!imageUrl)
+              throw new Error("URL не найден в ответе");
+
+            setFieldsValue({ url: imageUrl });
+            message.success("Фото загружено");
+            onSuccess("ok");
+          } catch (err) {
+            console.error("Ошибка загрузки:", err);
+            message.error("Не удалось загрузить фото");
+            onError(err);
+          }
+        }}
+        accept="image/*"
+      >
+        <Button type="dashed">Загрузить фото</Button>
+      </Upload>
+    );
+  }}
+</Form.Item>
+
+
+              <Form.Item
+                className="input-form"
+                name="url"
+                label="URL"
+                rules={[
+                  {
+                    required: true,
+                    message: "Введите или выберите URL картинки",
+                  },
+                ]}
+              >
+                <AutoComplete
+                  size="large"
+                  options={images.map((img) => ({
+                    value: img.url,
+                    label: (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
                       >
-                        Добавить категорию
-                      </Button>
-                    </div>
-                    {menu}
-                  </>
-                )}
-              >
-                {categoriesTwo.map((cat) => (
-                  <Option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+                        <img
+                          src={img.url}
+                          alt="preview"
+                          style={{
+                            width: 32,
+                            height: 32,
+                            objectFit: "cover",
+                            borderRadius: 4,
+                            border: "1px solid #eee",
+                          }}
+                        />
+                        <span style={{ fontSize: 12, wordBreak: "break-all" }}>
+                          {img.url}
+                        </span>
+                      </div>
+                    ),
+                  }))}
+                  filterOption={(inputValue, option) =>
+                    option?.value
+                      .toLowerCase()
+                      .includes(inputValue.toLowerCase())
+                  }
+                />
+              </Form.Item>
 
-            <Form.Item className="input-form">
-              <Button
-                className="btn-form"
-                size="large"
-                type="primary"
-                block
-                htmlType="submit"
+              <Form.Item
+                className="input-form"
+                name="category_id"
+                label="Категория"
+                rules={[{ required: true }]}
               >
-                Добавить товар
-              </Button>
-            </Form.Item>
-          </Form>
-          <BulkProductUploader/>
+                <Select
+                  size="large"
+                  dropdownRender={(menu) => (
+                    <>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          padding: 8,
+                        }}
+                      >
+                        <Button
+                          size="small"
+                          type="link"
+                          icon={<PlusOutlined />}
+                          onClick={() => setCategoryModalOpen(true)}
+                        >
+                          Добавить категорию
+                        </Button>
+                      </div>
+                      {menu}
+                    </>
+                  )}
+                >
+                  {categoriesTwo.map((cat) => (
+                    <Option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              <Form.Item className="input-form">
+                <Button
+                  className="btn-form"
+                  size="large"
+                  type="primary"
+                  block
+                  htmlType="submit"
+                >
+                  Добавить товар
+                </Button>
+              </Form.Item>
+            </Form>
+
+            <BulkProductUploader />
           </>
         );
 
       case "2":
         return (
-    <ProductListEditor
-      items={items}
-      editingId={editingId}
-      setEditingId={setEditingId}
-      handleUpdate={handleUpdate}
-      handleDelete={handleDelete}
-      handleToggleAvailability={handleToggleAvailability}
-      categoriesTwo={categoriesTwo}
-    />
-  );
+          <ProductListEditor
+            items={items}
+            editingId={editingId}
+            setEditingId={setEditingId}
+            handleUpdate={handleUpdate}
+            handleDelete={handleDelete}
+            handleToggleAvailability={handleToggleAvailability}
+            categoriesTwo={categoriesTwo}
+          />
+        );
 
       case "3":
         return <PriceEditorTable />;
@@ -375,7 +493,7 @@ const ProductManager = () => {
         </Menu>
       </Drawer>
 
-      <div style={{marginTop: 10}}>{renderTabContent()}</div>
+      <div style={{ marginTop: 10 }}>{renderTabContent()}</div>
       <Modal
         title="Новая категория"
         open={categoryModalOpen}
