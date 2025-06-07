@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Tag, message, Typography, Spin, Popconfirm, Space } from "antd";
+import {
+  Tag,
+  message,
+  Typography,
+  Spin,
+  Popconfirm,
+  Space,
+  Select,
+} from "antd";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -11,7 +19,7 @@ import axios from "axios";
 import "../component/styles/Product.scss";
 import { useNavigate } from "react-router-dom";
 import CartStore from "../store/CartStore";
-
+const { Option } = Select;
 const { Text, Paragraph } = Typography;
 
 const ORDER_API = "https://chechnya-product.ru/api/admin/orders";
@@ -49,6 +57,7 @@ const getStatusColor = (status) => {
 const OrderManager = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("all"); // добавлено
   const refs = useRef({});
   const wsRef = useRef(null);
   const navigate = useNavigate();
@@ -91,11 +100,10 @@ const OrderManager = () => {
     }
   };
 
- const formatDate = (ts) => {
-  const date = new Date(ts);
-  return date.toLocaleString("ru-RU", { timeZone: "UTC" });
-};
-
+  const formatDate = (ts) => {
+    const date = new Date(ts);
+    return date.toLocaleString("ru-RU", { timeZone: "UTC" });
+  };
 
   const shareOrder = async (order) => {
     try {
@@ -218,202 +226,243 @@ const OrderManager = () => {
   return (
     <>
       <h3>Управление заказами</h3>
+
+      <div style={{ marginBottom: 16 }}>
+        <Select
+          value={filterStatus}
+          onChange={(value) => setFilterStatus(value)}
+          style={{ width: 200 }}
+          placeholder="Фильтр по статусу"
+        >
+          <Option value="all">
+            <Tag color="default">Все заказы</Tag>
+          </Option>
+          {statusFlow.map((status) => (
+            <Option key={status} value={status}>
+              <Tag color={getStatusColor(status)}>{status}</Tag>
+            </Option>
+          ))}
+          <Option value="готов">
+            <Tag color={getStatusColor("готов")}>готов</Tag>
+          </Option>
+          <Option value="отклонен">
+            <Tag color={getStatusColor("отклонен")}>отклонен</Tag>
+          </Option>
+        </Select>
+      </div>
       {loading ? (
         <Spin size="large" />
       ) : (
         <div className="order-list">
           {[...orders]
-  .sort((a, b) => {
-    const statusWeight = (status) => {
-      if (status === "новый") return -1;
-      if (status === "доставлен") return 2;
-      return 0;
-    };
-    return statusWeight(a.status) - statusWeight(b.status);
-  })
-  .map((order) => {
+            .filter((order) =>
+              filterStatus === "all" ? true : order.status === filterStatus
+            )
 
-            const itemList = order.items?.map((item) => (
-              <li key={item.id}>
-                {item.name} x{item.quantity} = {item.price * item.quantity}₽
-              </li>
-            ));
+            .map((order) => {
+              const itemList = order.items?.map((item) => (
+                <li key={item.id}>
+                  {item.name} x{item.quantity} = {item.price * item.quantity}₽
+                </li>
+              ));
 
-            return (
-              <div key={order.id} className="order-item">
-                <div
-                  className="order-summary"
-                  onClick={() => toggleOrderDetails(order.id)}
-                >
-                  <Space className="order-label">
-                    <Text strong>{order.name}</Text>
-                    <Tag
-                      color={getStatusColor(order.status)}
-                      onClick={() => handleTagClick(order)}
-                      style={{ cursor: "pointer" }}
+              return (
+                <div key={order.id} className="order-item">
+                 <div
+  className="order-summary"
+  onClick={() => toggleOrderDetails(order.id)}
+>
+  <Space className="order-label">
+    <Text strong style={{ color: '#1890ff' }}>#{order.id}</Text>
+    <Text strong>{order.name}</Text>
+    <Tag
+      color={getStatusColor(order.status)}
+      style={{ cursor: "pointer" }}
+    >
+      {order.status}
+    </Tag>
+  </Space>
+</div>
+                  {expandedOrder === order.id && (
+                    <div
+                      className="order-details"
+                      ref={(el) => (refs.current[order.id] = el)}
                     >
-                      {order.status}
-                    </Tag>
-                  </Space>
-                </div>
-                {expandedOrder === order.id && (
-                  <div
-                    className="order-details"
-                    ref={(el) => (refs.current[order.id] = el)}
-                  >
-                    <Paragraph className="order-label">
-                      <Text strong>Заказ от: {order.name}</Text>
-                      <Tag
-                        color={getStatusColor(order.status)}
-                        onClick={() => handleTagClick(order)}
-                        style={{ cursor: "pointer", marginLeft: 10 }}
-                      >
-                        {order.status}
-                      </Tag>
-                    </Paragraph>
-                    <Paragraph>
-                      <Text strong>Дата:</Text> {formatDate(order.date_orders)}
-                    </Paragraph>
-                    <Paragraph>
-                      <Text strong>Тип:</Text>{" "}
-                      {order.delivery_type === "delivery"
-                        ? "Доставка"
-                        : "Самовывоз"}{" "}
-                      {order.delivery_fee > 0 && `(+${order.delivery_fee}₽)`}
-                    </Paragraph>
-                    {order.delivery_type === "delivery" && (
-                      <Paragraph>
-                        <Text strong>Адрес:</Text> {order.address}
+                      <Paragraph className="order-label">
+                        <Text strong>Заказ от: {order.name}</Text>
+                        <Tag
+                          color={getStatusColor(order.status)}
+                          onClick={() => handleTagClick(order)}
+                          style={{ cursor: "pointer", marginLeft: 10 }}
+                        >
+                          {order.status}
+                        </Tag>
                       </Paragraph>
-                    )}
-                    <Paragraph>
-                      <Text strong>Оплата:</Text>{" "}
-                      {order.payment_type === "transfer"
-                        ? "Перевод"
-                        : order.payment_type === "cash" && order.change_for
-                        ? `Наличные (сдача с ${order.change_for}₽)`
-                        : "Наличные"}
-                    </Paragraph>
-                    <Paragraph>
-                      <Text strong>Товары:</Text>
-                      <ul>{itemList}</ul>
-                    </Paragraph>
-                    <Paragraph>
-                      <Text strong>Сумма:</Text> {order.total}₽
-                    </Paragraph>
+                      <Paragraph>
+                        <Text strong>Дата:</Text>{" "}
+                        {formatDate(order.date_orders)}
+                      </Paragraph>
+                      <Paragraph>
+                        <Text strong>Тип:</Text>{" "}
+                        {order.delivery_type === "delivery"
+                          ? "Доставка"
+                          : "Самовывоз"}{" "}
+                        {order.delivery_fee > 0 && `(+${order.delivery_fee}₽)`}
+                      </Paragraph>
+                      {order.delivery_type === "delivery" && (
+                        <Paragraph>
+                          <Text strong>Адрес:</Text> {order.address}
+                        </Paragraph>
+                      )}
+                      <Paragraph>
+                        <Text strong>Оплата:</Text>{" "}
+                        {order.payment_type === "transfer"
+                          ? "Перевод"
+                          : order.payment_type === "cash" && order.change_for
+                          ? `Наличные (сдача с ${order.change_for}₽)`
+                          : "Наличные"}
+                      </Paragraph>
+                      <Paragraph>
+                        <Text strong>Товары:</Text>
+                        <ul>{itemList}</ul>
+                      </Paragraph>
+                      <Paragraph>
+                        <Text strong>Сумма:</Text> {order.total}₽
+                      </Paragraph>
 
-                    <Space
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div className="icon_action">
-                        <CheckCircleOutlined
-                          style={{ fontSize: 20, color: "green" }}
-                          onClick={() => updateOrderStatus(order.id, "готов")}
-                        />
-                        <span style={{ fontSize: 12, color: "green" }}>
-                          Готов
-                        </span>
-                      </div>
-                      <Popconfirm
-                        title="Отклонить заказ?"
-                        onConfirm={() =>
-                          updateOrderStatus(order.id, "отклонен")
-                        }
-                        okText="Да"
-                        cancelText="Нет"
+                      <Space
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                        }}
                       >
+                        <div className="icon_action">
+                          <CheckCircleOutlined
+                            style={{ fontSize: 20, color: "green" }}
+                            onClick={() => updateOrderStatus(order.id, "готов")}
+                          />
+                          <span style={{ fontSize: 12, color: "green" }}>
+                            Готов
+                          </span>
+                        </div>
+                        <Popconfirm
+                          title="Отклонить заказ?"
+                          onConfirm={() =>
+                            updateOrderStatus(order.id, "отклонен")
+                          }
+                          okText="Да"
+                          cancelText="Нет"
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              border: "none",
+                              backgroundColor: "transparent",
+                              height: 42,
+                              color: "red",
+                            }}
+                          >
+                            <CloseCircleOutlined style={{ fontSize: 20 }} />
+                            <span style={{ fontSize: 12 }}>Отклонить</span>
+                          </div>
+                        </Popconfirm>
                         <div
+                          onClick={() => shareOrder(order)}
                           style={{
                             display: "flex",
                             flexDirection: "column",
-                            justifyContent: "space-between",
                             alignItems: "center",
                             border: "none",
                             backgroundColor: "transparent",
                             height: 42,
-                            color: "red",
+                            justifyContent: "space-between",
                           }}
                         >
-                          <CloseCircleOutlined style={{ fontSize: 20 }} />
-                          <span style={{ fontSize: 12 }}>Отклонить</span>
+                          <ShareAltOutlined
+                            style={{ fontSize: 20, color: "#1890ff" }}
+                          />
+                          <span style={{ fontSize: 12, color: "#1890ff" }}>
+                            Поделиться
+                          </span>
                         </div>
-                      </Popconfirm>
-                      <div
-                        onClick={() => shareOrder(order)}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          height: 42,
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <ShareAltOutlined
-                          style={{ fontSize: 20, color: "#1890ff" }}
-                        />
-                        <span style={{ fontSize: 12, color: "#1890ff" }}>
-                          Поделиться
-                        </span>
-                      </div>
-                      <div
-                        onClick={() => {
-                          const url = `${window.location.origin}/orders/${order.id}`;
-                          navigator.clipboard.writeText(url);
-                          message.success("Ссылка скопирована");
-                        }}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          justifyContent: "space-between",
-                          height: 42,
-                        }}
-                      >
-                        <CopyOutlined
-                          style={{ fontSize: 20, color: "#1890ff" }}
-                        />
-                        <span style={{ fontSize: 12, color: "#1890ff" }}>
-                          Скопировать
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          border: "none",
-                          backgroundColor: "transparent",
-                          justifyContent: "space-between",
-                          height: 42,
-                        }}
-                        onClick={() => {
-                          CartStore.repeatOrder(order.items); // order.items — список продуктов
-                          message.success("Товары добавлены в корзину");
-                          navigate("/cart");
-                        }}
-                      >
-                        <ReloadOutlined
-                          style={{ fontSize: 20, color: "#1890ff" }}
-                        />
-                        <span style={{ fontSize: 12, color: "#1890ff" }}>
-                          Повторить
-                        </span>
-                      </div>
-                    </Space>
+                        <div
+                          onClick={() => {
+                            const url = `${window.location.origin}/orders/${order.id}`;
+                            navigator.clipboard.writeText(url);
+                            message.success("Ссылка скопирована");
+                          }}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            border: "none",
+                            backgroundColor: "transparent",
+                            justifyContent: "space-between",
+                            height: 42,
+                          }}
+                        >
+                          <CopyOutlined
+                            style={{ fontSize: 20, color: "#1890ff" }}
+                          />
+                          <span style={{ fontSize: 12, color: "#1890ff" }}>
+                            Скопировать
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            border: "none",
+                            backgroundColor: "transparent",
+                            justifyContent: "space-between",
+                            height: 42,
+                          }}
+                          onClick={() => {
+                            CartStore.repeatOrder(order.items); // order.items — список продуктов
+                            message.success("Товары добавлены в корзину");
+                            navigate("/cart");
+                          }}
+                        >
+                          <ReloadOutlined
+                            style={{ fontSize: 20, color: "#1890ff" }}
+                          />
+                          <span style={{ fontSize: 12, color: "#1890ff" }}>
+                            Повторить
+                          </span>
+                        </div>
+                      </Space>
 
-                    <DeliveryTrack key={order.id} status={order.status} />
-                  </div>
-                )}
+                      <DeliveryTrack key={order.id} status={order.status} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+          {orders.length > 0 &&
+            [...orders].filter((order) =>
+              filterStatus === "all" ? true : order.status === filterStatus
+            ).length === 0 && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "20px",
+                  margin: "20px 0",
+                  border: "1px dashed #d9d9d9",
+                  borderRadius: "4px",
+                }}
+              >
+                <Text type="secondary">
+                  {filterStatus === "all"
+                    ? "Нет доступных заказов"
+                    : `Нет заказов со статусом "${filterStatus}"`}
+                </Text>
               </div>
-            );
-          })}
+            )}
         </div>
       )}
     </>

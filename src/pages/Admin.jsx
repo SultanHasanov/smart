@@ -426,7 +426,7 @@ const Footer = () => (
   <div
     style={{
       position: "fixed",
-      bottom: 80,
+      bottom: 50,
       left: 0,
       width: "100%",
       background: "#f9f9f9",
@@ -440,24 +440,26 @@ const Footer = () => (
       <strong>Контакты:</strong> +7 (928) 123-45-67
     </div>
     <div style={{ marginBottom: 16 }}>
-      <strong>Адрес:</strong> Чеченская Республика, Ачхой-Мартан, ул. Мира, д.7
+      <strong>Адрес:</strong> Чеченская Республика, Ачхой-Мартан
     </div>
 
     <div
       style={{
         display: "flex",
-        gap: 20,
+        gap: 10,
         flexWrap: "wrap",
       }}
     >
-      {/* Разработчик 1 */}
+      <div>
+        <strong>Разработчики:</strong>
+      </div>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <img
           src="https://randomuser.me/api/portraits/men/32.jpg"
           alt="Ахмед Абдулаев"
           style={{
-            width: 48,
-            height: 48,
+            width: 38,
+            height: 38,
             borderRadius: "50%",
             objectFit: "cover",
             border: "1px solid #ccc",
@@ -503,8 +505,8 @@ const Footer = () => (
           src="https://randomuser.me/api/portraits/men/44.jpg"
           alt="Магомед Исаев"
           style={{
-            width: 48,
-            height: 48,
+            width: 38,
+            height: 38,
             borderRadius: "50%",
             objectFit: "cover",
             border: "1px solid #ccc",

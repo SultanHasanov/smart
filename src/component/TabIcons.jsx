@@ -4,12 +4,14 @@ import {
   HomeFilled,
   AppstoreAddOutlined,
   ShoppingCartOutlined,
-  PlusOutlined,
-  LoginOutlined,
+ 
   ShoppingOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
+
 import { AuthContext } from '../store/AuthContext';
 import axios from 'axios';
+import { Avatar } from 'antd';
 const WS_URL = "wss://chechnya-product.ru/ws/orders";
 // Компонент TabIcons с использованием useEffect для отслеживания изменений в localStorage
 const TabIcons = () => {
@@ -163,11 +165,12 @@ const TabIcons = () => {
       },
         ]
       : []),
-    {
-      to: '/login',
-      icon: LoginOutlined,
-      label: token ? 'Выйти' : 'Войти',
-    },
+   {
+  to: '/login',
+  icon: UserOutlined ,
+  label: "Профиль",
+}
+
   ];
 
   return (

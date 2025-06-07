@@ -57,9 +57,9 @@ const CartPage = () => {
     paymentType: "",
     address: query,
     changeFor: "",
-    order_comment: ""
+    order_comment: "",
   });
-  console.log(orderData)
+  console.log(orderData);
 
   const calculateTotal = () => {
     return cart
@@ -473,7 +473,6 @@ const CartPage = () => {
         orderData={orderData}
         setOrderData={setOrderData}
       />
-
       {orderData.deliveryType === "delivery" && (
         <AddressInput
           query={query}

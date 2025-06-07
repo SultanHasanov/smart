@@ -75,7 +75,7 @@ const OrderForm = ({ form, cart, orderData, setOrderData }) => {
           label="Добавьте комментарий"
           name="order_comment"
         >
-          <TextArea rows={4} size="large" placeholder="Комментарий к заказу если необходимо" maxLength={300} showCount/>
+          <TextArea style={{marginBottom: 15}} rows={4} size="large" placeholder="Комментарий к заказу если необходимо" maxLength={300} showCount/>
         </Form.Item>
       </Form>
     )
