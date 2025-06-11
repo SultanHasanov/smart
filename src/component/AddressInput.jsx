@@ -139,7 +139,18 @@ export default function AddressInput({
     return `${km.toFixed(1)} км`;
   };
 
-  const dropdownContent = (
+ const dropdownContent = (
+  <div
+    style={{
+      maxHeight: 200,
+      overflowY: "auto",
+      padding: 0,
+      background: "#fff",
+      borderRadius: 4,
+      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+    }}
+    onTouchStart={(e) => e.stopPropagation()} // важно для iOS!
+  >
     <Spin spinning={loading} size="small">
       <List
         dataSource={suggestions}
@@ -151,15 +162,11 @@ export default function AddressInput({
             {item.value}
           </List.Item>
         )}
-        style={{
-          maxHeight: 200,
-          overflowY: "auto",
-          borderRadius: 4,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        }}
       />
     </Spin>
-  );
+  </div>
+);
+
   const isDropdownOpen = suggestions.length > 0;
 
   return (
