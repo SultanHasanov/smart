@@ -472,18 +472,17 @@ const CartPage = () => {
         cart={cart}
         orderData={orderData}
         setOrderData={setOrderData}
+        query={query}
+        setQuery={setQuery}
+        selectedAddress={selectedAddress}
+        setSelectedAddress={setSelectedAddress}
+        setSuggestions={setSuggestions}
+        suggestions={suggestions}
+        onDropdownOpenChange={setIsAddressOpen}
       />
-      {orderData.deliveryType === "delivery" && (
-        <AddressInput
-          query={query}
-          setQuery={setQuery}
-          selectedAddress={selectedAddress}
-          setSelectedAddress={setSelectedAddress}
-          setSuggestions={setSuggestions}
-          suggestions={suggestions}
-          onDropdownOpenChange={setIsAddressOpen}
-        />
-      )}
+      {/* {orderData.deliveryType === "delivery" && ( */}
+
+      {/* )} */}
 
       {test === 2 && (
         <Button

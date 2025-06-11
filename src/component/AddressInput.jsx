@@ -8,23 +8,50 @@ import {
   message,
   Space,
   Button,
+  Tooltip,
 } from "antd";
 import {
   CopyOutlined,
   CompassOutlined,
   CloseOutlined,
+  EnvironmentOutlined,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
 const DADATA_API_KEY = "a17c1b8db5c44bf264bf804062ffe577594171e5";
 
-export default function AddressInput({query, setQuery, suggestions, setSuggestions,  onDropdownOpenChange}) {
+const WAREHOUSE_COORDS = {
+  lat: 43.267708, 
+  lon: 45.263771,
+};
+
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const toRad = (value) => (value * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+export default function AddressInput({
+  query,
+  setQuery,
+  suggestions,
+  setSuggestions,
+  onDropdownOpenChange,
+}) {
   const [selectedAddress, setSelectedAddress] = useState("");
-  console.log("selectedAddress", selectedAddress, query);
   const [loading, setLoading] = useState(false);
-  const debounceRef = useRef(null);
   const [hasSelected, setHasSelected] = useState(false);
   const [coordinates, setCoordinates] = useState(null);
+  const [distanceKm, setDistanceKm] = useState(null);
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     if (!query || hasSelected) {
@@ -69,6 +96,8 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
     setQuery("");
     setSuggestions([]);
     setHasSelected(false);
+    setCoordinates(null);
+    setDistanceKm(null);
   };
 
   const handleSelect = (value) => {
@@ -78,10 +107,17 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
     setHasSelected(true);
 
     if (selected?.data?.geo_lat && selected?.data?.geo_lon) {
-      setCoordinates({
-        lat: selected.data.geo_lat,
-        lon: selected.data.geo_lon,
-      });
+      const lat = parseFloat(selected.data.geo_lat);
+      const lon = parseFloat(selected.data.geo_lon);
+      setCoordinates({ lat, lon });
+
+      const dist = calculateDistance(
+        WAREHOUSE_COORDS.lat,
+        WAREHOUSE_COORDS.lon,
+        lat,
+        lon
+      );
+      setDistanceKm(dist);
     }
 
     setSuggestions([]);
@@ -96,8 +132,15 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
     }
   };
 
+  const formatDistance = (km) => {
+    if (km < 1) {
+      return `${Math.round(km * 1000)} м`;
+    }
+    return `${km.toFixed(1)} км`;
+  };
+
   const dropdownContent = (
-    <Spin spinning={loading} size="small" >
+    <Spin spinning={loading} size="small">
       <List
         dataSource={suggestions}
         renderItem={(item) => (
@@ -109,7 +152,6 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
           </List.Item>
         )}
         style={{
-         
           maxHeight: 200,
           overflowY: "auto",
           borderRadius: 4,
@@ -118,20 +160,54 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
       />
     </Spin>
   );
+  const isDropdownOpen = suggestions.length > 0;
 
   return (
-    <div style={{ width: "100%"}}>
+    <div style={{ width: "100%" }}>
       {selectedAddress && (
-        <Space direction="vertical" style={{ marginBottom: 18 }}>
+        <Space direction="vertical" style={{ marginBottom: 18, width: "100%" }}>
           <Text strong>Выбранный адрес:</Text>
-          <Space>
-            <Text code>{selectedAddress}</Text>
-            <CopyOutlined
-              onClick={handleCopy}
-              style={{ cursor: "pointer", color: "#1890ff" }}
-              title="Скопировать адрес"
-            />
+          <Space style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+            <Space>
+              <Text code>{selectedAddress}</Text>
+              <CopyOutlined
+                onClick={handleCopy}
+                style={{ cursor: "pointer", color: "#1890ff" }}
+                title="Скопировать адрес"
+              />
+            </Space>
+            {coordinates && (
+              <Tooltip title="Открыть маршрут в Яндекс.Картах">
+                <CompassOutlined
+                  style={{ fontSize: 20, color: "#fa8c16", cursor: "pointer" }}
+                  onClick={() => {
+                    window.open(
+                      `https://yandex.ru/maps/?rtext=${WAREHOUSE_COORDS.lat},${WAREHOUSE_COORDS.lon}~${coordinates.lat},${coordinates.lon}&rtt=auto`,
+                      "_blank"
+                    );
+                  }}
+                />
+              </Tooltip>
+            )}
           </Space>
+
+          {distanceKm !== null && (
+            <Space
+              style={{
+                background: "#f0f5ff",
+                border: "1px solid #adc6ff",
+                padding: "8px 12px",
+                borderRadius: 8,
+                marginTop: 6,
+                alignItems: "center",
+              }}
+            >
+              <EnvironmentOutlined style={{ color: "#2f54eb" }} />
+              <Text style={{ fontSize: 16, color: "#2f54eb" }}>
+                Расстояние: <b>{formatDistance(distanceKm)}</b>
+              </Text>
+            </Space>
+          )}
         </Space>
       )}
 
@@ -145,13 +221,14 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
           overflow: { adjustY: false, adjustX: false },
         }}
       >
-        <div style={{ position: "relative", marginBottom: 175 }}>
+         <div style={{ position: "relative", marginBottom: isDropdownOpen ? 210 : 10 }}>
+
           <Input
             placeholder="Введите адрес"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              setHasSelected(false); // Разрешаем подсказки при ручном вводе
+              setHasSelected(false);
             }}
             autoComplete="off"
             size="large"
@@ -175,19 +252,6 @@ export default function AddressInput({query, setQuery, suggestions, setSuggestio
           )}
         </div>
       </Dropdown>
-
-      {/* {coordinates && (
-        <Button
-          size="large"
-          type="primary"
-          icon={<CompassOutlined />}
-          href={`https://yandex.ru/maps/?ll=${coordinates.lon},${coordinates.lat}&z=16&pt=${coordinates.lon},${coordinates.lat},pm2rdl`}
-          target="_blank"
-          style={{ marginTop: "15px" }}
-        >
-          Открыть в Яндекс.Навигаторе
-        </Button>
-      )} */}
     </div>
   );
 }

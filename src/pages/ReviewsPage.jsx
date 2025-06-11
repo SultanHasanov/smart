@@ -71,7 +71,7 @@ const ReviewsPage = () => {
                 }}
               >
                 <Title level={5} style={{ margin: 0 }}>
-                  {order.name || "Гость"}
+                  {order.username || "Гость"}
                 </Title>
                 <Rate disabled defaultValue={order.rating} />
               </div>

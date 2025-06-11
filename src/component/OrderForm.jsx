@@ -2,10 +2,15 @@
 import React, { useContext, useEffect } from "react";
 import { Form, Input, Radio } from "antd";
 import { AuthContext } from "../store/AuthContext";
+import AddressInput from './AddressInput';
 
 const { TextArea } = Input;
 
-const OrderForm = ({ form, cart, orderData, setOrderData }) => {
+const OrderForm = ({ form, cart, orderData, setOrderData,   query,
+  setQuery,
+  suggestions,
+  setSuggestions,
+  onDropdownOpenChange, }) => {
   const { username } = useContext(AuthContext);
   useEffect(() => {
     if (username && !orderData.name) {
@@ -52,14 +57,24 @@ const OrderForm = ({ form, cart, orderData, setOrderData }) => {
               label="С какой суммы нужна сдача?"
               name="changeFor"
               rules={[
-                { required: true, message: "Укажите сумму, с которой сдача" },
+                { required: true, message: "Укажите сумму, с которой нужна сдача" },
               ]}
             >
               <Input size="large" placeholder="С какой суммы нужна сдача?" />
             </Form.Item>
           )}
 
-        <Form.Item
+           <AddressInput
+          query={query}
+          setQuery={setQuery}
+          // selectedAddress={selectedAddress}
+          // setSelectedAddress={setSelectedAddress}
+          setSuggestions={setSuggestions}
+          suggestions={suggestions}
+          onDropdownOpenChange={onDropdownOpenChange}
+        />
+
+        {/* <Form.Item
           className="my-custom-form-item"
           label="Тип доставки"
           name="deliveryType"
@@ -69,7 +84,7 @@ const OrderForm = ({ form, cart, orderData, setOrderData }) => {
             <Radio.Button value="pickup">Самовывоз</Radio.Button>
             <Radio.Button value="delivery">Доставка</Radio.Button>
           </Radio.Group>
-        </Form.Item>
+        </Form.Item> */}
         <Form.Item
           className="my-custom-form-item"
           label="Добавьте комментарий"

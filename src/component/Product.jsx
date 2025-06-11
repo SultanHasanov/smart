@@ -289,12 +289,15 @@ const Product = () => {
                       className={`product-category-button ${
                         selectedCategory === category.id ? "active" : ""
                       }`}
+                      style={{display: 'flex', justifyContent: "start"}}
                       onClick={() => {
                         setSelectedCategory(category.id);
                         setSearchTerm("");
                       }}
                     >
-                      {category.name}
+                      {category.name.length > 14 
+              ? `${category.name.substring(0, 14)}...` 
+              : category.name}
                     </Button>
                   ))}
                 </div>

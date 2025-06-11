@@ -101,31 +101,39 @@ const UserOrders = () => {
   const [expandedOrder, setExpandedOrder] = useState(null);
   const navigate = useNavigate();
   const wsRef = useRef(null);
-  const toggleOrderDetails = (id) => {
-    setExpandedOrder(expandedOrder === id ? null : id);
-  };
+  const toggleOrderDetails = async (id) => {
+  if (expandedOrder === id) {
+    setExpandedOrder(null);
+    return;
+  }
+
+  setExpandedOrder(id);
+
+  // Загружаем отзыв только если статус доставлен
+  const order = orders.find((o) => o.id === id);
+  if (order && order.status === "доставлен" && (order.rating === null || order.comment === null)) {
+    const review = await fetchReview(id);
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === id
+          ? {
+              ...o,
+              rating: review.rating ?? null,
+              comment: review.comment ?? "",
+              reviewText: review.comment ?? "",
+            }
+          : o
+      )
+    );
+  }
+};
 
   const formatDate = (ts) => {
     const date = new Date(ts);
     return date.toLocaleString("ru-RU", { timeZone: "UTC" });
   };
 
-  const updateOrderStatus = async (id, newStatus) => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.patch(
-        `${ORDER_API}/${id}/status`,
-        { status: newStatus },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      message.success("Статус обновлён");
-      fetchOrders();
-    } catch {
-      message.error("Ошибка обновления статуса");
-    }
-  };
+  console.log(orders)
 
   const shareOrder = async (order) => {
     try {
@@ -148,9 +156,31 @@ const UserOrders = () => {
     }
   };
 
+ const fetchReview = async (orderId) => {
+  try {
+    const response = await axios.get(
+      `https://chechnya-product.ru/api/orders/${orderId}/review`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return {
+      rating: response.data.rating ?? null,
+      comment: response.data.comment ?? "",
+    };
+  } catch (err) {
+    console.error("Ошибка при получении отзыва:", err);
+    return { rating: null, comment: "" };
+  }
+};
+
+
+
   useEffect(() => {
     if (!token || userRole !== "user") return;
-
+    
     const fetchOrders = async () => {
       setLoading(true);
       setError(null);
@@ -176,24 +206,24 @@ const UserOrders = () => {
         setLoading(false);
       }
     };
-
+    
     fetchOrders();
-
+    
     const socket = new WebSocket(WS_URL);
     wsRef.current = socket;
-
+    
     socket.onopen = () => {
       console.log("✅ WebSocket подключён");
     };
-
+    
     socket.onerror = (err) => {
       console.error("❌ WebSocket ошибка:", err);
     };
-
+    
     socket.onclose = () => {
       console.warn("⚠ WebSocket закрыт");
     };
-
+    
     socket.onmessage = (event) => {
       try {
         const messageData = JSON.parse(event.data);
@@ -207,35 +237,51 @@ const UserOrders = () => {
             if (exists) {
               return prevOrders.map((o) =>
                 o.id === incoming.id ? { ...o, ...incoming } : o
-              );
-            } else {
-              return [incoming, ...prevOrders];
-            }
-          });
-        }
-      } catch (e) {
-        console.error("Ошибка обработки WebSocket-сообщения:", e);
+            );
+          } else {
+            return [incoming, ...prevOrders];
+          }
+        });
       }
-    };
+    } catch (e) {
+      console.error("Ошибка обработки WebSocket-сообщения:", e);
+    }
+  };
+  
+  return () => {
+    socket.close();
+  };
+}, [token, userRole]);
 
-    return () => {
-      socket.close();
-    };
-  }, [token, userRole]);
-
-  if (userRole !== "user") {
-    return (
-      <Alert
+const updateOrderStatus = async (id, newStatus) => {
+  try {
+    const token = localStorage.getItem("token");
+    await axios.patch(
+      `${ORDER_API}/${id}/status`,
+      { status: newStatus },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    message.success("Статус обновлён");
+    fetchOrders();
+  } catch {
+    message.error("Ошибка обновления статуса");
+  }
+};
+if (userRole !== "user") {
+  return (
+    <Alert
         type="info"
         message="Только пользователи могут видеть свои заказы."
-      />
-    );
+        />
+      );
+    }
+    
+    if (loading) {
+      return <Spin tip="Загружаем заказы..." />;
   }
-
-  if (loading) {
-    return <Spin tip="Загружаем заказы..." />;
-  }
-
+  
   if (error) {
     return <Alert type="error" message={error} />;
   }
