@@ -4,6 +4,7 @@ const API_URLS = [
   'https://chechnya-product.ru/api/categories'
 ];
 
+// Кэширование при установке
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -12,22 +13,21 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// Активация воркера
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Обработка fetch запросов к API
 self.addEventListener('fetch', (event) => {
   if (API_URLS.some(url => event.request.url.includes(url))) {
     event.respondWith(
       caches.match(event.request)
         .then(response => {
-          // Возвращаем кешированные данные, если есть
           if (response) return response;
-          
-          // Если нет в кеше, делаем запрос к сети
+
           return fetch(event.request)
             .then(response => {
-              // Кешируем новый ответ
               const responseClone = response.clone();
               caches.open(CACHE_NAME)
                 .then(cache => cache.put(event.request, responseClone));
@@ -36,4 +36,19 @@ self.addEventListener('fetch', (event) => {
         })
     );
   }
+});
+
+// 👇👇👇 ДОБАВЛЯЕМ ОБРАБОТКУ PUSH 👇👇👇
+self.addEventListener('push', function(event) {
+  const data = event.data?.json() || {};
+  const title = data.title || 'Уведомление';
+  const options = {
+    body: data.message || '',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/badge-72x72.png',
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
 });

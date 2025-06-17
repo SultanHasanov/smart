@@ -59,7 +59,6 @@ const CartPage = () => {
     changeFor: "",
     order_comment: "",
   });
-  console.log(orderData);
 
   const calculateTotal = () => {
     return cart

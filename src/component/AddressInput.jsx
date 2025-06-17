@@ -13,6 +13,7 @@ import {
   Row,
   Col,
   Statistic,
+  Checkbox,
 } from "antd";
 import {
   CopyOutlined,
@@ -55,7 +56,28 @@ export default function AddressInput({
   const [hasSelected, setHasSelected] = useState(false);
   const [coordinates, setCoordinates] = useState(null);
   const [distanceKm, setDistanceKm] = useState(null);
+  const [showSaveOption, setShowSaveOption] = useState(false);
+  const [saveChecked, setSaveChecked] = useState(false);
   const debounceRef = useRef(null);
+
+  useEffect(() => {
+    fetchDefaultAddress();
+  }, []);
+  const token = localStorage.getItem("token");
+  const fetchDefaultAddress = async () => {
+    try {
+      const res = await fetch("https://chechnya-product.ru/api/me/address", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      console.log(data.data?.address);
+      if (data.data?.address) {
+        handleSelect(data.data.address, true);
+      }
+    } catch (error) {
+      console.error("Ошибка при загрузке адреса:", error);
+    }
+  };
 
   useEffect(() => {
     if (!query || hasSelected) {
@@ -103,20 +125,21 @@ export default function AddressInput({
     setCoordinates(null);
     setDistanceKm(null);
     setSelectedAddress("");
+    setShowSaveOption(false);
+    setSaveChecked(false);
   };
 
-  const handleSelect = (value) => {
-    const selected = suggestions.find((item) => item.value === value);
-    setQuery(""); // ← очищаем инпут сразу
-    // setQuery(value);
+  const handleSelect = (value, isDefault = false) => {
+    const selected = suggestions.find((item) => item.value === value) || {};
+    setQuery("");
     setSelectedAddress(value);
     setHasSelected(true);
 
-    if (selected?.data?.geo_lat && selected?.data?.geo_lon) {
-      const lat = parseFloat(selected.data.geo_lat);
-      const lon = parseFloat(selected.data.geo_lon);
-      setCoordinates({ lat, lon });
+    const lat = parseFloat(selected?.data?.geo_lat) || null;
+    const lon = parseFloat(selected?.data?.geo_lon) || null;
 
+    if (lat && lon) {
+      setCoordinates({ lat, lon });
       const dist = calculateDistance(
         WAREHOUSE_COORDS.lat,
         WAREHOUSE_COORDS.lon,
@@ -127,6 +150,7 @@ export default function AddressInput({
     }
 
     setSuggestions([]);
+    setShowSaveOption(!isDefault);
   };
 
   const handleCopy = async () => {
@@ -138,10 +162,29 @@ export default function AddressInput({
     }
   };
 
-  const formatDistance = (km) => {
-    if (km < 1) {
-      return `${Math.round(km * 1000)} м`;
+  const handleSaveAddress = async (checked) => {
+    setSaveChecked(checked);
+    if (!checked) return;
+    try {
+      const res = await fetch("https://chechnya-product.ru/api/me/address", {
+
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ address: selectedAddress }),
+      });
+      if (!res.ok) throw new Error("Ошибка при сохранении");
+      message.success("Адрес сохранён");
+    } catch (error) {
+      console.error("Ошибка при сохранении адреса:", error);
+      message.error("Не удалось сохранить адрес");
     }
+  };
+
+  const formatDistance = (km) => {
+    if (km < 1) return `${Math.round(km * 1000)} м`;
     return `${km.toFixed(1)} км`;
   };
 
@@ -153,8 +196,8 @@ export default function AddressInput({
   };
 
   const calculateDeliveryTime = (km) => {
-    const averageSpeed = 40; // км/ч
-    const baseTime = 10; // минут
+    const averageSpeed = 40;
+    const baseTime = 10;
     const additionalTime = (km / averageSpeed) * 60;
     return Math.round(baseTime + additionalTime);
   };
@@ -163,11 +206,7 @@ export default function AddressInput({
     if (minutes < 60) return `${minutes} мин`;
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-
-    if (hours < 24) {
-      return `${hours} ч ${mins} мин`;
-    }
-
+    if (hours < 24) return `${hours} ч ${mins} мин`;
     const days = Math.floor(hours / 24);
     const restHours = hours % 24;
     return `${days} дн ${restHours} ч ${mins} мин`;
@@ -257,7 +296,16 @@ export default function AddressInput({
                 </Col>
               </Row>
             )}
+            {showSaveOption && (
+              <Checkbox
+                checked={saveChecked}
+                onChange={(e) => handleSaveAddress(e.target.checked)}
+              >
+                Сохранить этот адрес по умолчанию
+              </Checkbox>
+            )}
           </Space>
+
           <div
             style={{
               display: "flex",
@@ -289,16 +337,17 @@ export default function AddressInput({
                 size="small"
                 type="text"
                 danger
-                 style={{
+                style={{
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                 }}
               >
-                <CloseOutlined style={{ fontSize: 18,  }} />
+                <CloseOutlined style={{ fontSize: 18 }} />
                 <span style={{ fontSize: 10, marginTop: 2 }}>Удалить</span>
               </Button>
             </Tooltip>
+
             {coordinates && (
               <Tooltip title="Открыть маршрут">
                 <Button

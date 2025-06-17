@@ -22,6 +22,11 @@ import OrderManager from "./pages/OrderManager";
 registerSW({
   immediate: true,
 });
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/serviceworker.js')
+    .then(reg => console.log('SW зарегистрирован', reg))
+    .catch(err => console.error('Ошибка регистрации SW', err));
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Router>

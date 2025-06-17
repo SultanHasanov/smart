@@ -185,9 +185,8 @@ const Product = () => {
   //   .filter((dish) =>
   //     dish.name.toLowerCase().includes(searchTerm.toLowerCase())
   //   );
-
-  const filteredDishes = dishes
-    .filter(
+console.log(dishes)
+  const filteredDishes = dishes.items.filter(
       (dish) =>
         selectedCategory === "all" ||
         String(dish.category_id) === String(selectedCategory)
