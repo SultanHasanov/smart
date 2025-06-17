@@ -9,19 +9,25 @@ import {
   Space,
   Button,
   Tooltip,
+  Card,
+  Row,
+  Col,
+  Statistic,
 } from "antd";
 import {
   CopyOutlined,
   CompassOutlined,
   CloseOutlined,
   EnvironmentOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
 const DADATA_API_KEY = "a17c1b8db5c44bf264bf804062ffe577594171e5";
 
 const WAREHOUSE_COORDS = {
-  lat: 43.267708, 
+  lat: 43.267708,
   lon: 45.263771,
 };
 
@@ -32,9 +38,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
@@ -98,11 +102,13 @@ export default function AddressInput({
     setHasSelected(false);
     setCoordinates(null);
     setDistanceKm(null);
+    setSelectedAddress("");
   };
 
   const handleSelect = (value) => {
     const selected = suggestions.find((item) => item.value === value);
-    setQuery(value);
+    setQuery(""); // ← очищаем инпут сразу
+    // setQuery(value);
     setSelectedAddress(value);
     setHasSelected(true);
 
@@ -139,83 +145,184 @@ export default function AddressInput({
     return `${km.toFixed(1)} км`;
   };
 
- const dropdownContent = (
-  <div
-    style={{
-      maxHeight: 200,
-      overflowY: "auto",
-      padding: 0,
-      background: "#fff",
-      borderRadius: 4,
-      boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-    }}
-    onTouchStart={(e) => e.stopPropagation()} // важно для iOS!
-  >
-    <Spin spinning={loading} size="small">
-      <List
-        dataSource={suggestions}
-        renderItem={(item) => (
-          <List.Item
-            style={{ cursor: "pointer", padding: "8px 12px" }}
-            onClick={() => handleSelect(item.value)}
-          >
-            {item.value}
-          </List.Item>
-        )}
-      />
-    </Spin>
-  </div>
-);
+  const calculateDeliveryPrice = (km) => {
+    const pricePerKm = 25;
+    const minimumPrice = 50;
+    const total = km * pricePerKm;
+    return Math.max(minimumPrice, Math.round(total));
+  };
+
+  const calculateDeliveryTime = (km) => {
+    const averageSpeed = 40; // км/ч
+    const baseTime = 10; // минут
+    const additionalTime = (km / averageSpeed) * 60;
+    return Math.round(baseTime + additionalTime);
+  };
+
+  const formatTime = (minutes) => {
+    if (minutes < 60) return `${minutes} мин`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    if (hours < 24) {
+      return `${hours} ч ${mins} мин`;
+    }
+
+    const days = Math.floor(hours / 24);
+    const restHours = hours % 24;
+    return `${days} дн ${restHours} ч ${mins} мин`;
+  };
+
+  const deliveryPrice =
+    distanceKm !== null ? calculateDeliveryPrice(distanceKm) : null;
+  const deliveryTime =
+    distanceKm !== null ? calculateDeliveryTime(distanceKm) : null;
+
+  const dropdownContent = (
+    <div
+      style={{
+        maxHeight: 200,
+        overflowY: "auto",
+        padding: 0,
+        background: "#fff",
+        borderRadius: 4,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+      }}
+      onTouchStart={(e) => e.stopPropagation()}
+    >
+      <Spin spinning={loading} size="small">
+        <List
+          dataSource={suggestions}
+          renderItem={(item) => (
+            <List.Item
+              style={{ cursor: "pointer", padding: "8px 12px" }}
+              onClick={() => handleSelect(item.value)}
+            >
+              {item.value}
+            </List.Item>
+          )}
+        />
+      </Spin>
+    </div>
+  );
 
   const isDropdownOpen = suggestions.length > 0;
 
   return (
     <div style={{ width: "100%" }}>
       {selectedAddress && (
-        <Space direction="vertical" style={{ marginBottom: 18, width: "100%" }}>
-          <Text strong>Выбранный адрес:</Text>
-          <Space style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-            <Space>
-              <Text code>{selectedAddress}</Text>
-              <CopyOutlined
+        <Card
+          size="small"
+          style={{ marginBottom: 16, borderRadius: 8 }}
+          bodyStyle={{ padding: 12 }}
+        >
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                width: "100%",
+              }}
+            >
+              <Text strong>{selectedAddress}</Text>
+            </div>
+
+            {distanceKm !== null && (
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Statistic
+                    title="Расстояние"
+                    value={formatDistance(distanceKm)}
+                    prefix={<EnvironmentOutlined />}
+                    valueStyle={{ color: "#1890ff", fontSize: 14 }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="Стоимость"
+                    value={deliveryPrice}
+                    prefix={<DollarOutlined />}
+                    suffix="₽"
+                    valueStyle={{ color: "#52c41a", fontSize: 14 }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="Время доставки"
+                    value={formatTime(deliveryTime)}
+                    prefix={<ClockCircleOutlined />}
+                    valueStyle={{ color: "#fa8c16", fontSize: 14 }}
+                  />
+                </Col>
+              </Row>
+            )}
+          </Space>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              gap: 4,
+              marginTop: 20,
+            }}
+          >
+            <Tooltip title="Скопировать адрес">
+              <Button
+                type="text"
+                size="small"
                 onClick={handleCopy}
-                style={{ cursor: "pointer", color: "#1890ff" }}
-                title="Скопировать адрес"
-              />
-            </Space>
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <CopyOutlined style={{ fontSize: 18, color: "#1890ff" }} />
+                <span style={{ fontSize: 10, marginTop: 2 }}>Копировать</span>
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Очистить">
+              <Button
+                onClick={handleClear}
+                size="small"
+                type="text"
+                danger
+                 style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <CloseOutlined style={{ fontSize: 18,  }} />
+                <span style={{ fontSize: 10, marginTop: 2 }}>Удалить</span>
+              </Button>
+            </Tooltip>
             {coordinates && (
-              <Tooltip title="Открыть маршрут в Яндекс.Картах">
-                <CompassOutlined
-                  style={{ fontSize: 20, color: "#fa8c16", cursor: "pointer" }}
+              <Tooltip title="Открыть маршрут">
+                <Button
+                  type="text"
+                  size="small"
                   onClick={() => {
                     window.open(
                       `https://yandex.ru/maps/?rtext=${WAREHOUSE_COORDS.lat},${WAREHOUSE_COORDS.lon}~${coordinates.lat},${coordinates.lon}&rtt=auto`,
                       "_blank"
                     );
                   }}
-                />
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <CompassOutlined style={{ fontSize: 18, color: "#fa8c16" }} />
+                  <span style={{ fontSize: 10, marginTop: 2 }}>Навигатор</span>
+                </Button>
               </Tooltip>
             )}
-          </Space>
-
-          {distanceKm !== null && (
-            <Space
-              style={{
-                background: "#f0f5ff",
-                border: "1px solid #adc6ff",
-                padding: "8px 12px",
-                borderRadius: 8,
-                marginTop: 6,
-                alignItems: "center",
-              }}
-            >
-              <EnvironmentOutlined style={{ color: "#2f54eb" }} />
-              <Text style={{ fontSize: 16, color: "#2f54eb" }}>
-                Расстояние: <b>{formatDistance(distanceKm)}</b>
-              </Text>
-            </Space>
-          )}
-        </Space>
+          </div>
+        </Card>
       )}
 
       <Dropdown
@@ -228,8 +335,12 @@ export default function AddressInput({
           overflow: { adjustY: false, adjustX: false },
         }}
       >
-         <div style={{ position: "relative", marginBottom: isDropdownOpen ? 210 : 10 }}>
-
+        <div
+          style={{
+            position: "relative",
+            marginBottom: isDropdownOpen ? 210 : 10,
+          }}
+        >
           <Input
             placeholder="Введите адрес"
             value={query}
@@ -240,23 +351,6 @@ export default function AddressInput({
             autoComplete="off"
             size="large"
           />
-          {query && (
-            <Button
-              icon={<CloseOutlined />}
-              onClick={handleClear}
-              size="small"
-              style={{
-                position: "absolute",
-                top: "50%",
-                right: "10px",
-                transform: "translateY(-50%)",
-                border: "none",
-                backgroundColor: "transparent",
-                cursor: "pointer",
-                color: "red",
-              }}
-            />
-          )}
         </div>
       </Dropdown>
     </div>
