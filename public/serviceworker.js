@@ -44,8 +44,8 @@ self.addEventListener('push', function(event) {
   const title = data.title || 'Уведомление';
   const options = {
     body: data.message || '',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+    // icon: '/icons/icon-192x192.png',
+    // badge: '/icons/badge-72x72.png',
   };
 
   event.waitUntil(
