@@ -147,7 +147,7 @@ const Product = () => {
     const item = CartStore.cart.find((item) => item.product_id === dishId);
     if (item && item.quantity >= 10) return;
 
-    const dish = dishes.find((d) => d.id === dishId);
+    const dish = dishes.items.find((d) => d.id === dishId);
     if (!dish) return;
 
     const newItem = {
