@@ -1,4 +1,4 @@
-const publicKey = "iMD9l68AN947pIZAKIywz-_U0VZ20qYQPHjiSbAi4G0"; // Если нужен, иначе не указывай
+const publicKey = "BFSKzykmheDBQvkFXHd_016RzmAwZLkWz7qHx7n_u-5IgxMTQfG1vIyQdk_p19Y4xAgo-N_3W0BYEyfvBVxy8rU"; 
 
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
