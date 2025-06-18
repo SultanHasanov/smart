@@ -147,7 +147,7 @@ const Product = () => {
     const item = CartStore.cart.find((item) => item.product_id === dishId);
     if (item && item.quantity >= 10) return;
 
-    const dish = dishes.items.find((d) => d.id === dishId);
+    const dish = dishes.items?.find((d) => d.id === dishId);
     if (!dish) return;
 
     const newItem = {
@@ -186,7 +186,7 @@ const Product = () => {
   //     dish.name.toLowerCase().includes(searchTerm.toLowerCase())
   //   );
 console.log(dishes)
-  const filteredDishes = dishes.items.filter(
+  const filteredDishes = dishes.items?.filter(
       (dish) =>
         selectedCategory === "all" ||
         String(dish.category_id) === String(selectedCategory)
