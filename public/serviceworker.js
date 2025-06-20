@@ -42,20 +42,24 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', function(event) {
   let data = {};
 
-  try {
-    data = event.data.json();
-  } catch (e) {
-    // Если пришла просто строка — используем как текст
-    data = { title: 'Уведомление', body: event.data?.text() || '' };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'Уведомление', body: event.data.text() };
+    }
+  } else {
+    // Если данные не пришли вообще
+    data = { title: 'Уведомление', body: 'Пустое уведомление' };
   }
 
   const title = data.title || 'Уведомление';
   const options = {
-    body: data.body || data.message || 'У вас новое сообщение',
-    
+    body: data.body || 'У вас новое уведомление',
   };
 
   event.waitUntil(
     self.registration.showNotification(title, options)
   );
 });
+
