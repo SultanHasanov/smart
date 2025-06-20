@@ -19,8 +19,18 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import OrderManager from "./pages/OrderManager";
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/serviceworker.js").then(() => {
-    console.log("✅ sw.js зарегистрирован");
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        console.log(
+          "✅ Service Worker registered with scope:",
+          registration.scope
+        );
+      })
+      .catch((error) => {
+        console.error("❌ Service Worker registration failed:", error);
+      });
   });
 }
 
