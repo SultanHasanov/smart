@@ -40,12 +40,19 @@ self.addEventListener('fetch', (event) => {
 
 // 👇👇👇 ДОБАВЛЯЕМ ОБРАБОТКУ PUSH 👇👇👇
 self.addEventListener('push', function(event) {
-  const data = event.data?.json() || {};
+  let data = {};
+
+  try {
+    data = event.data.json();
+  } catch (e) {
+    // Если пришла просто строка — используем как текст
+    data = { title: 'Уведомление', body: event.data?.text() || '' };
+  }
+
   const title = data.title || 'Уведомление';
   const options = {
-    body: data.message || '',
-    // icon: '/icons/icon-192x192.png',
-    // badge: '/icons/badge-72x72.png',
+    body: data.body || data.message || 'У вас новое сообщение',
+    
   };
 
   event.waitUntil(

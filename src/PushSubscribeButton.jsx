@@ -47,14 +47,14 @@ export default function PushSubscribeButton() {
 };
 const token = localStorage.getItem("token");
 
-await fetch("https://chechnya-product.ru/api/push/subscribe", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    ...(token && { Authorization: `Bearer ${token}` }),
-  },
-  body: JSON.stringify(payload),
-});
+// await fetch("https://chechnya-product.ru/api/push/subscribe", {
+//   method: "POST",
+//   headers: {
+//     "Content-Type": "application/json",
+//     ...(token && { Authorization: `Bearer ${token}` }),
+//   },
+//   body: JSON.stringify(payload),
+// });
 
 
     await fetch("https://chechnya-product.ru/api/push/subscribe", {
