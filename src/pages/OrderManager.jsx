@@ -126,7 +126,27 @@ const OrderManager = () => {
     }
   };
 
-  useEffect(() => {
+   const knownOrderIds = useRef(new Set());
+
+  // Функция для запроса разрешения и показа пуша
+  const showNotification = (title, options) => {
+    if (!("Notification" in window)) {
+      console.warn("Пуш уведомления не поддерживаются в этом браузере");
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      new Notification(title, options);
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification(title, options);
+        }
+      });
+    }
+  };
+
+useEffect(() => {
     fetchOrders();
 
     const socket = new WebSocket(WS_URL);
@@ -154,11 +174,24 @@ const OrderManager = () => {
           const incoming = messageData.order;
           setOrders((prevOrders) => {
             const exists = prevOrders.find((o) => o.id === incoming.id);
+
             if (exists) {
+              // Обновляем существующий заказ
               return prevOrders.map((o) =>
                 o.id === incoming.id ? { ...o, ...incoming } : o
               );
             } else {
+              // Новый заказ — пуш и добавляем в список
+              // Проверяем, если заказ не в knownOrderIds — значит новый
+              if (!knownOrderIds.current.has(incoming.id)) {
+                knownOrderIds.current.add(incoming.id);
+
+                showNotification("Новый заказ", {
+                  body: `Заказ от ${incoming.name}, сумма: ${incoming.total}₽`,
+                  icon: "/favicon.ico", // путь к иконке пуша (можно заменить)
+                });
+              }
+
               return [incoming, ...prevOrders];
             }
           });

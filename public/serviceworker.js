@@ -98,7 +98,6 @@ self.addEventListener("push", function (event) {
   const options = {
     body: data.body,
     icon: "/apple-touch-icon.png",
-    badge: "/favicon-96x96.png",
     data: {
       url: data.url || "/", // передаём url для перехода при клике
     },
@@ -109,11 +108,24 @@ self.addEventListener("push", function (event) {
 
 // Обработчик клика по уведомлению
 self.addEventListener("notificationclick", function (event) {
-  event.notification.close();
+  event.notification.close(); // Закрываем уведомление
 
   const urlToOpen = event.notification.data?.url || "/";
 
   event.waitUntil(
-    clients.openWindow(urlToOpen)
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windowClients) => {
+        for (const client of windowClients) {
+          // Проверяем совпадение URL с твоим PWA
+          if (client.url.includes("/") && "focus" in client) {
+            return client.focus();
+          }
+        }
+        // Открываем новую вкладку, которая, если PWA установлен, откроется как standalone
+        if (clients.openWindow) {
+          return clients.openWindow("/");
+        }
+      })
   );
 });
