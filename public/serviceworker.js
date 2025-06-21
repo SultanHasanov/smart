@@ -97,6 +97,7 @@ self.addEventListener("push", function (event) {
   const title = data.title || "Уведомление";
   const options = {
     body: data.body,
+    icon: "/apple-touch-icon.png",
     data: {
       url: data.url || "/", // передаём url для перехода при клике
     },

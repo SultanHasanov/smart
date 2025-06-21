@@ -15,14 +15,11 @@
         "type": "image/png"
       }
     ],
-    "orientation": "any",
+    "orientation": "portrait",
     "display": "standalone",
     "lang": "ru-RU",
-    "dir": "auto",
     "name": "Smart",
     "start_url": "/",
-    "description": "Приложение для заказа продуктов",
-    "scope": "/",
     "screenshots": [
       {
         "src": "/screenshot1.png",
