@@ -117,13 +117,13 @@ self.addEventListener("notificationclick", function (event) {
       .then((windowClients) => {
         for (const client of windowClients) {
           // Проверяем совпадение URL с твоим PWA
-          if (client.url.includes("/app") && "focus" in client) {
+          if (client.url.includes("/") && "focus" in client) {
             return client.focus();
           }
         }
         // Открываем новую вкладку, которая, если PWA установлен, откроется как standalone
         if (clients.openWindow) {
-          return clients.openWindow("/app");
+          return clients.openWindow("/");
         }
       })
   );
