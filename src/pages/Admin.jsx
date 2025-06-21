@@ -7,7 +7,7 @@ import { AuthContext } from "../store/AuthContext";
 import LogsViewer from "../component/LogsViewer";
 import UserOrders from "./UserOrders";
 import { SettingOutlined } from "@ant-design/icons";
-import PushSubscribeButton from "../PushSubscribeButton";
+// import PushSubscribeButton from "../PushSubscribeButton";
 import PushSender from "../PushSender";
 
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
@@ -206,7 +206,7 @@ const Login = () => {
         <Button size="large" type="primary" danger onClick={logout} block>
           Выйти
         </Button>
- <PushSubscribeButton />
+ {/* <PushSubscribeButton /> */}
  <PushSender/>
         {/* <LogsViewer/> */}
         {/* <UserOrders /> */}

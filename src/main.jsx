@@ -18,21 +18,17 @@ import CategoryPage from "./pages/CategoryPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import OrderManager from "./pages/OrderManager";
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/serviceworker.js")
-      .then((registration) => {
-        console.log(
-          "✅ Service Worker registered with scope:",
-          registration.scope
-        );
-      })
-      .catch((error) => {
-        console.error("❌ Service Worker registration failed:", error);
-      });
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('/serviceworker.js');
+      console.log('✅ Service Worker зарегистрирован:', reg);
+    } catch (err) {
+      console.error('❌ Ошибка регистрации Service Worker:', err);
+    }
   });
 }
+
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Router>

@@ -1,48 +1,85 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function PushSender() {
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [result, setResult] = useState('');
+// 🔑 Твой публичный VAPID ключ с сервера
+const PUBLIC_VAPID_KEY = 'BD-OsbXoHHwg7KaxQsy5GsjV4YF0OV9FYl06UFs0cwd77pfvd1AF_dL2ZhnwYWAshHMBST517DAydyPBSr3FnK0'; // ← вставь СВОЙ ключ сюда
 
-  const sendPush = async () => {
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+async function subscribeUser() {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    const reg = await navigator.serviceWorker.ready;
+    return await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
+    });
+  } else {
+    throw new Error('Push уведомления не поддерживаются в этом браузере');
+  }
+}
+
+const PushSender = () => {
+  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState('');
+
+  const handleSend = async () => {
     try {
-      const res = await fetch('https://chechnya-product.ru/api/push/send', {
+      setStatus('🔄 Подписка на push...');
+      const subscription = await subscribeUser();
+
+      setStatus('📤 Отправка сообщения...');
+      const res = await fetch('http://localhost:4000/send-notification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, body }),
+        body: JSON.stringify({ subscription, message }),
       });
 
       if (res.ok) {
-        setResult('✅ Уведомление отправлено!');
+        setStatus('✅ Уведомление отправлено!');
       } else {
-        setResult('❌ Ошибка при отправке');
+        setStatus('❌ Ошибка при отправке уведомления');
       }
-    } catch (error) {
-      setResult('❌ Сеть или ошибка CORS');
+    } catch (err) {
+      console.error(err);
+      setStatus('❌ Ошибка: ' + err.message);
     }
   };
 
+   // 🔥 Удалить старую подписку при монтировании
+  useEffect(() => {
+    navigator.serviceWorker.ready
+  .then(reg => reg.pushManager.getSubscription())
+  .then(sub => sub?.unsubscribe())
+  .then(() => console.log('✅ Подписка удалена'));
+
+  }, []);
+
   return (
-    <div style={{ padding: '1rem', maxWidth: '400px' }}>
-      <h3>Отправка пуш-уведомления</h3>
+    <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
+      <h2>Push-уведомление</h2>
       <input
         type="text"
-        placeholder="Заголовок"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        style={{ width: '100%', marginBottom: '0.5rem' }}
+        placeholder="Текст уведомления"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        style={{ width: '300px', padding: '8px', marginRight: '10px' }}
       />
-      <textarea
-        placeholder="Сообщение"
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        style={{ width: '100%', height: '80px', marginBottom: '0.5rem' }}
-      />
-      <button onClick={sendPush} style={{ padding: '0.5rem 1rem' }}>
-        📤 Отправить
+      <button onClick={handleSend} style={{ padding: '8px 16px' }}>
+        Отправить Push
       </button>
-      {result && <p>{result}</p>}
+      <div style={{ marginTop: 10 }}>{status}</div>
     </div>
   );
-}
+};
+
+export default PushSender;
