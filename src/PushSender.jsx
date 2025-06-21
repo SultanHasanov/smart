@@ -38,7 +38,7 @@ const PushSender = () => {
       const subscription = await subscribeUser();
 
       setStatus('📤 Отправка сообщения...');
-      const res = await fetch('http://localhost:4000/send-notification', {
+      const res = await fetch('http://192.168.1.61:4000/send-notification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription, message }),
