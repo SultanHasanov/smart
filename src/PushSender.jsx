@@ -69,12 +69,12 @@ const PushSender = () => {
 
 
   // 🔥 Удалить старую подписку при монтировании
-  useEffect(() => {
-    navigator.serviceWorker.ready
-      .then(reg => reg.pushManager.getSubscription())
-      .then(sub => sub?.unsubscribe())
-      .then(() => console.log('✅ Старая подписка удалена'));
-  }, []);
+  // useEffect(() => {
+  //   navigator.serviceWorker.ready
+  //     .then(reg => reg.pushManager.getSubscription())
+  //     .then(sub => sub?.unsubscribe())
+  //     .then(() => console.log('✅ Старая подписка удалена'));
+  // }, []);
 
   return (
     <div style={{ padding: 20, fontFamily: 'sans-serif' }}>

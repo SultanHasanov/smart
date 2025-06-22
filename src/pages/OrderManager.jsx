@@ -77,6 +77,8 @@ const OrderManager = () => {
     }
   };
 
+console.log(orders)
+
   const updateOrderStatus = async (id, newStatus) => {
     try {
       const token = localStorage.getItem("token");
@@ -126,7 +128,6 @@ const OrderManager = () => {
       message.error("Не удалось поделиться");
     }
   };
-
   const sendPushNotification = async (order) => {
     try {
       const subscription = localStorage.getItem("pushSubscription");
@@ -141,7 +142,7 @@ const OrderManager = () => {
         return;
       }
 
-      const message = `Новый заказ #${order.id} от ${order.name}`;
+      const message = `Новый заказ #${order.id} от ${order.name}, на сумму ${order.total} руб.`;
       console.log("Sending push:", message); // Логируем для отладки
 
       const response = await fetch(
