@@ -57,10 +57,12 @@ const getStatusColor = (status) => {
 const OrderManager = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState("all"); // добавлено
+  const [filterStatus, setFilterStatus] = useState("all");
   const refs = useRef({});
   const wsRef = useRef(null);
   const navigate = useNavigate();
+  const knownOrderIds = useRef(new Set());
+const prevStatuses = useRef(new Map());
 
   const fetchOrders = async () => {
     try {
@@ -69,10 +71,33 @@ const OrderManager = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(res.data.data);
+      // Добавляем ID существующих заказов в knownOrderIds
+      res.data.data.forEach(order => {
+  knownOrderIds.current.add(order.id);
+  prevStatuses.current.set(order.id, order.status);
+});
+
     } catch {
       message.error("Ошибка загрузки заказов");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const showNotification = (title, options) => {
+    if (!("Notification" in window)) {
+      console.warn("Пуш уведомления не поддерживаются в этом браузере");
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      new Notification(title, options);
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification(title, options);
+        }
+      });
     }
   };
 
@@ -86,7 +111,18 @@ const OrderManager = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      
       message.success("Статус обновлён");
+      
+      // Находим заказ для отправки уведомления
+      const updatedOrder = orders.find(order => order.id === id);
+      if (updatedOrder) {
+        showNotification("Статус заказа изменён", {
+          body: `Заказ #${id} теперь имеет статус: ${newStatus}`,
+          icon: "/apple-touch-icon.png"
+        });
+      }
+      
       fetchOrders();
     } catch {
       message.error("Ошибка обновления статуса");
@@ -126,27 +162,7 @@ const OrderManager = () => {
     }
   };
 
-   const knownOrderIds = useRef(new Set());
-
-  // Функция для запроса разрешения и показа пуша
-  const showNotification = (title, options) => {
-    if (!("Notification" in window)) {
-      console.warn("Пуш уведомления не поддерживаются в этом браузере");
-      return;
-    }
-
-    if (Notification.permission === "granted") {
-      new Notification(title, options);
-    } else if (Notification.permission !== "denied") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          new Notification(title, options);
-        }
-      });
-    }
-  };
-
-useEffect(() => {
+  useEffect(() => {
     fetchOrders();
 
     const socket = new WebSocket(WS_URL);
@@ -165,41 +181,53 @@ useEffect(() => {
     };
 
     socket.onmessage = (event) => {
-      try {
-        const messageData = JSON.parse(event.data);
-        if (
-          messageData.type === "new_order" ||
-          messageData.type === "status_update"
-        ) {
-          const incoming = messageData.order;
-          setOrders((prevOrders) => {
-            const exists = prevOrders.find((o) => o.id === incoming.id);
+  try {
+    const messageData = JSON.parse(event.data);
+    if (messageData.type === "new_order" || messageData.type === "status_update") {
+      const incoming = messageData.order;
 
-            if (exists) {
-              // Обновляем существующий заказ
-              return prevOrders.map((o) =>
-                o.id === incoming.id ? { ...o, ...incoming } : o
-              );
-            } else {
-              // Новый заказ — пуш и добавляем в список
-              // Проверяем, если заказ не в knownOrderIds — значит новый
-              if (!knownOrderIds.current.has(incoming.id)) {
-                knownOrderIds.current.add(incoming.id);
+      setOrders((prevOrders) => {
+        const exists = prevOrders.find((o) => o.id === incoming.id);
 
-                showNotification("Новый заказ", {
-                  body: `Заказ от ${incoming.name}, сумма: ${incoming.total}₽`,
-                  icon: "/favicon.ico", // путь к иконке пуша (можно заменить)
-                });
-              }
+        // Если заказ уже есть — возможно, статус изменился
+        if (exists) {
+          const prevStatus = prevStatuses.current.get(incoming.id);
+          const newStatus = incoming.status;
 
-              return [incoming, ...prevOrders];
-            }
-          });
+          if (prevStatus && prevStatus !== newStatus) {
+            showNotification("Обновление статуса", {
+              body: `Заказ #${incoming.id}: ${prevStatus} → ${newStatus}`,
+              icon: "/apple-touch-icon.png",
+            });
+          }
+
+          // Обновляем статус
+          prevStatuses.current.set(incoming.id, newStatus);
+
+          return prevOrders.map((o) =>
+            o.id === incoming.id ? { ...o, ...incoming } : o
+          );
+        } else {
+          // Новый заказ
+          if (!knownOrderIds.current.has(incoming.id)) {
+            knownOrderIds.current.add(incoming.id);
+            prevStatuses.current.set(incoming.id, incoming.status);
+
+            showNotification("Новый заказ", {
+              body: `Заказ от ${incoming.name}, сумма: ${incoming.total}₽`,
+              icon: "/apple-touch-icon.png"
+            });
+          }
+
+          return [incoming, ...prevOrders];
         }
-      } catch (e) {
-        console.error("Ошибка обработки WebSocket-сообщения:", e);
-      }
-    };
+      });
+    }
+  } catch (e) {
+    console.error("Ошибка обработки WebSocket-сообщения:", e);
+  }
+};
+
 
     return () => {
       socket.close();
@@ -291,7 +319,6 @@ useEffect(() => {
             .filter((order) =>
               filterStatus === "all" ? true : order.status === filterStatus
             )
-
             .map((order) => {
               const itemList = order.items?.map((item) => (
                 <li key={item.id}>
@@ -301,21 +328,21 @@ useEffect(() => {
 
               return (
                 <div key={order.id} className="order-item">
-                 <div
-  className="order-summary"
-  onClick={() => toggleOrderDetails(order.id)}
->
-  <Space className="order-label">
-    <Text strong style={{ color: '#1890ff' }}>#{order.id}</Text>
-    <Text strong>{order.name}</Text>
-    <Tag
-      color={getStatusColor(order.status)}
-      style={{ cursor: "pointer" }}
-    >
-      {order.status}
-    </Tag>
-  </Space>
-</div>
+                  <div
+                    className="order-summary"
+                    onClick={() => toggleOrderDetails(order.id)}
+                  >
+                    <Space className="order-label">
+                      <Text strong style={{ color: '#1890ff' }}>#{order.id}</Text>
+                      <Text strong>{order.name}</Text>
+                      <Tag
+                        color={getStatusColor(order.status)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {order.status}
+                      </Tag>
+                    </Space>
+                  </div>
                   {expandedOrder === order.id && (
                     <div
                       className="order-details"
@@ -455,7 +482,7 @@ useEffect(() => {
                             height: 42,
                           }}
                           onClick={() => {
-                            CartStore.repeatOrder(order.items); // order.items — список продуктов
+                            CartStore.repeatOrder(order.items);
                             message.success("Товары добавлены в корзину");
                             navigate("/cart");
                           }}

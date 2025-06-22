@@ -9,6 +9,7 @@ import UserOrders from "./UserOrders";
 import { SettingOutlined } from "@ant-design/icons";
 // import PushSubscribeButton from "../PushSubscribeButton";
 import PushSender from "../PushSender";
+import PushBroadcastForm from "../PushBroadcastForm";
 
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
@@ -207,6 +208,7 @@ const Login = () => {
           Выйти
         </Button>
  {/* <PushSubscribeButton /> */}
+ <PushBroadcastForm/>
  <PushSender/>
         {/* <LogsViewer/> */}
         {/* <UserOrders /> */}

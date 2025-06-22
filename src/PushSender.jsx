@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 
-// 🔑 Твой публичный VAPID ключ с сервера
-const PUBLIC_VAPID_KEY = 'BD-OsbXoHHwg7KaxQsy5GsjV4YF0OV9FYl06UFs0cwd77pfvd1AF_dL2ZhnwYWAshHMBST517DAydyPBSr3FnK0'; // ← вставь СВОЙ ключ сюда
+const PUBLIC_VAPID_KEY = 'BNzjcHZGKpcIGvMLbuAxxLx7nDDduh17XkP37wB3gW-mShK-rinrnTHA3MCbS3_kaGM7gWguuzBA9nizvQKB-70';
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
     .replace(/-/g, '+')
     .replace(/_/g, '/');
+
   const rawData = atob(base64);
   const outputArray = new Uint8Array(rawData.length);
+
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
 }
+
 
 async function subscribeUser() {
   if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -38,7 +40,7 @@ const PushSender = () => {
       const subscription = await subscribeUser();
 
       setStatus('📤 Отправка сообщения...');
-      const res = await fetch('https://server-pwa-iota.vercel.app/api/send-notification', {
+      const res = await fetch('https://chechnya-product.ru/api/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subscription, message }),

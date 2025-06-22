@@ -83,6 +83,8 @@ self.addEventListener("fetch", (event) => {
 // });
 
 self.addEventListener("push", function (event) {
+   console.log('[Service Worker] Push received:', event);
+  console.log('[Service Worker] Data:', event.data?.text());
   let data = {};
   try {
     data = event.data.json();
