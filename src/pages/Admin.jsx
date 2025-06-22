@@ -208,7 +208,7 @@ const Login = () => {
           Выйти
         </Button>
  {/* <PushSubscribeButton /> */}
- <PushBroadcastForm/>
+ {/* <PushBroadcastForm/> */}
  <PushSender/>
         {/* <LogsViewer/> */}
         {/* <UserOrders /> */}

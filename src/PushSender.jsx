@@ -39,30 +39,34 @@ const PushSender = () => {
   const [status, setStatus] = useState('');
   const { userRole } = useContext(AuthContext); // 🎭 Получаем роль из контекста
 
-  const handleSend = async () => {
-    try {
-      setStatus('🔄 Подписка на push...');
-      const subscription = await subscribeUser();
+ const handleSend = async () => {
+  try {
+    setStatus('🔄 Подписка на push...');
+    const subscription = await subscribeUser();
 
-      const isAdmin = userRole === 'admin'; // ✅ Проверка роли
+    // ✅ Сохраняем подписку в localStorage
+    localStorage.setItem("pushSubscription", JSON.stringify(subscription));
 
-      setStatus('📤 Отправка сообщения...');
-      const res = await fetch('https://chechnya-product.ru/api/push/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription, message, isAdmin }),
-      });
+    const isAdmin = userRole === 'admin';
 
-      if (res.ok) {
-        setStatus('✅ Уведомление отправлено!');
-      } else {
-        setStatus('❌ Ошибка при отправке уведомления');
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus('❌ Ошибка: ' + err.message);
+    setStatus('📤 Отправка сообщения...');
+    const res = await fetch('https://chechnya-product.ru/api/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription, message, isAdmin }),
+    });
+
+    if (res.ok) {
+      setStatus('✅ Уведомление отправлено!');
+    } else {
+      setStatus('❌ Ошибка при отправке уведомления');
     }
-  };
+  } catch (err) {
+    console.error(err);
+    setStatus('❌ Ошибка: ' + err.message);
+  }
+};
+
 
   // 🔥 Удалить старую подписку при монтировании
   useEffect(() => {

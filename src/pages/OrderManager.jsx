@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import {
   Tag,
   message,
@@ -19,6 +19,7 @@ import axios from "axios";
 import "../component/styles/Product.scss";
 import { useNavigate } from "react-router-dom";
 import CartStore from "../store/CartStore";
+import { AuthContext } from "../store/AuthContext";
 const { Option } = Select;
 const { Text, Paragraph } = Typography;
 
@@ -53,33 +54,15 @@ const getStatusColor = (status) => {
       return "default";
   }
 };
-const PUBLIC_VAPID_KEY = 'BNzjcHZGKpcIGvMLbuAxxLx7nDDduh17XkP37wB3gW-mShK-rinrnTHA3MCbS3_kaGM7gWguuzBA9nizvQKB-70';
-
-function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
-
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
 
 const OrderManager = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all"); // добавлено
   const refs = useRef({});
   const wsRef = useRef(null);
   const navigate = useNavigate();
-  const knownOrderIds = useRef(new Set());
-const prevStatuses = useRef(new Map());
-
+  const { userRole } = useContext(AuthContext);
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -87,70 +70,12 @@ const prevStatuses = useRef(new Map());
         headers: { Authorization: `Bearer ${token}` },
       });
       setOrders(res.data.data);
-      // Добавляем ID существующих заказов в knownOrderIds
-      res.data.data.forEach(order => {
-  knownOrderIds.current.add(order.id);
-  prevStatuses.current.set(order.id, order.status);
-});
-
     } catch {
       message.error("Ошибка загрузки заказов");
     } finally {
       setLoading(false);
     }
   };
-
-  const showNotification = (title, options) => {
-    if (!("Notification" in window)) {
-      console.warn("Пуш уведомления не поддерживаются в этом браузере");
-      return;
-    }
-
-    if (Notification.permission === "granted") {
-      new Notification(title, options);
-    } else if (Notification.permission !== "denied") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          new Notification(title, options);
-        }
-      });
-    }
-  };
-
-
-  const subscribeAdmin = async (userRole) => {
-  if ('serviceWorker' in navigator && 'PushManager' in window) {
-    const reg = await navigator.serviceWorker.ready;
-    const subscription = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
-    });
-
-    await fetch("https://chechnya-product.ru/api/push/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        subscription,
-        message: "Подписка администратора",
-        isAdmin: userRole === "admin", // true для админа
-      }),
-    });
-  }
-};
-
-useEffect(() => {
-  if (Notification.permission !== "granted") {
-    Notification.requestPermission();
-  }
-
-  const token = localStorage.getItem("token");
-  const user = JSON.parse(atob(token.split(".")[1])); // предполагаем, что в JWT есть роль
-  const role = user?.role;
-
-  if (role === "admin") {
-    subscribeAdmin(role).catch(console.error);
-  }
-}, []);
 
   const updateOrderStatus = async (id, newStatus) => {
     try {
@@ -162,18 +87,7 @@ useEffect(() => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
       message.success("Статус обновлён");
-      
-      // Находим заказ для отправки уведомления
-      const updatedOrder = orders.find(order => order.id === id);
-      if (updatedOrder) {
-        showNotification("Статус заказа изменён", {
-          body: `Заказ #${id} теперь имеет статус: ${newStatus}`,
-          icon: "/apple-touch-icon.png"
-        });
-      }
-      
       fetchOrders();
     } catch {
       message.error("Ошибка обновления статуса");
@@ -213,6 +127,46 @@ useEffect(() => {
     }
   };
 
+  const sendPushNotification = async (order) => {
+    try {
+      const subscription = localStorage.getItem("pushSubscription");
+
+      if (!subscription) {
+        console.log("Push subscription not found in localStorage");
+        return;
+      }
+
+      if (userRole !== "admin") {
+        console.log("User is not admin, skip push");
+        return;
+      }
+
+      const message = `Новый заказ #${order.id} от ${order.name}`;
+      console.log("Sending push:", message); // Логируем для отладки
+
+      const response = await fetch(
+        "https://chechnya-product.ru/api/push/send",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subscription: JSON.parse(subscription),
+            message,
+            isAdmin: true,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log("Push sent successfully");
+    } catch (error) {
+      console.error("Error sending push notification:", error);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
 
@@ -232,58 +186,33 @@ useEffect(() => {
     };
 
     socket.onmessage = (event) => {
-  try {
-    const messageData = JSON.parse(event.data);
-    if (messageData.type === "new_order" || messageData.type === "status_update") {
-      const incoming = messageData.order;
+      try {
+        const messageData = JSON.parse(event.data);
+        console.log("WebSocket message:", messageData); // Логируем входящие сообщения
 
-      setOrders((prevOrders) => {
-        const exists = prevOrders.find((o) => o.id === incoming.id);
+        if (messageData.type === "new_order") {
+          const incoming = messageData.order;
+          console.log("New order received:", incoming);
 
-        // Если заказ уже есть — возможно, статус изменился
-        if (exists) {
-          const prevStatus = prevStatuses.current.get(incoming.id);
-          const newStatus = incoming.status;
-
-          if (prevStatus && prevStatus !== newStatus) {
-            showNotification("Обновление статуса", {
-              body: `Заказ #${incoming.id}: ${prevStatus} → ${newStatus}`,
-              icon: "/apple-touch-icon.png",
-            });
+          if (userRole === "admin") {
+            sendPushNotification(incoming);
           }
 
-          // Обновляем статус
-          prevStatuses.current.set(incoming.id, newStatus);
-
-          return prevOrders.map((o) =>
-            o.id === incoming.id ? { ...o, ...incoming } : o
-          );
-        } else {
-          // Новый заказ
-          if (!knownOrderIds.current.has(incoming.id)) {
-            knownOrderIds.current.add(incoming.id);
-            prevStatuses.current.set(incoming.id, incoming.status);
-
-            showNotification("Новый заказ", {
-              body: `Заказ от ${incoming.name}, сумма: ${incoming.total}₽`,
-              icon: "/apple-touch-icon.png"
-            });
-          }
-
-          return [incoming, ...prevOrders];
+          setOrders((prev) => [incoming, ...prev]);
         }
-      });
-    }
-  } catch (e) {
-    console.error("Ошибка обработки WebSocket-сообщения:", e);
-  }
-};
 
+        if (messageData.type === "status_update") {
+          // ... (обработка обновления статуса)
+        }
+      } catch (e) {
+        console.error("Ошибка обработки WebSocket-сообщения:", e);
+      }
+    };
 
     return () => {
       socket.close();
     };
-  }, []);
+  }, [userRole]);
 
   const [expandedOrder, setExpandedOrder] = useState(null);
 
@@ -370,6 +299,7 @@ useEffect(() => {
             .filter((order) =>
               filterStatus === "all" ? true : order.status === filterStatus
             )
+
             .map((order) => {
               const itemList = order.items?.map((item) => (
                 <li key={item.id}>
@@ -384,7 +314,9 @@ useEffect(() => {
                     onClick={() => toggleOrderDetails(order.id)}
                   >
                     <Space className="order-label">
-                      <Text strong style={{ color: '#1890ff' }}>#{order.id}</Text>
+                      <Text strong style={{ color: "#1890ff" }}>
+                        #{order.id}
+                      </Text>
                       <Text strong>{order.name}</Text>
                       <Tag
                         color={getStatusColor(order.status)}
@@ -533,7 +465,7 @@ useEffect(() => {
                             height: 42,
                           }}
                           onClick={() => {
-                            CartStore.repeatOrder(order.items);
+                            CartStore.repeatOrder(order.items); // order.items — список продуктов
                             message.success("Товары добавлены в корзину");
                             navigate("/cart");
                           }}
