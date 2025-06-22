@@ -1,7 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { AuthContext } from './store/AuthContext';
+
+// ⚙️ Контекст, из которого берётся роль
 
 const PUBLIC_VAPID_KEY = 'BNzjcHZGKpcIGvMLbuAxxLx7nDDduh17XkP37wB3gW-mShK-rinrnTHA3MCbS3_kaGM7gWguuzBA9nizvQKB-70';
 
+// 🔐 Преобразование ключа
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
@@ -17,7 +21,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-
+// 📦 Подписка на Push
 async function subscribeUser() {
   if ('serviceWorker' in navigator && 'PushManager' in window) {
     const reg = await navigator.serviceWorker.ready;
@@ -33,17 +37,20 @@ async function subscribeUser() {
 const PushSender = () => {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
+  const { userRole } = useContext(AuthContext); // 🎭 Получаем роль из контекста
 
   const handleSend = async () => {
     try {
       setStatus('🔄 Подписка на push...');
       const subscription = await subscribeUser();
 
+      const isAdmin = userRole === 'admin'; // ✅ Проверка роли
+
       setStatus('📤 Отправка сообщения...');
       const res = await fetch('https://chechnya-product.ru/api/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription, message }),
+        body: JSON.stringify({ subscription, message, isAdmin }),
       });
 
       if (res.ok) {
@@ -57,13 +64,12 @@ const PushSender = () => {
     }
   };
 
-   // 🔥 Удалить старую подписку при монтировании
+  // 🔥 Удалить старую подписку при монтировании
   useEffect(() => {
     navigator.serviceWorker.ready
-  .then(reg => reg.pushManager.getSubscription())
-  .then(sub => sub?.unsubscribe())
-  .then(() => console.log('✅ Подписка удалена'));
-
+      .then(reg => reg.pushManager.getSubscription())
+      .then(sub => sub?.unsubscribe())
+      .then(() => console.log('✅ Старая подписка удалена'));
   }, []);
 
   return (
@@ -77,7 +83,7 @@ const PushSender = () => {
         style={{ width: '300px', padding: '8px', marginRight: '10px' }}
       />
       <button onClick={handleSend} style={{ padding: '8px 16px' }}>
-        Отправить Push
+        🔔 Подписаться и отправить Push
       </button>
       <div style={{ marginTop: 10 }}>{status}</div>
     </div>

@@ -53,6 +53,22 @@ const getStatusColor = (status) => {
       return "default";
   }
 };
+const PUBLIC_VAPID_KEY = 'BNzjcHZGKpcIGvMLbuAxxLx7nDDduh17XkP37wB3gW-mShK-rinrnTHA3MCbS3_kaGM7gWguuzBA9nizvQKB-70';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
 
 const OrderManager = () => {
   const [orders, setOrders] = useState([]);
@@ -100,6 +116,41 @@ const prevStatuses = useRef(new Map());
       });
     }
   };
+
+
+  const subscribeAdmin = async (userRole) => {
+  if ('serviceWorker' in navigator && 'PushManager' in window) {
+    const reg = await navigator.serviceWorker.ready;
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
+    });
+
+    await fetch("https://chechnya-product.ru/api/push/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        subscription,
+        message: "Подписка администратора",
+        isAdmin: userRole === "admin", // true для админа
+      }),
+    });
+  }
+};
+
+useEffect(() => {
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(atob(token.split(".")[1])); // предполагаем, что в JWT есть роль
+  const role = user?.role;
+
+  if (role === "admin") {
+    subscribeAdmin(role).catch(console.error);
+  }
+}, []);
 
   const updateOrderStatus = async (id, newStatus) => {
     try {
