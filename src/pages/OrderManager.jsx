@@ -137,10 +137,7 @@ console.log(orders)
         return;
       }
 
-      if (userRole !== "admin") {
-        console.log("User is not admin, skip push");
-        return;
-      }
+   
 
       const message = `Новый заказ #${order.id} от ${order.name}, на сумму ${order.total} руб.`;
       console.log("Sending push:", message); // Логируем для отладки
@@ -153,7 +150,6 @@ console.log(orders)
           body: JSON.stringify({
             subscription: JSON.parse(subscription),
             message,
-            isAdmin: true,
           }),
         }
       );

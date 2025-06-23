@@ -76,14 +76,6 @@ const CartPage = () => {
 
   const decreaseQuantity = (id) => CartStore.decreaseQuantity(id);
 
-  // const toggleSelected = (dishId) => {
-  //   setSelectedIds((prev) =>
-  //     prev.includes(dishId)
-  //       ? prev.filter((id) => id !== dishId)
-  //       : [...prev, dishId]
-  //   );
-  // };
-
   const toggleSelected = (dishId) => {
     isManuallyChanged.current = true;
     setSelectedIds((prev) =>
@@ -367,28 +359,12 @@ const CartPage = () => {
       style={{
         padding: "5px",
         marginBottom: 150,
-        // transition: "min-height 0.3s ease",
-        // minHeight: isAddressOpen ? 815 : "auto",
       }}
     >
       {cart.length !== 0 && <h2>Ваш заказ:</h2>}
 
       {cart.length > 0 ? (
         <>
-          {/* <Button
-            onClick={() => {
-              if (selectedIds.length === cart.length) {
-                setSelectedIds([]); // Снимаем всё
-              } else {
-                setSelectedIds(cart.map((item) => item.product_id)); // Выбираем всё
-              }
-            }}
-            style={{ marginBottom: 10 }}
-          >
-            {selectedIds.length === cart.length
-              ? "Снять выделение"
-              : "Выбрать всё"}
-          </Button> */}
           <Button
             onClick={() => {
               isManuallyChanged.current = true;
@@ -448,21 +424,6 @@ const CartPage = () => {
           <Button onClick={() => navigate("/")} icon={<PlusOutlined />}>
             {cart.length !== 0 ? "Добавить ещё" : "Добавить товары"}
           </Button>
-        </div>
-      )}
-
-      {cart.length !== 0 && (
-        <div style={{ margin: "20px 0" }}>
-          <Text
-            style={{
-              fontSize: 17,
-              color: "green",
-              textDecoration: "underline",
-            }}
-            strong
-          >
-            Итоговая сумма: {calculateTotal()} ₽
-          </Text>
         </div>
       )}
 

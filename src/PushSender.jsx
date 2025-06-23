@@ -47,13 +47,13 @@ const PushSender = () => {
     // ✅ Сохраняем подписку в localStorage
     localStorage.setItem("pushSubscription", JSON.stringify(subscription));
 
-    const isAdmin = userRole === 'admin';
+    // const isAdmin = userRole === 'admin';
 
     setStatus('📤 Отправка сообщения...');
     const res = await fetch('https://chechnya-product.ru/api/push/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription, message, isAdmin }),
+      body: JSON.stringify({ subscription, message }),
     });
 
     if (res.ok) {
