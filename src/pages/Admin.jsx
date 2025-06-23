@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Input, Button, Form, message, Tabs, Drawer, Menu } from "antd";
+import { Input, Button, Form, message, Tabs, Drawer, Menu, Typography } from "antd";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import InputMask from "react-input-mask";
 import { AuthContext } from "../store/AuthContext";
 import LogsViewer from "../component/LogsViewer";
@@ -10,7 +10,7 @@ import { SettingOutlined } from "@ant-design/icons";
 // import PushSubscribeButton from "../PushSubscribeButton";
 import PushSender from "../PushSender";
 import PushBroadcastForm from "../PushBroadcastForm";
-
+const { Text } = Typography;
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
 const PHONE_MASK = "+7 (999) 999-99-99";
@@ -87,68 +87,67 @@ const Login = () => {
   };
 
   // Login handler - same as yours but adapted to use form values from loginForm
- const handleLogin = async (values) => {
-  if (IS_AUTH_DISABLED) {
-    login("fake-token");
-    message.success("Имитация авторизации успешна!");
-    navigate("/favorites");
-    return;
-  }
-
-  let identifier = values.username;
-  if (identifier.startsWith("+7")) {
-    identifier = "+7" + identifier.replace(/\D/g, "").slice(1);
-  }
-
-  if (values.password.length < 6) {
-    message.error("Пароль должен содержать не менее 6 символов.");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const response = await axios.post(
-      "https://chechnya-product.ru/api/login",
-      {
-        identifier,
-        password: values.password,
-      }
-    );
-
-    if (response.data.data.token) {
-      const token = response.data.data.token;
-      const username = response.data.data.username;
-
-      login(token, username); // ✅ авторизуем
-
-      // ⏬ ДОБАВЛЕНО: запрос адреса после авторизации
-      try {
-        const meResponse = await axios.get(
-          "https://chechnya-product.ru/api/me/address",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        console.log("Адрес пользователя:", meResponse.data);
-        // ⏬ тут можно navigate или сохранить в store
-      } catch (addressError) {
-        console.error("Ошибка при получении адреса:", addressError);
-      }
-
-      message.success(`Добро пожаловать, ${username}!`);
+  const handleLogin = async (values) => {
+    if (IS_AUTH_DISABLED) {
+      login("fake-token");
+      message.success("Имитация авторизации успешна!");
+      navigate("/favorites");
+      return;
     }
-  } catch (error) {
-    message.error(
-      error.response?.data?.error ||
-        "Ошибка авторизации. Проверьте логин и пароль."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
 
+    let identifier = values.username;
+    if (identifier.startsWith("+7")) {
+      identifier = "+7" + identifier.replace(/\D/g, "").slice(1);
+    }
+
+    if (values.password.length < 6) {
+      message.error("Пароль должен содержать не менее 6 символов.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "https://chechnya-product.ru/api/login",
+        {
+          identifier,
+          password: values.password,
+        }
+      );
+
+      if (response.data.data.token) {
+        const token = response.data.data.token;
+        const username = response.data.data.username;
+
+        login(token, username); // ✅ авторизуем
+
+        // ⏬ ДОБАВЛЕНО: запрос адреса после авторизации
+        try {
+          const meResponse = await axios.get(
+            "https://chechnya-product.ru/api/me/address",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          console.log("Адрес пользователя:", meResponse.data);
+          // ⏬ тут можно navigate или сохранить в store
+        } catch (addressError) {
+          console.error("Ошибка при получении адреса:", addressError);
+        }
+
+        message.success(`Добро пожаловать, ${username}!`);
+      }
+    } catch (error) {
+      message.error(
+        error.response?.data?.error ||
+          "Ошибка авторизации. Проверьте логин и пароль."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Registration handler
   const handleRegister = async (values) => {
@@ -207,20 +206,21 @@ const Login = () => {
         <Button size="large" type="primary" danger onClick={logout} block>
           Выйти
         </Button>
- {/* <PushSubscribeButton /> */}
- {/* <PushBroadcastForm/> */}
- <PushSender/>
+        {/* <PushSubscribeButton /> */}
+        {/* <PushBroadcastForm/> */}
+        <PushSender />
         {/* <LogsViewer/> */}
         {/* <UserOrders /> */}
-        {showInstallBtn && (
-          <Button
-            type="primary"
-            onClick={handleInstallClick}
-            style={{ margin: "16px 0" }}
-          >
-            Установить приложение
-          </Button>
-        )}
+        <div style={{ margin: "24px 0", textAlign: "center" }}>
+          <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+            Хотите установить приложение на свой телефон?
+          </Text>
+          <Link to="/info">
+            <Button type="link" style={{ padding: 0 }}>
+              Инструкция по установке
+            </Button>
+          </Link>
+        </div>
 
         {/* <Footer /> */}
       </div>

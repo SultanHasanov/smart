@@ -1,96 +1,119 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { Button } from "antd";
 import { AuthContext } from "./store/AuthContext";
+import { FaBell, FaBellSlash } from "react-icons/fa";
 
-// ⚙️ Контекст, из которого берётся роль
+const PUBLIC_VAPID_KEY = import.meta.env.VITE_PUBLIC_VAPID_KEY;
 
-const PUBLIC_VAPID_KEY =
-  "BNzjcHZGKpcIGvMLbuAxxLx7nDDduh17XkP37wB3gW-mShK-rinrnTHA3MCbS3_kaGM7gWguuzBA9nizvQKB-70";
-
-// 🔐 Преобразование ключа
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-
   const rawData = atob(base64);
   const outputArray = new Uint8Array(rawData.length);
-
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
 }
 
-// 📦 Подписка на Push
 async function subscribeUser() {
-  if ("serviceWorker" in navigator && "PushManager" in window) {
-    const reg = await navigator.serviceWorker.ready;
-    return await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
-    });
-  } else {
-    throw new Error("Push уведомления не поддерживаются в этом браузере");
-  }
+  const reg = await navigator.serviceWorker.ready;
+  return await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
+  });
 }
 
 const PushSender = () => {
-  const [message, setMessage] = useState("");
-  const [status, setStatus] = useState("");
-  const { userRole } = useContext(AuthContext); // 🎭 Получаем роль из контекста
+  const { userRole } = useContext(AuthContext);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
-  const handleSend = async () => {
+  useEffect(() => {
+    const stored = localStorage.getItem("pushSubscription");
+    if (stored) setIsSubscribed(true);
+  }, []);
+
+  const handleSubscribe = async () => {
     try {
-      setStatus("🔄 Подписка на push...");
       const subscription = await subscribeUser();
-
-      // ✅ Сохраняем подписку в localStorage
       localStorage.setItem("pushSubscription", JSON.stringify(subscription));
 
-      const isAdmin = userRole === "admin";
+      await fetch("https://chechnya-product.ru/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscription,
+          is_admin: userRole === "admin",
+        }),
+      });
 
-      setStatus("📤 Отправка сообщения...");
-      const res = await fetch(
-        "https://chechnya-product.ru/api/push/subscribe",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subscription, is_admin: isAdmin }),
-        }
-      );
-
-      if (res.ok) {
-        setStatus("✅ Уведомление отправлено!");
-      } else {
-        setStatus("❌ Ошибка при отправке уведомления");
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus("❌ Ошибка: " + err.message);
+      setIsSubscribed(true);
+    } catch (error) {
+      console.error("Ошибка подписки:", error);
     }
   };
 
-  // 🔥 Удалить старую подписку при монтировании
-  // useEffect(() => {
-  //   navigator.serviceWorker.ready
-  //     .then(reg => reg.pushManager.getSubscription())
-  //     .then(sub => sub?.unsubscribe())
-  //     .then(() => console.log('✅ Старая подписка удалена'));
-  // }, []);
+  const handleUnsubscribe = async () => {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+      const subscription = await subscribeUser();
+
+      await fetch("https://chechnya-product.ru/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscription,
+          is_admin: false,
+        }),
+      });
+
+      localStorage.removeItem("pushSubscription");
+      setIsSubscribed(false);
+    } catch (error) {
+      console.error("Ошибка отписки:", error);
+    }
+  };
 
   return (
-    <div style={{ padding: 20, fontFamily: "sans-serif" }}>
-      <h2>Push-уведомление</h2>
-      <input
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 15 }}>
+      <Button
         type="text"
-        placeholder="Текст уведомления"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        style={{ width: "300px", padding: "8px", marginRight: "10px" }}
+        shape="circle"
+        icon={isSubscribed ? (
+          <FaBellSlash style={{ 
+            fontSize: 20, 
+            color: '#ff4d4f',
+            transition: 'all 0.3s'
+          }} />
+        ) : (
+          <FaBell style={{ 
+            fontSize: 20, 
+            color: '#1890ff',
+            transition: 'all 0.3s'
+          }} />
+        )}
+        onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
+        style={{
+          border: 'none',
+          boxShadow: 'none',
+          width: 32,
+          height: 32,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'transparent'
+        }}
       />
-      <button onClick={handleSend} style={{ padding: "8px 16px" }}>
-        🔔 Подписаться и отправить Push
-      </button>
-      <div style={{ marginTop: 10 }}>{status}</div>
+      <span style={{ 
+        fontSize: 14,
+        color: isSubscribed ? '#ff4d4f' : '#1890ff',
+        transition: 'all 0.3s',
+        cursor: 'pointer'
+      }} onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}>
+        {isSubscribed ? 'Отписаться от уведомлений' : 'Подписаться на уведомления'}
+      </span>
     </div>
   );
 };

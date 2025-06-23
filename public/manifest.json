@@ -15,8 +15,9 @@
       "type": "image/png"
     }
   ],
-  "orientation": "portrait",
+  "orientation": "any",
   "display": "standalone",
+  "dir": "auto",
   "lang": "ru-RU",
   "name": "Smart",
   "start_url": "/",
