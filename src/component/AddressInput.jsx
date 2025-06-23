@@ -253,7 +253,7 @@ export default function AddressInput({
         <Card
           size="small"
           style={{ marginBottom: 16, borderRadius: 8 }}
-          bodyStyle={{ padding: 12 }}
+          // bodyStyle={{ padding: 12 }}
         >
           <Space direction="vertical" style={{ width: "100%" }}>
             <div

@@ -296,29 +296,29 @@ const CartPage = () => {
       const orderId = response.data.data.id;
       const orderLink = `https://chechnya-product.ru/orders/${orderId}`;
 
-      const whatsappMessage = `
-*Новый заказ*
+//       const whatsappMessage = `
+// *Новый заказ*
 
-Номер заказа: ${orderId}
-🔗 Ссылка на заказ: ${orderLink}
+// Номер заказа: ${orderId}
+// 🔗 Ссылка на заказ: ${orderLink}
 
-📱 Вы можете зарегистрироваться в приложении https://chechnya-product.ru/login и отслеживать статус своих заказов прямо в личном кабинете.
-`;
+// 📱 Вы можете зарегистрироваться в приложении https://chechnya-product.ru/login и отслеживать статус своих заказов прямо в личном кабинете.
+// `;
 
-      const url = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
-        whatsappMessage
-      )}`;
+//       const url = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
+//         whatsappMessage
+//       )}`;
 
-      setWhatsAppURL(url); // Сохраняем URL в state
-      setTimeout(() => {
-        const link = document.createElement("a");
-        link.href = url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }, 200);
+//       setWhatsAppURL(url); // Сохраняем URL в state
+//       setTimeout(() => {
+//         const link = document.createElement("a");
+//         link.href = url;
+//         link.target = "_blank";
+//         link.rel = "noopener noreferrer";
+//         document.body.appendChild(link);
+//         link.click();
+//         document.body.removeChild(link);
+//       }, 200);
 
       message.success("Заказ отправлен админу и сохранён в системе!");
 

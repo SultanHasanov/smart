@@ -128,41 +128,41 @@ console.log(orders)
       message.error("Не удалось поделиться");
     }
   };
-  const sendPushNotification = async (order) => {
-    try {
-      const subscription = localStorage.getItem("pushSubscription");
+  // const sendPushNotification = async (order) => {
+  //   try {
+  //     const subscription = localStorage.getItem("pushSubscription");
 
-      if (!subscription) {
-        console.log("Push subscription not found in localStorage");
-        return;
-      }
+  //     if (!subscription) {
+  //       console.log("Push subscription not found in localStorage");
+  //       return;
+  //     }
 
    
 
-      const message = `Новый заказ #${order.id} от ${order.name}, на сумму ${order.total} руб.`;
-      console.log("Sending push:", message); // Логируем для отладки
+  //     const message = `Новый заказ #${order.id} от ${order.name}, на сумму ${order.total} руб.`;
+  //     console.log("Sending push:", message); // Логируем для отладки
 
-      const response = await fetch(
-        "https://chechnya-product.ru/api/push/send",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            subscription: JSON.parse(subscription),
-            message,
-          }),
-        }
-      );
+  //     const response = await fetch(
+  //       "https://chechnya-product.ru/api/push/send",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({
+  //           subscription: JSON.parse(subscription),
+  //           message,
+  //         }),
+  //       }
+  //     );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
 
-      console.log("Push sent successfully");
-    } catch (error) {
-      console.error("Error sending push notification:", error);
-    }
-  };
+  //     console.log("Push sent successfully");
+  //   } catch (error) {
+  //     console.error("Error sending push notification:", error);
+  //   }
+  // };
 
   useEffect(() => {
     fetchOrders();
@@ -191,9 +191,9 @@ console.log(orders)
           const incoming = messageData.order;
           console.log("New order received:", incoming);
 
-          if (userRole === "admin") {
-            sendPushNotification(incoming);
-          }
+          // if (userRole === "admin") {
+          //   sendPushNotification(incoming);
+          // }
 
           setOrders((prev) => [incoming, ...prev]);
         }

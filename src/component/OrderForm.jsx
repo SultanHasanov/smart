@@ -38,9 +38,9 @@ const OrderForm = ({
   return (
     <Card
       title=""
-      bordered={false}
-      headStyle={{ border: "none", fontWeight: "500" }}
-      bodyStyle={{ padding: "0" }}
+      // bordered={false}
+      // headStyle={{ border: "none", fontWeight: "500" }}
+      // bodyStyle={{ padding: "0" }}
     >
       <Form
         form={form}

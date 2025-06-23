@@ -151,7 +151,7 @@ const TabIcons = () => {
                   background: 'red',
                   color: 'white',
                   borderRadius: '50%',
-                  padding: '2px 5px',
+                  padding: newOrdersCount < 9 ? '2px 5px' : '4px 7px',
                   fontSize: 10,
                   lineHeight: '12px',
                   fontWeight: "bold"

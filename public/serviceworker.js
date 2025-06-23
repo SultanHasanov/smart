@@ -83,39 +83,43 @@ self.addEventListener("fetch", (event) => {
 // });
 
 self.addEventListener("push", function (event) {
-   console.log('[Service Worker] Push received:', event);
-  console.log('[Service Worker] Data:', event.data?.text());
-  let data = {};
-  try {
-    data = event.data.json();
-  } catch (e) {
-    console.warn("⚠️ Push пришёл не в JSON-формате:", event.data?.text());
-    data = {
-      title: "Сообщение",
-      body: event.data?.text() || "Без содержимого",
-    };
-  }
+  event.waitUntil((async () => {
+    let data = { title: "Уведомление", body: "📦 Новый заказ" };
 
-  const title = data.title || "Уведомление";
-  const options = {
-    body: data.body,
-    icon: "/apple-touch-icon.png",
-    badge: "/favicon-96x96.png",
-    data: {
-      url: data.url || "/", // передаём url для перехода при клике
-    },
-  };
+    if (event.data) {
+      try {
+        data = event.data.json();
+      } catch {
+        const text = await event.data.text(); // ✅ await, т.к. text() — Promise
+        data.body = text;
+      }
+    }
 
-  event.waitUntil(self.registration.showNotification(title, options));
+    await self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/apple-touch-icon.png",
+      badge: "/favicon-96x96.png",
+      data: { url: "/admin-orders" },
+    });
+  })());
 });
 
-// Обработчик клика по уведомлению
+// 👇 Обработка клика по уведомлению
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || "/";
-
+  const url = event.notification.data?.url || "/";
   event.waitUntil(
-    clients.openWindow(urlToOpen)
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
+      for (const client of windowClients) {
+        if (client.url.includes(url) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
   );
 });
+
