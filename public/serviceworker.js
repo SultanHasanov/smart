@@ -83,25 +83,27 @@ self.addEventListener("fetch", (event) => {
 // });
 
 self.addEventListener("push", function (event) {
-  event.waitUntil((async () => {
-    let data = { title: "Уведомление", body: "📦 Новый заказ" };
+  event.waitUntil(
+    (async () => {
+      let data = { title: "Уведомление", body: "📦 Новый заказ" };
 
-    if (event.data) {
-      try {
-        data = event.data.json();
-      } catch {
-        const text = await event.data.text(); // ✅ await, т.к. text() — Promise
-        data.body = text;
+      if (event.data) {
+        try {
+          data = event.data.json();
+        } catch {
+          const text = await event.data.text(); // ✅ await, т.к. text() — Promise
+          data.body = text;
+        }
       }
-    }
 
-    await self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: "/apple-touch-icon.png",
-      badge: "/favicon-96x96.png",
-      data: { url: "/admin-orders" },
-    });
-  })());
+      await self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: "/apple-touch-icon.png",
+        badge: "/icon-72x72.png",
+        data: { url: "/admin-orders" },
+      });
+    })()
+  );
 });
 
 // 👇 Обработка клика по уведомлению
@@ -110,16 +112,17 @@ self.addEventListener("notificationclick", function (event) {
 
   const url = event.notification.data?.url || "/";
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
-      for (const client of windowClients) {
-        if (client.url.includes(url) && "focus" in client) {
-          return client.focus();
+    clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then((windowClients) => {
+        for (const client of windowClients) {
+          if (client.url.includes(url) && "focus" in client) {
+            return client.focus();
+          }
         }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
   );
 });
-

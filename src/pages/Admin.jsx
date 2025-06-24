@@ -1,20 +1,53 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Input, Button, Form, message, Tabs, Drawer, Menu, Typography } from "antd";
+import {
+  Input,
+  Button,
+  Form,
+  message,
+  Tabs,
+  Drawer,
+  Menu,
+  Typography,
+  Card,
+} from "antd";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import InputMask from "react-input-mask";
 import { AuthContext } from "../store/AuthContext";
 import LogsViewer from "../component/LogsViewer";
 import UserOrders from "./UserOrders";
-import { SettingOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  LockOutlined,
+  PhoneOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
 // import PushSubscribeButton from "../PushSubscribeButton";
 import PushSender from "../PushSender";
 import PushBroadcastForm from "../PushBroadcastForm";
-const { Text } = Typography;
+import "../component/styles/Product.scss";
+const { Text, Title } = Typography;
+import { motion } from "framer-motion";
 const IS_AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === "true";
 
 const PHONE_MASK = "+7 (999) 999-99-99";
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      staggerChildren: 0.1,
+      when: "beforeChildren",
+    },
+  },
+};
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0 },
+};
 const Login = () => {
   const { isAuthenticated, login, logout, username, userRole } =
     useContext(AuthContext);
@@ -33,32 +66,36 @@ const Login = () => {
   // For install button (existing)
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   useEffect(() => {
-    if (activeTab === "login") {
-      const savedPhone = sessionStorage.getItem("savedPhone");
-      const savedPassword = sessionStorage.getItem("savedPassword");
+  if (activeTab === "login") {
+    const savedPhone = sessionStorage.getItem("savedPhone");
+    const savedPassword = sessionStorage.getItem("savedPassword");
 
-      if (savedPhone || savedPassword) {
-        // Преобразуем сохранённый телефон к маске
-        const raw = savedPhone?.replace(/\D/g, "") || "";
-        const formattedPhone =
-          raw.length === 11
-            ? `+7 (${raw.slice(1, 4)}) ${raw.slice(4, 7)}-${raw.slice(
-                7,
-                9
-              )}-${raw.slice(9, 11)}`
-            : "";
+    if (savedPhone || savedPassword) {
+      // Преобразуем сохранённый телефон к маске
+      const raw = savedPhone?.replace(/\D/g, "") || "";
+      const formattedPhone =
+        raw.length === 11
+          ? `+7 (${raw.slice(1, 4)}) ${raw.slice(4, 7)}-${raw.slice(
+              7,
+              9
+            )}-${raw.slice(9, 11)}`
+          : "";
 
-        loginForm.setFieldsValue({
-          username: formattedPhone,
-          password: savedPassword,
-        });
+      loginForm.setFieldsValue({
+        username: formattedPhone,
+        password: savedPassword,
+      });
 
-        // ❌ Удаляем, чтобы не подставлялось в будущем
-        sessionStorage.removeItem("savedPhone");
-        sessionStorage.removeItem("savedPassword");
-      }
+      // Удаляем после установки, чтобы не подставлялось в будущем
+      sessionStorage.removeItem("savedPhone");
+      sessionStorage.removeItem("savedPassword");
     }
-  }, [activeTab, loginForm]);
+  } else {
+    // 🔒 ОЧИЩАЕМ форму регистрации, чтобы исключить случайные подстановки
+    regForm.resetFields();
+  }
+}, [activeTab, loginForm, regForm]);
+
 
   useEffect(() => {
     const checkShouldShowButton = () => {
@@ -206,11 +243,9 @@ const Login = () => {
         <Button size="large" type="primary" danger onClick={logout} block>
           Выйти
         </Button>
-        {/* <PushSubscribeButton /> */}
-        {/* <PushBroadcastForm/> */}
+
         <PushSender />
-        {/* <LogsViewer/> */}
-        {/* <UserOrders /> */}
+
         <div style={{ margin: "24px 0", textAlign: "center" }}>
           <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
             Хотите установить приложение на свой телефон?
@@ -228,207 +263,277 @@ const Login = () => {
   }
 
   return (
-    <div className="login-container" style={{ maxWidth: 400, margin: "auto" }}>
-      <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)}>
-        <Tabs.TabPane tab="Авторизация" key="login">
-          <Form
-            form={loginForm}
-            name="login"
-            onFinish={handleLogin}
-            initialValues={{
-              username: "",
-              password: "",
-            }}
-            layout="vertical"
-          >
-            <Form.Item
-              label="Номер телефона"
-              name="username"
-              rules={[
-                {
-                  required: true,
-                  message: "Пожалуйста, введите номер телефона!",
-                },
-                {
-                  validator: (_, value) => {
-                    if (!value) return Promise.resolve();
-                    const digits = value.replace(/\D/g, "");
-                    if (digits.length === 11 && digits.startsWith("7")) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(
-                      "Номер должен содержать 11 цифр и начинаться с 7"
-                    );
-                  },
-                },
-              ]}
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="auth-container"
+    >
+      <Card className="auth-card">
+        <motion.div variants={itemVariants}>
+          <Title level={3} className="auth-title">
+            {activeTab === "login" ? "Вход в аккаунт" : "Регистрация"}
+          </Title>
+        </motion.div>
+
+        <Tabs
+          activeKey={activeTab}
+          onChange={(key) => setActiveTab(key)}
+          centered
+          className="auth-tabs"
+        >
+          <Tabs.TabPane tab="Войти" key="login">
+            <Form
+              form={loginForm}
+              name="login"
+              onFinish={handleLogin}
+              layout="vertical"
+              className="auth-form"
             >
-              <InputMask
-                mask="+7 (999) 999-99-99"
-                maskChar={null}
-                alwaysShowMask={false}
-                onChange={(e) => {
-                  let raw = e.target.value.replace(/\D/g, "");
-                  if (raw.length > 11) raw = raw.slice(0, 11);
-                  const formatted =
-                    "+7 (" +
-                    raw.slice(1, 4) +
-                    ") " +
-                    raw.slice(4, 7) +
-                    "-" +
-                    raw.slice(7, 9) +
-                    "-" +
-                    raw.slice(9, 11);
-                  loginForm.setFieldsValue({ username: formatted });
-                }}
-              >
-                {(inputProps) => (
-                  <Input
-                    {...inputProps}
+              <motion.div variants={itemVariants}>
+                <Form.Item
+                  label="Номер телефона"
+                  name="username"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Пожалуйста, введите номер телефона!",
+                    },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        const digits = value.replace(/\D/g, "");
+                        if (digits.length === 11 && digits.startsWith("7")) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          "Номер должен содержать 11 цифр и начинаться с 7"
+                        );
+                      },
+                    },
+                  ]}
+                >
+                  <InputMask
+                    mask="+7 (999) 999-99-99"
+                    maskChar={null}
+                    alwaysShowMask={false}
+                    onChange={(e) => {
+                      let raw = e.target.value.replace(/\D/g, "");
+                      if (raw.length > 11) raw = raw.slice(0, 11);
+                      const formatted =
+                        "+7 (" +
+                        raw.slice(1, 4) +
+                        ") " +
+                        raw.slice(4, 7) +
+                        "-" +
+                        raw.slice(7, 9) +
+                        "-" +
+                        raw.slice(9, 11);
+                      loginForm.setFieldsValue({ username: formatted });
+                    }}
+                  >
+                    {(inputProps) => (
+                      <Input
+                        {...inputProps}
+                        size="large"
+                        placeholder="+7 (___) ___-__-__"
+                        prefix={<PhoneOutlined className="auth-input-icon" />}
+                        className="auth-input"
+                      />
+                    )}
+                  </InputMask>
+                </Form.Item>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <Form.Item
+                  label="Пароль"
+                  name="password"
+                  rules={[
+                    { required: true, message: "Пожалуйста, введите пароль!" },
+                  ]}
+                >
+                  <Input.Password
                     size="large"
-                    placeholder="+7 (___) ___-__-__"
-                    inputMode="numeric"
-                    maxLength={18}
+                    placeholder="Пароль"
+                    prefix={<LockOutlined className="auth-input-icon" />}
+                    className="auth-input"
                   />
-                )}
-              </InputMask>
-            </Form.Item>
+                </Form.Item>
+              </motion.div>
 
-            <Form.Item
-              label="Пароль"
-              name="password"
-              rules={[
-                { required: true, message: "Пожалуйста, введите пароль!" },
-              ]}
-            >
-              <Input.Password size="large" placeholder="Пароль" />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                size="large"
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                block
-              >
-                Войти
-              </Button>
-            </Form.Item>
-          </Form>
-        </Tabs.TabPane>
-
-        <Tabs.TabPane tab="Регистрация" key="register">
-          <Form
-            form={regForm}
-            name="register"
-            onFinish={handleRegister}
-            layout="vertical"
-          >
-            <Form.Item
-              label="Имя пользователя"
-              name="username"
-              rules={[
-                {
-                  required: true,
-                  message: "Пожалуйста, введите имя пользователя!",
-                },
-                {
-                  min: 3,
-                  message:
-                    "Имя пользователя должно содержать не менее 3 символов",
-                },
-              ]}
-            >
-              <Input
-                size="large"
-                placeholder="Введите имя пользователя"
-                maxLength={30}
-              />
-            </Form.Item>
-            <Form.Item
-              label="Номер телефона"
-              name="phone"
-              rules={[
-                {
-                  required: true,
-                  message: "Пожалуйста, введите номер телефона!",
-                },
-                {
-                  validator: (_, value) => {
-                    if (!value) return Promise.resolve();
-                    const digits = value.replace(/\D/g, "");
-                    if (digits.length === 11 && digits.startsWith("7")) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(
-                      "Номер должен содержать 11 цифр и начинаться с 7"
-                    );
-                  },
-                },
-              ]}
-            >
-              <InputMask
-                mask="+7 (999) 999-99-99"
-                maskChar={null}
-                alwaysShowMask={false}
-                onChange={(e) => {
-                  let raw = e.target.value.replace(/\D/g, "");
-                  if (raw.length > 11) raw = raw.slice(0, 11);
-                  const formatted =
-                    "+7 (" +
-                    raw.slice(1, 4) +
-                    ") " +
-                    raw.slice(4, 7) +
-                    "-" +
-                    raw.slice(7, 9) +
-                    "-" +
-                    raw.slice(9, 11);
-                  regForm.setFieldsValue({ phone: formatted });
-                }}
-              >
-                {(inputProps) => (
-                  <Input
-                    {...inputProps}
+              <motion.div variants={itemVariants}>
+                <Form.Item>
+                  <Button
                     size="large"
-                    placeholder="+7 (___) ___-__-__"
-                    inputMode="numeric"
-                    maxLength={18}
-                  />
-                )}
-              </InputMask>
-            </Form.Item>
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    className="auth-button"
+                    block
+                  >
+                    Войти
+                  </Button>
+                </Form.Item>
+              </motion.div>
+            </Form>
+          </Tabs.TabPane>
 
-            <Form.Item
-              label="Пароль"
-              name="password"
-              rules={[
-                { required: true, message: "Пожалуйста, введите пароль!" },
-                {
-                  min: 6,
-                  message: "Пароль должен содержать не менее 6 символов",
-                },
-              ]}
+          <Tabs.TabPane tab="Зарегистрироваться" key="register">
+            <Form
+              form={regForm}
+              name="register"
+              onFinish={handleRegister}
+              layout="vertical"
+              className="auth-form"
             >
-              <Input.Password size="large" placeholder="Пароль" />
-            </Form.Item>
+              <motion.div variants={itemVariants}>
+                <Form.Item
+                  label="Имя пользователя"
+                  name="username"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Пожалуйста, введите имя пользователя!",
+                    },
+                    {
+                      min: 3,
+                      message:
+                        "Имя пользователя должно содержать не менее 3 символов",
+                    },
+                  ]}
+                >
+                  <Input
+                    size="large"
+                    placeholder="Введите имя пользователя"
+                    prefix={<UserOutlined className="auth-input-icon" />}
+                    className="auth-input"
+                    maxLength={30}
+                  />
+                </Form.Item>
+              </motion.div>
 
-            <Form.Item>
+              <motion.div variants={itemVariants}>
+                <Form.Item
+                  label="Номер телефона"
+                  name="phone"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Пожалуйста, введите номер телефона!",
+                    },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        const digits = value.replace(/\D/g, "");
+                        if (digits.length === 11 && digits.startsWith("7")) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          "Номер должен содержать 11 цифр и начинаться с 7"
+                        );
+                      },
+                    },
+                  ]}
+                >
+                  <InputMask
+                    mask="+7 (999) 999-99-99"
+                    maskChar={null}
+                    alwaysShowMask={false}
+                    onChange={(e) => {
+                      let raw = e.target.value.replace(/\D/g, "");
+                      if (raw.length > 11) raw = raw.slice(0, 11);
+                      const formatted =
+                        "+7 (" +
+                        raw.slice(1, 4) +
+                        ") " +
+                        raw.slice(4, 7) +
+                        "-" +
+                        raw.slice(7, 9) +
+                        "-" +
+                        raw.slice(9, 11);
+                      regForm.setFieldsValue({ phone: formatted });
+                    }}
+                  >
+                    {(inputProps) => (
+                      <Input
+                        {...inputProps}
+                        size="large"
+                        placeholder="+7 (___) ___-__-__"
+                        prefix={<PhoneOutlined className="auth-input-icon" />}
+                        className="auth-input"
+                      />
+                    )}
+                  </InputMask>
+                </Form.Item>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <Form.Item
+                  label="Пароль"
+                  name="password"
+                  rules={[
+                    { required: true, message: "Пожалуйста, введите пароль!" },
+                    {
+                      min: 6,
+                      message: "Пароль должен содержать не менее 6 символов",
+                    },
+                  ]}
+                >
+                  <Input.Password
+                    size="large"
+                    placeholder="Пароль"
+                    prefix={<LockOutlined className="auth-input-icon" />}
+                    className="auth-input"
+                  />
+                </Form.Item>
+              </motion.div>
+
+              <motion.div variants={itemVariants}>
+                <Form.Item>
+                  <Button
+                    size="large"
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    className="auth-button"
+                    block
+                  >
+                    Зарегистрироваться
+                  </Button>
+                </Form.Item>
+              </motion.div>
+            </Form>
+          </Tabs.TabPane>
+        </Tabs>
+
+        <motion.div variants={itemVariants} className="auth-switch-text">
+          {activeTab === "login" ? (
+            <Text>
+              Ещё нет аккаунта?{" "}
               <Button
-                size="large"
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                block
+                type="link"
+                onClick={() => setActiveTab("register")}
+                className="auth-switch-link"
               >
                 Зарегистрироваться
               </Button>
-            </Form.Item>
-          </Form>
-        </Tabs.TabPane>
-      </Tabs>
-      {/* <Footer /> */}
-    </div>
+            </Text>
+          ) : (
+            <Text>
+              Уже есть аккаунт?{" "}
+              <Button
+                type="link"
+                onClick={() => setActiveTab("login")}
+                className="auth-switch-link"
+              >
+                Войти
+              </Button>
+            </Text>
+          )}
+        </motion.div>
+      </Card>
+    </motion.div>
   );
 };
 

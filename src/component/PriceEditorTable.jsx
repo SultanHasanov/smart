@@ -11,7 +11,7 @@ const PriceEditorTable = () => {
 
   const fetchItems = async () => {
     const res = await axios.get('https://chechnya-product.ru/api/products');
-    setItems(res.data.data);
+    setItems(res.data.data.items);
   };
 
   useEffect(() => {

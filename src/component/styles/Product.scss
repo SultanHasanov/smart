@@ -492,3 +492,80 @@
   height: 42px;
 }
 
+.auth-container {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  height: min-content;
+}
+
+.auth-title {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1890ff;
+}
+
+.auth-form {
+  margin-top: 20px;
+}
+
+.auth-input .ant-input {
+  border-radius: 8px;
+  padding: 10px 15px 10px 35px;
+}
+
+.auth-input-icon {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.auth-button {
+  border-radius: 8px;
+  height: 44px;
+  font-weight: 500;
+}
+
+.auth-switch-text {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.auth-switch-link {
+  padding: 0;
+  height: auto;
+}
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.auth-footer-text {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.auth-footer-link {
+  padding: 0;
+  height: auto;
+}
+
+.auth-tabs .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+.auth-tabs .ant-tabs-tab {
+  font-size: 16px;
+  padding: 12px 16px;
+}
+
+.auth-tabs .ant-tabs-tab-active {
+  font-weight: 500;
+}
