@@ -77,43 +77,56 @@ const PushSender = () => {
   };
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 15 }}>
+    <div
+      style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 15 }}
+    >
       <Button
         type="text"
         shape="circle"
-        icon={isSubscribed ? (
-          <FaBellSlash style={{ 
-            fontSize: 20, 
-            color: '#ff4d4f',
-            transition: 'all 0.3s'
-          }} />
-        ) : (
-          <FaBell style={{ 
-            fontSize: 20, 
-            color: '#1890ff',
-            transition: 'all 0.3s'
-          }} />
-        )}
+        icon={
+          isSubscribed ? (
+            <FaBellSlash
+              style={{
+                fontSize: 20,
+                color: "#ff4d4f",
+                transition: "all 0.3s",
+              }}
+            />
+          ) : (
+            <FaBell
+              style={{
+                fontSize: 20,
+                color: "#1890ff",
+                transition: "all 0.3s",
+              }}
+            />
+          )
+        }
         onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
         style={{
-          border: 'none',
-          boxShadow: 'none',
-          width: 32,
+          border: "none",
+          boxShadow: "none",
+          // width: 32,
           height: 32,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'transparent'
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "transparent",
         }}
-      />
-      <span style={{ 
-        fontSize: 14,
-        color: isSubscribed ? '#ff4d4f' : '#1890ff',
-        transition: 'all 0.3s',
-        cursor: 'pointer'
-      }} onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}>
-        {isSubscribed ? 'Отписаться от уведомлений' : 'Подписаться на уведомления'}
-      </span>
+      >
+        <span
+          style={{
+            fontSize: 14,
+            color: isSubscribed ? "#ff4d4f" : "#1890ff",
+            transition: "all 0.3s",
+          }}
+          onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
+        >
+          {isSubscribed
+            ? "Отписаться от уведомлений"
+            : "Подписаться на уведомления"}
+        </span>
+      </Button>
     </div>
   );
 };

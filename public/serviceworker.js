@@ -99,7 +99,7 @@ self.addEventListener("push", function (event) {
       await self.registration.showNotification(data.title, {
         body: data.body,
         icon: "/apple-touch-icon.png",
-        badge: "/icon-72x72.png",
+        badge: "/icon-48x48.png",
         data: { url: "/admin-orders" },
       });
     })()
