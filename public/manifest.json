@@ -15,8 +15,8 @@
       "type": "image/png"
     }
   ],
-  "orientation": "any",
-  "display": "standalone",
+   "display": "standalone",
+  "orientation": "portrait",
   "dir": "auto",
   "lang": "ru-RU",
   "name": "Smart",
@@ -32,6 +32,22 @@
       "src": "/screenshot2.png",
       "sizes": "640x1136",
       "type": "image/png"
+    }
+  ],
+   "shortcuts": [
+    {
+      "name": "Уведомления",
+      "short_name": "Уведомления",
+      "description": "Уведомления",
+      "url": "/login",
+      "icons": [{ "src": "/icon1-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Мои заказы",
+      "short_name": "Заказы",
+      "description": "Посмотреть текущие заказы",
+      "url": "/orders",
+      "icons": [{ "src": "/icon2-96x96.png", "sizes": "96x96" }]
     }
   ]
 }
