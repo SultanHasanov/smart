@@ -461,7 +461,7 @@ if (userRole !== "user") {
                   </Space>
 
                   <DeliveryTrack status={order.status} />
-                  {order.status === "доставлен" && (
+                  {/* {order.status === "доставлен" && (
                     <div style={{ marginTop: 16 }}>
                       {order.rating === null || order.comment === null ? (
                         <>
@@ -560,7 +560,7 @@ if (userRole !== "user") {
                         </div>
                       )}
                     </div>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>
