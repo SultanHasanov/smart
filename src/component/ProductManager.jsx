@@ -85,14 +85,20 @@ const ProductManager = () => {
 
   const handleAdd = async (values) => {
     const token = localStorage.getItem("token");
-    await axios.post(apiUrl, values, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    message.success("Товар добавлен");
-    form.resetFields();
-    fetchItems();
+    try{
+
+      await axios.post(apiUrl, values, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      message.success("Товар добавлен");
+      form.resetFields();
+      fetchItems();
+    }
+    catch (error){
+      message.error(error.response.data.error);
+    }
   };
 
   const handleUpdate = async (id, updatedValues) => {
@@ -109,12 +115,7 @@ const ProductManager = () => {
     } catch (error) {
       // Enhanced error logging
       if (error.response) {
-        console.error("Error Response:", error.response.data); // Log the server response data
-        message.error(
-          `Ошибка обновления товара: ${
-            error.response.data.message || error.response.statusText
-          }`
-        );
+        message.error(error.response.data.error);
       } else {
         console.error("Request Error:", error.message);
         message.error("Ошибка обновления товара");

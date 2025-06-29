@@ -291,7 +291,7 @@ const OrderManager = () => {
         <Spin size="large" />
       ) : (
         <div className="order-list">
-          {[...orders]
+          {(orders || [])
             .filter((order) =>
               filterStatus === "all" ? true : order.status === filterStatus
             )
@@ -499,7 +499,7 @@ const OrderManager = () => {
               );
             })}
 
-          {orders.length > 0 &&
+          {orders?.length > 0 &&
             [...orders].filter((order) =>
               filterStatus === "all" ? true : order.status === filterStatus
             ).length === 0 && (
