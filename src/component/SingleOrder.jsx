@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { Typography, Spin, Tag, message } from "antd";
+import { Typography, Spin, Tag, message, Button } from "antd";
 
 const { Paragraph, Text } = Typography;
 const ORDER_API = "https://chechnya-product.ru/api/orders";
@@ -30,7 +30,9 @@ const SingleOrder = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAllItems, setShowAllItems] = useState(false);
   const wsRef = useRef(null);
+  
   const fetchOrder = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -88,6 +90,10 @@ const SingleOrder = () => {
   if (loading) return <Spin size="large" />;
   if (!order) return <Text>Заказ не найден</Text>;
 
+  const itemsToShow = showAllItems 
+    ? order.items 
+    : order.items?.slice(0, 4);
+
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: 5 }}>
       <h2>Заказ #{order.id}</h2>
@@ -109,15 +115,28 @@ const SingleOrder = () => {
         <Text strong>Тип доставки:</Text>{" "}
         {order.delivery_type === "delivery" ? "Доставка" : "Самовывоз"}
       </Paragraph>
+      {order.order_comment && (
+        <Paragraph>
+          <Text strong>Комментарий:</Text> {order.order_comment}
+        </Paragraph>
+      )}
       <Paragraph>
         <Text strong>Товары:</Text>
         <ul>
-          {order.items?.map((item) => (
+          {itemsToShow?.map((item) => (
             <li key={item.id}>
               {item.name} x{item.quantity} = {item.price * item.quantity}₽
             </li>
           ))}
         </ul>
+        {order.items?.length > 4 && (
+          <Button 
+            type="link" 
+            onClick={() => setShowAllItems(!showAllItems)}
+          >
+            {showAllItems ? "Скрыть" : "Показать еще..."}
+          </Button>
+        )}
       </Paragraph>
       <Paragraph>
         <Text strong>Сумма:</Text> {order.total}₽

@@ -118,8 +118,8 @@ const TabIcons = () => {
                   right: -12,
                   background: 'red',
                   color: 'white',
-                  borderRadius: '50%',
-                  padding: '2px 5px',
+                  borderRadius: '20%',
+                  padding: '1px 4px',
                   fontSize: 10,
                   lineHeight: '12px',
                   fontWeight: "bold"
@@ -149,8 +149,8 @@ const TabIcons = () => {
                   right: -12,
                   background: 'red',
                   color: 'white',
-                  borderRadius: '50%',
-                  padding: newOrdersCount < 9 ? '2px 5px' : '4px 7px',
+                  borderRadius: '20%',
+                  padding: '1px 4px',
                   fontSize: 10,
                   lineHeight: '12px',
                   fontWeight: "bold"

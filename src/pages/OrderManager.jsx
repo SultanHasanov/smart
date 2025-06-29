@@ -333,8 +333,7 @@ const OrderManager = () => {
                           style={{
                             border: "none",
                             boxShadow: "none",
-                            // width: 32,
-                            height: 32,
+                           
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -381,6 +380,11 @@ const OrderManager = () => {
                       <Paragraph>
                         <Text strong>Сумма:</Text> {order.total}₽
                       </Paragraph>
+                       {order.order_comment && (
+                    <Paragraph>
+                      <Text strong>Комментарий:</Text> {order.order_comment}
+                    </Paragraph>
+                  )}
 
                       <Space
                         style={{

@@ -106,9 +106,9 @@ const CartPage = () => {
     });
 
     let deliveryFee = 0;
-    if (orderData.deliveryType === "delivery" && totalAmount < 1000) {
-      deliveryFee = 500;
-    }
+    // if (orderData.deliveryType === "delivery" && totalAmount < 1000) {
+    //   deliveryFee = 500;
+    // }
 
     const finalTotal = totalAmount + deliveryFee;
     let paymentDetails = "";
@@ -144,6 +144,7 @@ const CartPage = () => {
           total: finalTotal,
           delivery_type: orderData.deliveryType,
           payment_type: orderData.paymentType,
+          order_comment: orderData.order_comment,
           change_for:
             orderData.paymentType === "cash"
               ? (orderData.changeFor || "").trim() === ""
@@ -199,6 +200,7 @@ const CartPage = () => {
         address: "",
         paymentType: "cash",
         changeFor: "",
+        order_comment: '',
       });
 
       setSelectedIds([]);
