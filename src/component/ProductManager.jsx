@@ -54,6 +54,7 @@ const ProductManager = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [isLoading, setIsLoading] = useState(false)
 
   const [images, setImages] = useState([]);
   useEffect(() => {
@@ -86,6 +87,7 @@ const ProductManager = () => {
   const handleAdd = async (values) => {
     const token = localStorage.getItem("token");
     try{
+      setIsLoading(true)
 
       await axios.post(apiUrl, values, {
         headers: {
@@ -95,6 +97,8 @@ const ProductManager = () => {
       message.success("Товар добавлен");
       form.resetFields();
       fetchItems();
+    setIsLoading(false)
+
     }
     catch (error){
       message.error(error.response.data.error);
@@ -405,6 +409,7 @@ const ProductManager = () => {
 
               <Form.Item className="input-form">
                 <Button
+                loading={isLoading}
                   className="btn-form"
                   size="large"
                   type="primary"
