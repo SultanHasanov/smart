@@ -99,6 +99,7 @@ const UserOrders = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [dataReview, setDataReview] = useState([])
   const navigate = useNavigate();
   const wsRef = useRef(null);
   const toggleOrderDetails = async (id) => {
@@ -108,7 +109,25 @@ const UserOrders = () => {
   }
 
   setExpandedOrder(id);
+  console.log(dataReview.comment)
 
+  const fetchReview = async (orderId) => {
+   try {
+     const response = await axios.get(
+       `https://chechnya-product.ru/api/orders/${orderId}/review`,
+       {
+         headers: {
+           Authorization: `Bearer ${token}`,
+         },
+       }
+     );
+     setDataReview(response.data.data)
+
+   } catch (err) {
+     console.error("Ошибка при получении отзыва:", err);
+     
+   }
+  };
   // Загружаем отзыв только если статус доставлен
   const order = orders.find((o) => o.id === id);
   if (order && order.status === "доставлен" && (order.rating === null || order.comment === null)) {
@@ -118,9 +137,9 @@ const UserOrders = () => {
         o.id === id
           ? {
               ...o,
-              rating: review.rating ?? null,
-              comment: review.comment ?? "",
-              reviewText: review.comment ?? "",
+              rating: review?.rating ?? null,
+              comment: review?.comment ?? "",
+              reviewText: review?.comment ?? "",
             }
           : o
       )
@@ -133,7 +152,6 @@ const UserOrders = () => {
     return date.toLocaleString("ru-RU", { timeZone: "UTC" });
   };
 
-  console.log(orders)
 
   const shareOrder = async (order) => {
     try {
@@ -156,25 +174,6 @@ const UserOrders = () => {
     }
   };
 
- const fetchReview = async (orderId) => {
-  try {
-    const response = await axios.get(
-      `https://chechnya-product.ru/api/orders/${orderId}/review`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return {
-      rating: response.data.rating ?? null,
-      comment: response.data.comment ?? "",
-    };
-  } catch (err) {
-    console.error("Ошибка при получении отзыва:", err);
-    return { rating: null, comment: "" };
-  }
-};
 
 
 
@@ -273,7 +272,7 @@ if (userRole !== "user") {
   return (
     <Alert
         type="info"
-        message="Только пользователи могут видеть свои заказы."
+        message="Только авторизованные пользователи могут видеть свои заказы."
         />
       );
     }
@@ -554,9 +553,9 @@ if (userRole !== "user") {
                           <Typography.Title level={4}>
                             Ваш отзыв
                           </Typography.Title>
-                          <Rate disabled defaultValue={order.rating} />
+                          <Rate disabled defaultValue={dataReview.rating} />
                           <Typography.Paragraph style={{ marginTop: 8 }}>
-                            {order.comment || "Без комментариев"}
+                            {dataReview.comment || "Без комментариев"}
                           </Typography.Paragraph>
                         </div>
                       )}

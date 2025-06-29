@@ -168,24 +168,7 @@ const Product = () => {
     CartStore.decreaseQuantity(dishId);
   };
 
-  // const shuffledAllDishes = useMemo(() => {
-  //   if (selectedCategory === "all") {
-  //     return [...(Array.isArray(dishes) ? dishes : [])].sort(
-  //       () => Math.random() - 0.5
-  //     );
-  //   }
-  //   return Array.isArray(dishes) ? dishes : [];
-  // }, [dishes, selectedCategory]);
 
-  // const filteredDishes = shuffledAllDishes
-  //   .filter(
-  //     (dish) =>
-  //       selectedCategory === "all" || String(dish.category_id) === String(selectedCategory)
-  //   )
-  //   .filter((dish) =>
-  //     dish.name.toLowerCase().includes(searchTerm.toLowerCase())
-  //   );
-console.log(dishes)
   const filteredDishes = dishes.items?.filter(
       (dish) =>
         selectedCategory === "all" ||

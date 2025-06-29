@@ -1,6 +1,5 @@
-// OrderForm.jsx
-import React, { useContext, useEffect } from "react";
-import { Form, Input, Radio, Card, Divider } from "antd";
+import React, { useContext, useEffect, useRef } from "react";
+import { Form, Input, Radio, Card, Divider, Checkbox } from "antd";
 import { AuthContext } from "../store/AuthContext";
 import AddressInput from "./AddressInput";
 import {
@@ -26,32 +25,40 @@ const OrderForm = ({
 }) => {
   const { username } = useContext(AuthContext);
 
+  const hasSetNameRef = useRef(false);
+
   useEffect(() => {
-    if (username && !orderData.name) {
-      setOrderData({ ...orderData, name: username });
+    if (
+      username &&
+      !hasSetNameRef.current &&
+      !form.getFieldValue("name") // не перезаписывать пользовательский ввод
+    ) {
       form.setFieldsValue({ name: username });
+      setOrderData((prev) => ({ ...prev, name: username }));
+      hasSetNameRef.current = true;
     }
-  }, [username, orderData, setOrderData, form]);
+  }, [username, form, setOrderData]);
 
   if (cart.length === 0) return null;
 
   return (
     <Card
-      title=""
-      // bordered={false}
       headStyle={{ border: "none", fontWeight: "500" }}
       bodyStyle={{ padding: "0" }}
-      style={{ border: "none", marginTop: 10}}
+      style={{ border: "none", marginTop: 10 }}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={orderData}
-        onValuesChange={(changedValues, allValues) => {
-          setOrderData(allValues);
-        }}
-      >
-        {/* Секция информации о клиенте */}
+     <Form
+  form={form}
+  layout="vertical"
+  initialValues={orderData}
+  onValuesChange={(changedValues, allValues) => {
+    // Если включили "Без сдачи", очищаем поле сдачи
+    if (changedValues.noChange && changedValues.noChange === true) {
+      form.setFieldsValue({ changeFor: undefined });
+    }
+    setOrderData(allValues); // Это обновляет состояние в CartPage
+  }}
+>
         <Form.Item
           label="Ваше имя"
           name="name"
@@ -61,12 +68,13 @@ const OrderForm = ({
             size="large"
             placeholder="Как к вам обращаться?"
             style={{ borderRadius: "8px" }}
+            allowClear
           />
         </Form.Item>
 
         <Divider
           plain
-           orientation="left"
+          orientation="left"
           style={{ fontSize: "14px", margin: "10px 0", fontWeight: "bold" }}
         >
           Способ оплаты
@@ -95,25 +103,6 @@ const OrderForm = ({
             </Radio.Button>
           </Radio.Group>
         </Form.Item>
-        {orderData.paymentType === "cash" &&
-          orderData.deliveryType === "delivery" && (
-            <Form.Item
-              label="Сдача с"
-              name="changeFor"
-              tooltip="Укажите сумму, с которой нужно дать сдачу"
-              rules={[
-                { required: true, message: "Укажите сумму для сдачи" },
-                { pattern: /^[0-9]+$/, message: "Только цифры" },
-              ]}
-            >
-              <Input
-                size="large"
-                placeholder="Например: 2000"
-                addonAfter="₽"
-                style={{ borderRadius: "8px" }}
-              />
-            </Form.Item>
-          )}
 
         <Divider
           orientation="left"
@@ -146,6 +135,33 @@ const OrderForm = ({
             </Radio.Button>
           </Radio.Group>
         </Form.Item>
+
+        {orderData.paymentType === "cash" &&
+          orderData.deliveryType === "delivery" && (
+            <>
+              {!orderData.noChange && (
+                <Form.Item
+                  label="Сдача с"
+                  name="changeFor"
+                  tooltip="Укажите сумму, с которой нужно дать сдачу"
+                  rules={[
+                    { required: true, message: "Укажите сумму для сдачи" },
+                    { pattern: /^[0-9]+$/, message: "Только цифры" },
+                  ]}
+                >
+                  <Input
+                    size="large"
+                    placeholder="Например: 2000"
+                    addonAfter="₽"
+                    style={{ borderRadius: "8px" }}
+                  />
+                </Form.Item>
+              )}
+              <Form.Item name="noChange" valuePropName="checked">
+                <Checkbox>Без сдачи</Checkbox>
+              </Form.Item>
+            </>
+          )}
 
         {orderData.deliveryType === "delivery" && (
           <AddressInput

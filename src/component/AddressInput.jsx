@@ -59,6 +59,7 @@ export default function AddressInput({
   const [showSaveOption, setShowSaveOption] = useState(false);
   const [saveChecked, setSaveChecked] = useState(false);
   const debounceRef = useRef(null);
+  console.log(query)
 
   useEffect(() => {
     fetchDefaultAddress();
@@ -129,14 +130,42 @@ export default function AddressInput({
     setSaveChecked(false);
   };
 
-  const handleSelect = (value, isDefault = false) => {
-    const selected = suggestions.find((item) => item.value === value) || {};
-    setQuery("");
-    setSelectedAddress(value);
-    setHasSelected(true);
+const handleSelect = (value, isDefault = false) => {
+  let selected = suggestions.find((item) => item.value === value);
 
-    const lat = parseFloat(selected?.data?.geo_lat) || null;
-    const lon = parseFloat(selected?.data?.geo_lon) || null;
+  // Если адрес не из подсказок — вызвать dadata API вручную
+  const fetchFromDadata = async () => {
+    try {
+      const res = await fetch(
+        "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Token ${DADATA_API_KEY}`,
+          },
+          body: JSON.stringify({ query: value }),
+        }
+      );
+      const data = await res.json();
+      selected = data.suggestions?.[0];
+      if (!selected) return;
+
+      processSelection(selected);
+    } catch (e) {
+      console.error("Не удалось получить координаты:", e);
+    }
+  };
+
+  const processSelection = (selectedItem) => {
+    const lat = parseFloat(selectedItem?.data?.geo_lat) || null;
+    const lon = parseFloat(selectedItem?.data?.geo_lon) || null;
+    setSelectedAddress(selectedItem.value);
+    setQuery(selectedItem.value);
+    setHasSelected(true);
+    setSuggestions([]);
+    setShowSaveOption(!isDefault);
 
     if (lat && lon) {
       setCoordinates({ lat, lon });
@@ -148,10 +177,15 @@ export default function AddressInput({
       );
       setDistanceKm(dist);
     }
-
-    setSuggestions([]);
-    setShowSaveOption(!isDefault);
   };
+
+  if (!selected) {
+    fetchFromDadata(); // если нет в suggestions — запрашиваем заново
+  } else {
+    processSelection(selected);
+  }
+};
+
 
   const handleCopy = async () => {
     try {
@@ -267,7 +301,7 @@ export default function AddressInput({
               <Text strong>{selectedAddress}</Text>
             </div>
 
-            {distanceKm !== null && (
+            {/* {distanceKm !== null && (
               <Row gutter={16}>
                 <Col span={8}>
                   <Statistic
@@ -295,7 +329,7 @@ export default function AddressInput({
                   />
                 </Col>
               </Row>
-            )}
+            )} */}
             {showSaveOption && (
               <Checkbox
                 checked={saveChecked}
@@ -306,7 +340,7 @@ export default function AddressInput({
             )}
           </Space>
 
-          <div
+          {/* <div
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -370,7 +404,7 @@ export default function AddressInput({
                 </Button>
               </Tooltip>
             )}
-          </div>
+          </div> */}
         </Card>
       )}
 

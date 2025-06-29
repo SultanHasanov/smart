@@ -34,17 +34,6 @@ const CartPage = () => {
     setTest(cart.length !== 0 ? 1 : 2);
   }, [cart.length]);
 
-  // useEffect(() => {
-  //   if (cart.length > 0 && suggestions.length === 0) {
-  //     console.log("selectedIds", selectedIds);
-  //     UIStore.showOrderButton(sendOrderToWhatsApp);
-  //   } else {
-  //     UIStore.hideOrderButton();
-  //   }
-
-  //   return () => UIStore.hideOrderButton();
-
-  // }, [cart.length]);
   useEffect(() => {
     if (cart.length > 0 && !isManuallyChanged.current) {
       setSelectedIds(cart.map((item) => item.product_id));
@@ -59,6 +48,8 @@ const CartPage = () => {
     changeFor: "",
     order_comment: "",
   });
+
+  console.log(orderData)
 
   const calculateTotal = () => {
     return cart
@@ -85,150 +76,25 @@ const CartPage = () => {
     );
   };
 
-  //  const sendOrderToWhatsApp = useCallback(async () => {
-  //   const selectedItems = cart.filter((item) =>
-  //     selectedIds.includes(item.product_id)
-  //   );
+   const sendOrderToWhatsApp = useCallback(async () => {
+   const selectedItems = cart.filter((item) =>
+    selectedIds.includes(item.product_id)
+  );
 
-  //   if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
-  //   if (!orderData.name) return message.error("Введите имя!");
-  //   if (orderData.deliveryType === "delivery" && !query)
-  //     return message.error("Введите адрес доставки!");
-  //   if (
-  //     orderData.paymentType === "cash" &&
-  //     orderData.deliveryType === "delivery" &&
-  //     !orderData.changeFor
-  //   )
-  //     return message.error("Введите сумму, с которой нужна сдача!");
-
-  //   let cartDetails = "";
-  //   let totalAmount = 0;
-
-  //   selectedItems.forEach((item) => {
-  //     const itemTotal = item.price * item.quantity;
-  //     cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
-  //     totalAmount += itemTotal;
-  //   });
-
-  //   let deliveryFee = 0;
-  //   if (orderData.deliveryType === "delivery" && totalAmount < 1000) {
-  //     deliveryFee = 500;
-  //   }
-
-  //   const finalTotal = totalAmount + deliveryFee;
-  //   let paymentDetails = "";
-
-  //   if (orderData.paymentType === "transfer") {
-  //     paymentDetails = `Оплата: Перевод (Карта: 1234 5678 9012 3456)\n`;
-  //   } else if (
-  //     orderData.paymentType === "cash" &&
-  //     orderData.deliveryType === "delivery"
-  //   ) {
-  //     paymentDetails = `Оплата: Наличными (Сдача с ${orderData.changeFor} ₽)\n`;
-  //   } else {
-  //     paymentDetails = "Оплата: Наличными\n";
-  //   }
-
-  //   const deliveryText =
-  //     orderData.deliveryType === "delivery"
-  //       ? `Доставка: ${orderData.address}\n${
-  //           deliveryFee ? "Доставка: +500 ₽\n" : "0 ₽\n"
-  //         }`
-  //       : "Самовывоз\n";
-
-  //   // Сначала сохраняем заказ в системе
-  //   try {
-  //     const response = await axios.post(
-  //       "https://chechnya-product.ru/api/order",
-  //       {
-  //         name: orderData.name,
-  //         address: orderData.deliveryType === "delivery" ? query : null,
-  //         items: selectedItems,
-  //         delivery_fee: deliveryFee,
-  //         delivery_text: deliveryText,
-  //         total: finalTotal,
-  //         delivery_type: orderData.deliveryType,
-  //         payment_type: orderData.paymentType,
-  //         change_for:
-  //           orderData.paymentType === "cash"
-  //             ? (orderData.changeFor || "").trim() === ""
-  //               ? null
-  //               : Number(orderData.changeFor)
-  //             : null,
-  //         status: "новый",
-  //       },
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     const orderId = response.data.data.id;
-  //     const orderLink = `https://chechnya-product.ru/orders/${orderId}`;
-  // console.log(orderId)
-  //     // Теперь создаём сообщение WhatsApp
-  // //     const whatsappMessage = `
-  // // \`Заказ\`
-  // // Имя: ${orderData.name}
-  // // Тип: ${orderData.deliveryType === "pickup" ? "Самовывоз" : "Доставка"}
-  // // ${paymentDetails}
-  // // ${deliveryText}
-  // // ${orderData.deliveryType === "delivery" ? `Адрес: ${query}` : ""}
-  // // \`Ваш заказ:\`
-  // // ${cartDetails}
-  // // Общая сумма: ${finalTotal} ₽
-  // // 🔗 Ссылка на заказ: ${orderLink}
-  // // `;
-
-  // const whatsappMessage = `
-  // *Новый заказ*
-
-  // Номер заказа: ${orderId}
-  // 🔗 Ссылка на заказ: ${orderLink}
-
-  // 📱 Вы можете зарегистрироваться в приложении https://chechnya-product.ru/login и отслеживать статус своих заказов прямо в личном кабинете.
-  // `;
-
-  //     const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
-  //       whatsappMessage
-  //     )}`;
-
-  //     window.open(whatsappURL, "_blank");
-
-  //     message.success("Заказ отправлен админу и сохранён в системе!");
-
-  //     setOrderData({
-  //       name: "",
-  //       deliveryType: "pickup",
-  //       address: "",
-  //       paymentType: "cash",
-  //       changeFor: "",
-  //     });
-
-  //     setSelectedIds([]);
-  //     handleRemoveSelected();
-  //   } catch (error) {
-  //     message.error("Ошибка при сохранении заказа на сервере");
-  //     console.error("Ошибка API:", error);
-  //   }
-  // }, [selectedIds, orderData, query, cart, token]);
-
-  const sendOrderToWhatsApp = useCallback(async () => {
-    const selectedItems = cart.filter((item) =>
-      selectedIds.includes(item.product_id)
-    );
-
-    if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
-    if (!orderData.name) return message.error("Введите имя!");
-    if (orderData.deliveryType === "delivery" && !query)
-      return message.error("Введите адрес доставки!");
-    if (
-      orderData.paymentType === "cash" &&
-      orderData.deliveryType === "delivery" &&
-      !orderData.changeFor
-    )
-      return message.error("Введите сумму, с которой нужна сдача!");
+  // Проверки
+  if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
+  if (!orderData.name) return message.error("Введите имя!");
+  if (!orderData.paymentType) return message.error("Выберите способ оплаты!"); // <-- Добавьте эту проверку
+  if (!orderData.deliveryType) return message.error("Выберите способ получения!");
+  if (orderData.deliveryType === "delivery" && !query)
+    return message.error("Введите адрес доставки!");
+  if (
+    orderData.paymentType === "cash" &&
+    orderData.deliveryType === "delivery" &&
+    !orderData.changeFor &&
+    !orderData.noChange
+  )
+    return message.error("Введите сумму, с которой нужна сдача, или отметьте 'Без сдачи'!");
 
     let cartDetails = "";
     let totalAmount = 0;
@@ -265,6 +131,7 @@ const CartPage = () => {
           }`
         : "Самовывоз\n";
 
+    // Сначала сохраняем заказ в системе
     try {
       const response = await axios.post(
         "https://chechnya-product.ru/api/order",
@@ -272,7 +139,6 @@ const CartPage = () => {
           name: orderData.name,
           address: orderData.deliveryType === "delivery" ? query : null,
           items: selectedItems,
-          order_comment: orderData.order_comment,
           delivery_fee: deliveryFee,
           delivery_text: deliveryText,
           total: finalTotal,
@@ -295,30 +161,35 @@ const CartPage = () => {
 
       const orderId = response.data.data.id;
       const orderLink = `https://chechnya-product.ru/orders/${orderId}`;
+  console.log(orderId)
+      // Теперь создаём сообщение WhatsApp
+  //     const whatsappMessage = `
+  // \`Заказ\`
+  // Имя: ${orderData.name}
+  // Тип: ${orderData.deliveryType === "pickup" ? "Самовывоз" : "Доставка"}
+  // ${paymentDetails}
+  // ${deliveryText}
+  // ${orderData.deliveryType === "delivery" ? `Адрес: ${query}` : ""}
+  // \`Ваш заказ:\`
+  // ${cartDetails}
+  // Общая сумма: ${finalTotal} ₽
+  // 🔗 Ссылка на заказ: ${orderLink}
+  // `;
 
-//       const whatsappMessage = `
-// *Новый заказ*
+  const whatsappMessage = `
+  *Новый заказ*
 
-// Номер заказа: ${orderId}
-// 🔗 Ссылка на заказ: ${orderLink}
+  Номер заказа: ${orderId}
+  🔗 Ссылка на заказ: ${orderLink}
 
-// 📱 Вы можете зарегистрироваться в приложении https://chechnya-product.ru/login и отслеживать статус своих заказов прямо в личном кабинете.
-// `;
+  📱 Вы можете зарегистрироваться в приложении https://chechnya-product.ru/login и отслеживать статус своих заказов прямо в личном кабинете.
+  `;
 
-//       const url = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
-//         whatsappMessage
-//       )}`;
+      const whatsappURL = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
+        whatsappMessage
+      )}`;
 
-//       setWhatsAppURL(url); // Сохраняем URL в state
-//       setTimeout(() => {
-//         const link = document.createElement("a");
-//         link.href = url;
-//         link.target = "_blank";
-//         link.rel = "noopener noreferrer";
-//         document.body.appendChild(link);
-//         link.click();
-//         document.body.removeChild(link);
-//       }, 200);
+      window.open(whatsappURL, "_blank");
 
       message.success("Заказ отправлен админу и сохранён в системе!");
 
@@ -328,7 +199,6 @@ const CartPage = () => {
         address: "",
         paymentType: "cash",
         changeFor: "",
-        order_comment: "",
       });
 
       setSelectedIds([]);
@@ -338,6 +208,131 @@ const CartPage = () => {
       console.error("Ошибка API:", error);
     }
   }, [selectedIds, orderData, query, cart, token]);
+
+//   const sendOrderToWhatsApp = useCallback(async () => {
+//     const selectedItems = cart.filter((item) =>
+//       selectedIds.includes(item.product_id)
+//     );
+
+//     if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
+//     if (!orderData.name) return message.error("Введите имя!");
+//     if (orderData.deliveryType === "delivery" && !query)
+//       return message.error("Введите адрес доставки!");
+//     if (
+//       orderData.paymentType === "cash" &&
+//       orderData.deliveryType === "delivery" &&
+//       !orderData.changeFor
+//     )
+//       return message.error("Введите сумму, с которой нужна сдача!");
+
+//     let cartDetails = "";
+//     let totalAmount = 0;
+
+//     selectedItems.forEach((item) => {
+//       const itemTotal = item.price * item.quantity;
+//       cartDetails += `${item.name} x${item.quantity} = ${itemTotal} ₽\n`;
+//       totalAmount += itemTotal;
+//     });
+
+//     let deliveryFee = 0;
+//     if (orderData.deliveryType === "delivery" && totalAmount < 1000) {
+//       deliveryFee = 500;
+//     }
+
+//     const finalTotal = totalAmount + deliveryFee;
+//     let paymentDetails = "";
+
+//     if (orderData.paymentType === "transfer") {
+//       paymentDetails = `Оплата: Перевод (Карта: 1234 5678 9012 3456)\n`;
+//     } else if (
+//       orderData.paymentType === "cash" &&
+//       orderData.deliveryType === "delivery"
+//     ) {
+//       paymentDetails = `Оплата: Наличными (Сдача с ${orderData.changeFor} ₽)\n`;
+//     } else {
+//       paymentDetails = "Оплата: Наличными\n";
+//     }
+
+//     const deliveryText =
+//       orderData.deliveryType === "delivery"
+//         ? `Доставка: ${orderData.address}\n${
+//             deliveryFee ? "Доставка: +500 ₽\n" : "0 ₽\n"
+//           }`
+//         : "Самовывоз\n";
+
+//     try {
+//       const response = await axios.post(
+//         "https://chechnya-product.ru/api/order",
+//         {
+//           name: orderData.name,
+//           address: orderData.deliveryType === "delivery" ? query : null,
+//           items: selectedItems,
+//           order_comment: orderData.order_comment,
+//           delivery_fee: deliveryFee,
+//           delivery_text: deliveryText,
+//           total: finalTotal,
+//           delivery_type: orderData.deliveryType,
+//           payment_type: orderData.paymentType,
+//           change_for:
+//             orderData.paymentType === "cash"
+//               ? (orderData.changeFor || "").trim() === ""
+//                 ? null
+//                 : Number(orderData.changeFor)
+//               : null,
+//           status: "новый",
+//         },
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         }
+//       );
+
+//       const orderId = response.data.data.id;
+//       const orderLink = `https://chechnya-product.ru/orders/${orderId}`;
+
+// //       const whatsappMessage = `
+// // *Новый заказ*
+
+// // Номер заказа: ${orderId}
+// // 🔗 Ссылка на заказ: ${orderLink}
+
+// // 📱 Вы можете зарегистрироваться в приложении https://chechnya-product.ru/login и отслеживать статус своих заказов прямо в личном кабинете.
+// // `;
+
+// //       const url = `https://api.whatsapp.com/send?phone=${ADMIN_PHONE}&text=${encodeURIComponent(
+// //         whatsappMessage
+// //       )}`;
+
+// //       setWhatsAppURL(url); // Сохраняем URL в state
+// //       setTimeout(() => {
+// //         const link = document.createElement("a");
+// //         link.href = url;
+// //         link.target = "_blank";
+// //         link.rel = "noopener noreferrer";
+// //         document.body.appendChild(link);
+// //         link.click();
+// //         document.body.removeChild(link);
+// //       }, 200);
+
+//       message.success("Заказ отправлен админу и сохранён в системе!");
+
+//       setOrderData({
+//         name: "",
+//         deliveryType: "pickup",
+//         address: "",
+//         paymentType: "cash",
+//         changeFor: "",
+//         order_comment: "",
+//       });
+
+//       setSelectedIds([]);
+//       handleRemoveSelected();
+//     } catch (error) {
+//       message.error("Ошибка при сохранении заказа на сервере");
+//       console.error("Ошибка API:", error);
+//     }
+//   }, [selectedIds, orderData, query, cart, token]);
 
   const handleClick = () => {
     if (whatsAppURL) {

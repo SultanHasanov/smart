@@ -22,11 +22,9 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("/serviceworker.js")
       .then(function (reg) {
-        console.log("✅ Сервис-воркер зарегистрирован", reg.scope);
         subscribeUserToPush(); // 👈 подписываемся сразу после
       })
       .catch(function (err) {
-        console.log("❌ Ошибка регистрации service worker:", err);
       });
   });
 }

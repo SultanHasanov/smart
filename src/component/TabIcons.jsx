@@ -19,7 +19,6 @@ const TabIcons = () => {
  const [orders, setOrders] = useState([]);
   const newOrdersCount = orders.filter(order => order.status === "новый").length;
   const wsRef = useRef(null);
-  console.log(newOrdersCount)
  useEffect(() => {
   if (!token || (userRole !== "user" && userRole !== "admin")) return;
 
@@ -47,7 +46,7 @@ const TabIcons = () => {
   const socket = new WebSocket(WS_URL);
   wsRef.current = socket;
 
-  socket.onopen = () => console.log("✅ WebSocket подключён");
+  // socket.onopen = () => console.log("✅ WebSocket подключён");
   socket.onerror = (err) => console.error("❌ WebSocket ошибка:", err);
   socket.onclose = () => console.warn("⚠ WebSocket закрыт");
 

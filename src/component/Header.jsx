@@ -14,8 +14,7 @@ const openHackerCatTerminal = () => {
   window.dispatchEvent(event);
 };
 
-const Header = ({  
- }) => {
+const Header = ({}) => {
   const navigate = useNavigate();
   const timeout = useRef(null);
 
@@ -69,15 +68,22 @@ const Header = ({
         {/* Иконки справа */}
         <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
           {/* Отзывы */}
-          
 
           {/* Корзина */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <ShoppingCartOutlined
               onClick={() => navigate("/cart")}
               style={{ fontSize: "22px", cursor: "pointer" }}
             />
-            <span style={{ color: "#1677ff", fontSize: 12, fontWeight: "bold" }}>
+            <span
+              style={{ color: "#1677ff", fontSize: 12, fontWeight: "bold" }}
+            >
               {new Intl.NumberFormat("ru-RU").format(CartStore.totalPrice)} ₽
             </span>
           </div>
@@ -85,25 +91,25 @@ const Header = ({
       </div>
 
       {/* Подзаголовок или статус */}
-      <div style={{ padding: "0 16px", fontSize: "14px", color: "green" }}>
+      {/* <div style={{ padding: "0 16px", fontSize: "14px", color: "green" }}>
         <div
-  onClick={() => navigate("/reviews")}
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: 8,
-    fontSize: 18,
-    color: "#1677ff",
-    cursor: "pointer",
-    fontWeight: "500",
-    userSelect: "none",
-  }}
-  title="Смотреть все отзывы"
->
-  <CommentOutlined style={{ fontSize: 18 }} />
-  <span>Отзывы пользователей</span>
-</div>
-      </div>
+          onClick={() => navigate("/reviews")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 18,
+            color: "#1677ff",
+            cursor: "pointer",
+            fontWeight: "500",
+            userSelect: "none",
+          }}
+          title="Смотреть все отзывы"
+        >
+          <CommentOutlined style={{ fontSize: 18 }} />
+          <span>Отзывы пользователей</span>
+        </div>
+      </div> */}
     </div>
   );
 };

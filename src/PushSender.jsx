@@ -27,7 +27,7 @@ async function subscribeUser() {
 const PushSender = () => {
   const { userRole } = useContext(AuthContext);
   const [isSubscribed, setIsSubscribed] = useState(false);
-
+  const [isLoading, setIsloading] = useState(false);
   useEffect(() => {
     const stored = localStorage.getItem("pushSubscription");
     if (stored) setIsSubscribed(true);
@@ -37,7 +37,7 @@ const PushSender = () => {
     try {
       const subscription = await subscribeUser();
       localStorage.setItem("pushSubscription", JSON.stringify(subscription));
-
+      setIsloading(true);
       await fetch("https://chechnya-product.ru/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,6 +48,7 @@ const PushSender = () => {
       });
 
       setIsSubscribed(true);
+      setIsloading(false);
     } catch (error) {
       console.error("Ошибка подписки:", error);
     }
@@ -57,20 +58,25 @@ const PushSender = () => {
     try {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
-      if (sub) await sub.unsubscribe();
-      const subscription = await subscribeUser();
+      setIsloading(true);
 
-      await fetch("https://chechnya-product.ru/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subscription,
-          is_admin: false,
-        }),
-      });
+      if (sub) {
+        // Send request to delete endpoint with the subscription endpoint URL
+        await fetch("https://chechnya-product.ru/api/push/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            endpoint: sub.endpoint,
+          }),
+        });
+
+        // Unsubscribe from push notifications
+        await sub.unsubscribe();
+      }
 
       localStorage.removeItem("pushSubscription");
       setIsSubscribed(false);
+      setIsloading(false);
     } catch (error) {
       console.error("Ошибка отписки:", error);
     }
@@ -81,6 +87,7 @@ const PushSender = () => {
       style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 15 }}
     >
       <Button
+        loading={isLoading}
         type="text"
         shape="circle"
         icon={

@@ -7,6 +7,7 @@ import {
   Popconfirm,
   Space,
   Select,
+  Button,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -77,7 +78,7 @@ const OrderManager = () => {
     }
   };
 
-console.log(orders)
+  console.log(orders);
 
   const updateOrderStatus = async (id, newStatus) => {
     try {
@@ -136,8 +137,6 @@ console.log(orders)
   //       console.log("Push subscription not found in localStorage");
   //       return;
   //     }
-
-   
 
   //     const message = `Новый заказ #${order.id} от ${order.name}, на сумму ${order.total} руб.`;
   //     console.log("Sending push:", message); // Логируем для отладки
@@ -330,13 +329,26 @@ console.log(orders)
                     >
                       <Paragraph className="order-label">
                         <Text strong>Заказ от: {order.name}</Text>
-                        <Tag
-                          color={getStatusColor(order.status)}
-                          onClick={() => handleTagClick(order)}
-                          style={{ cursor: "pointer", marginLeft: 10 }}
+                        <Button
+                          style={{
+                            border: "none",
+                            boxShadow: "none",
+                            // width: 32,
+                            height: 32,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "transparent",
+                          }}
                         >
-                          {order.status}
-                        </Tag>
+                          <Tag
+                            color={getStatusColor(order.status)}
+                            onClick={() => handleTagClick(order)}
+                            style={{ cursor: "pointer", marginLeft: 10 }}
+                          >
+                            {order.status}
+                          </Tag>
+                        </Button>
                       </Paragraph>
                       <Paragraph>
                         <Text strong>Дата:</Text>{" "}
