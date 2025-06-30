@@ -7,6 +7,8 @@ import {
   Popover,
   Select,
   Skeleton,
+  Switch,
+  message,
 } from "antd";
 import React, { useState, useEffect, useMemo, useContext } from "react";
 import axios from "axios";
@@ -20,6 +22,7 @@ import {
   FileImageOutlined,
   EllipsisOutlined,
   EditOutlined,
+  StopOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import CartStore from "../store/CartStore";
@@ -168,8 +171,8 @@ const Product = () => {
     CartStore.decreaseQuantity(dishId);
   };
 
-
-  const filteredDishes = dishes.items?.filter(
+  const filteredDishes = dishes.items
+    ?.filter(
       (dish) =>
         selectedCategory === "all" ||
         String(dish.category_id) === String(selectedCategory)
@@ -210,13 +213,84 @@ const Product = () => {
         }
       )
       .then((res) => {
-        const updated = dishes.map((item) =>
+        const updatedItems = dishes.items.map((item) =>
           item.id === currentEditItem.id ? res.data.data : item
         );
-        setDishes(updated);
-        localStorage.setItem("dishes", JSON.stringify(updated));
+        const updatedDishes = { ...dishes, items: updatedItems };
+        setDishes(updatedDishes);
+        localStorage.setItem("dishes", JSON.stringify(updatedDishes));
         setEditModalVisible(false);
+        form.resetFields(); // Дополнительно сбросим форму
+      })
+      .catch((error) => {
+        console.error("Ошибка при обновлении товара:", error);
       });
+  };
+
+  const handleToggleAvailability = async (id) => {
+    const item = dishes.items?.find((item) => item.id === id);
+
+    if (item) {
+      const updatedAvailability = !item.availability;
+      const updatedValues = { ...item, availability: updatedAvailability };
+
+      await handleUpdate(id, updatedValues);
+    }
+  };
+
+  const handleUpdate = async (id, updatedValues) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.put(
+        `https://chechnya-product.ru/api/admin/products/${id}`,
+        updatedValues,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updatedItems = dishes.items?.map((item) =>
+        item.id === id ? res.data.data : item
+      );
+      const updatedDishes = { ...dishes, items: updatedItems };
+
+      setDishes(updatedDishes);
+      localStorage.setItem("dishes", JSON.stringify(updatedDishes));
+      message.success("Товар обновлён");
+    } catch (error) {
+      if (error.response) {
+        message.error(error.response.data.error);
+      } else {
+        console.error("Request Error:", error.message);
+        message.error("Ошибка обновления товара");
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(
+        `https://chechnya-product.ru/api/admin/products/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updatedItems = dishes.items?.filter((item) => item.id !== id);
+      const updatedDishes = { ...dishes, items: updatedItems };
+
+      setDishes(updatedDishes);
+      localStorage.setItem("dishes", JSON.stringify(updatedDishes));
+      message.success("Товар удалён");
+    } catch (error) {
+      message.error("Ошибка удаления товара");
+      console.error(error);
+    }
   };
 
   return (
@@ -271,15 +345,15 @@ const Product = () => {
                       className={`product-category-button ${
                         selectedCategory === category.id ? "active" : ""
                       }`}
-                      style={{display: 'flex', justifyContent: "start"}}
+                      style={{ display: "flex", justifyContent: "start" }}
                       onClick={() => {
                         setSelectedCategory(category.id);
                         setSearchTerm("");
                       }}
                     >
-                      {category.name.length > 14 
-              ? `${category.name.substring(0, 14)}...` 
-              : category.name}
+                      {category.name.length > 14
+                        ? `${category.name.substring(0, 14)}...`
+                        : category.name}
                     </Button>
                   ))}
                 </div>
@@ -373,8 +447,23 @@ const Product = () => {
                     }
                   >
                     {isUnavailable ? (
-                      <div className="product-card-unavailable">
-                        Нет в наличии
+                      <div className="product-unavailable-wrapper">
+                        <div className="product-unavailable-label">
+                          <StopOutlined className="unavailable-icon"  />
+                        </div>
+                        {userRole === "admin" && (
+                          <Button
+                            type="link"
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleAvailability(dish.id);
+                            }}
+                            className="make-available-btn"
+                          >
+                            Включить
+                          </Button>
+                        )}
                       </div>
                     ) : quantity === 0 ? (
                       <Button
@@ -395,16 +484,7 @@ const Product = () => {
                         </Button>
                         {cart.find((item) => item.product_id === dish.id)
                           ?.quantity >= 10 && (
-                          <div
-                            style={{
-                              padding: "0 4px",
-                              fontSize: 11,
-                              color: "red",
-                              fontWeight: "bold",
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
+                          <div className="product-max-quantity">
                             Макс. 10 шт
                           </div>
                         )}
@@ -416,18 +496,6 @@ const Product = () => {
                               ?.quantity >= 10
                           }
                           className="product-btn-plus"
-                          style={{
-                            opacity:
-                              cart.find((item) => item.product_id === dish.id)
-                                ?.quantity >= 10
-                                ? 0.4
-                                : 1,
-                            pointerEvents:
-                              cart.find((item) => item.product_id === dish.id)
-                                ?.quantity >= 10
-                                ? "none"
-                                : "auto",
-                          }}
                         >
                           <PlusOutlined />
                         </Button>
@@ -445,18 +513,8 @@ const Product = () => {
                           form.setFieldsValue(dish);
                           setEditModalVisible(true);
                         }}
-                        style={{
-                          position: "absolute",
-                          top: 5,
-                          left: 5,
-                          backgroundColor: "rgba(255,255,255,0.9)",
-                          borderRadius: "50%",
-                          padding: 4,
-                          cursor: "pointer",
-                          zIndex: 10,
-                        }}
                       >
-                        <EditOutlined style={{ color: "#333" }} />
+                        <EditOutlined />
                       </div>
                     )}
                   </div>
@@ -514,6 +572,43 @@ const Product = () => {
         }}
         okText="Сохранить"
         cancelText="Отмена"
+        footer={[
+          <Button
+            key="delete"
+            danger
+            onClick={() => {
+              Modal.confirm({
+                title: "Удалить товар",
+                content: "Вы уверены, что хотите удалить этот товар?",
+                okText: "Удалить",
+                cancelText: "Отмена",
+                onOk: () => {
+                  handleDelete(currentEditItem.id);
+                  setEditModalVisible(false);
+                },
+              });
+            }}
+          >
+            Удалить
+          </Button>,
+          <Button key="cancel" onClick={() => setEditModalVisible(false)}>
+            Отмена
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            onClick={() => {
+              form
+                .validateFields()
+                .then((values) => {
+                  handleEditProduct(values);
+                })
+                .catch(() => {});
+            }}
+          >
+            Сохранить
+          </Button>,
+        ]}
       >
         <Form layout="vertical" form={form} initialValues={currentEditItem}>
           <Form.Item name="name" label="Название" rules={[{ required: true }]}>
@@ -525,14 +620,28 @@ const Product = () => {
           <Form.Item name="url" label="URL изображения">
             <Input />
           </Form.Item>
-          <Form.Item className="input-form-edit" name="category_id">
-            <Select style={{ width: 120 }}>
+          <Form.Item name="category_id" label="Категория">
+            <Select style={{ width: "100%" }}>
               {categories.map((cat) => (
                 <Option key={cat.id} value={cat.id}>
                   {cat.name}
                 </Option>
               ))}
             </Select>
+          </Form.Item>
+          <Form.Item
+            name="availability"
+            label="Доступность"
+            valuePropName="checked"
+          >
+            <Switch
+              checkedChildren="В наличии"
+              unCheckedChildren="Нет в наличии"
+              onChange={(checked) => {
+                form.setFieldsValue({ availability: checked });
+                handleToggleAvailability(currentEditItem.id);
+              }}
+            />
           </Form.Item>
         </Form>
       </Modal>
