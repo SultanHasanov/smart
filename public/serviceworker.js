@@ -16,8 +16,28 @@ self.addEventListener("install", (event) => {
 
 // Активация воркера
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      );
+    }).then(() => self.clients.claim())
+  );
 });
+
+event.respondWith(
+  caches.match(event.request).then((cacheResponse) => {
+    const fetchPromise = fetch(event.request).then((networkResponse) => {
+      caches.open(CACHE_NAME).then((cache) => {
+        cache.put(event.request, networkResponse.clone());
+      });
+      return networkResponse;
+    });
+    return cacheResponse || fetchPromise;
+  })
+);
 
 // Обработка fetch запросов к API
 self.addEventListener("fetch", (event) => {
@@ -37,50 +57,6 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
-
-// 👇👇👇 ДОБАВЛЯЕМ ОБРАБОТКУ PUSH 👇👇👇
-// self.addEventListener('push', function(event) {
-//   let data = {};
-
-//   if (event.data) {
-//     try {
-//       data = event.data.json();
-//     } catch (e) {
-//       data = { title: 'Уведомление', body: event.data.text() };
-//     }
-//   } else {
-//     // Если данные не пришли вообще
-//     data = { title: 'Уведомление', body: 'Пустое уведомление' };
-//   }
-
-//   const title = data.title || 'Уведомление';
-//   const options = {
-//     body: data.body || 'У вас новое уведомление',
-//   };
-
-//   event.waitUntil(
-//     self.registration.showNotification(title, options)
-//   );
-// });
-
-// self.addEventListener('push', function (event) {
-//   let data = {};
-//   try {
-//     data = event.data.json();
-//   } catch (e) {
-//     console.warn('⚠️ Push пришёл не в JSON-формате:', event.data?.text());
-//     data = { title: 'Сообщение', body: event.data?.text() || 'Без содержимого' };
-//   }
-
-//   const title = data.title || 'Уведомление';
-//   const options = {
-//     body: data.body,
-//   };
-
-//   event.waitUntil(
-//     self.registration.showNotification(title, options)
-//   );
-// });
 
 self.addEventListener("push", function (event) {
   event.waitUntil(
