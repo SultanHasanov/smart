@@ -27,19 +27,6 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-event.respondWith(
-  caches.match(event.request).then((cacheResponse) => {
-    const fetchPromise = fetch(event.request).then((networkResponse) => {
-      caches.open(CACHE_NAME).then((cache) => {
-        cache.put(event.request, networkResponse.clone());
-      });
-      return networkResponse;
-    });
-    return cacheResponse || fetchPromise;
-  })
-);
-
-// Обработка fetch запросов к API
 self.addEventListener("fetch", (event) => {
   if (API_URLS.some((url) => event.request.url.includes(url))) {
     event.respondWith(
@@ -55,8 +42,24 @@ self.addEventListener("fetch", (event) => {
         });
       })
     );
+  } else {
+    // For all other requests, optional: do a network-first or cache-first strategy
+    event.respondWith(
+      caches.match(event.request).then((cacheResponse) => {
+        return (
+          cacheResponse ||
+          fetch(event.request).then((networkResponse) => {
+            return caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, networkResponse.clone());
+              return networkResponse;
+            });
+          })
+        );
+      })
+    );
   }
 });
+
 
 self.addEventListener("push", function (event) {
   event.waitUntil(
