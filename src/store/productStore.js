@@ -45,9 +45,6 @@ class ProductStore {
         this.dishes = dishesRes.data.data;
         this.loading = false;
       });
-
-      localStorage.setItem("categories", JSON.stringify(sortedCategories));
-      localStorage.setItem("dishes", JSON.stringify(dishesRes.data.data));
     } catch (error) {
       console.error("Ошибка загрузки данных:", error);
       await this.handleFetchError();
@@ -75,37 +72,36 @@ class ProductStore {
   }
 
   async handleAddToCart(productId) {
-  const token = localStorage.getItem("token");
-  if (!token) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-  const item = this.cartMap.get(productId);
+    const item = this.cartMap.get(productId);
 
-  try {
-    let newItem;
-    if (item) {
-      const res = await axios.put(
-        `https://chechnya-product.ru/api/cart/${productId}`,
-        { quantity: item.quantity + 1 },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      newItem = res.data.data;
-    } else {
-      const res = await axios.post(
-        "https://chechnya-product.ru/api/cart",
-        { product_id: productId, quantity: 1 },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      newItem = res.data.data;
+    try {
+      let newItem;
+      if (item) {
+        const res = await axios.put(
+          `https://chechnya-product.ru/api/cart/${productId}`,
+          { quantity: item.quantity + 1 },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        newItem = res.data.data;
+      } else {
+        const res = await axios.post(
+          "https://chechnya-product.ru/api/cart",
+          { product_id: productId, quantity: 1 },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        newItem = res.data.data;
+      }
+
+      runInAction(() => {
+        this.cartMap.set(productId, newItem); // Обновляем только один товар
+      });
+    } catch (error) {
+      console.error("Ошибка при добавлении товара:", error);
     }
-
-    runInAction(() => {
-      this.cartMap.set(productId, newItem); // Обновляем только один товар
-    });
-  } catch (error) {
-    console.error("Ошибка при добавлении товара:", error);
   }
-}
-
 
   async handleDecreaseQuantity(productId) {
     const token = localStorage.getItem("token");
@@ -137,7 +133,8 @@ class ProductStore {
     return this.dishes
       .filter(
         (dish) =>
-          this.selectedCategory === "all" || dish.category_id === this.selectedCategory
+          this.selectedCategory === "all" ||
+          dish.category_id === this.selectedCategory
       )
       .filter((dish) =>
         dish.name.toLowerCase().includes(this.searchTerm.toLowerCase())
@@ -182,8 +179,8 @@ class ProductStore {
   }
 
   get hiddenCategories() {
-    const visibleNames = this.visibleCategories.map(c => c.name);
-    return this.categories.filter(c => !visibleNames.includes(c.name));
+    const visibleNames = this.visibleCategories.map((c) => c.name);
+    return this.categories.filter((c) => !visibleNames.includes(c.name));
   }
 
   setSelectedCategory(category) {

@@ -32,20 +32,14 @@ import { categoryStore } from "../store/categoryStore";
 import { AuthContext } from "../store/AuthContext";
 
 const Product = () => {
-  const [dishes, setDishes] = useState(() => {
-    const cachedDishes = localStorage.getItem("dishes");
-    return cachedDishes ? JSON.parse(cachedDishes) : [];
-  });
+  const [dishes, setDishes] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [columnsCount, setColumnsCount] = useState(3);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState(() => {
-    const cachedCategories = localStorage.getItem("categories");
-    return cachedCategories ? JSON.parse(cachedCategories) : [];
-  });
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
   const cart = toJS(CartStore.cart);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentEditItem, setCurrentEditItem] = useState(null);
@@ -62,83 +56,33 @@ const Product = () => {
       }
     }
   }, [loading]);
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Пытаемся получить свежие данные
-        const [categoriesRes, dishesRes] = await Promise.all([
-          axios.get("https://chechnya-product.ru/api/categories"),
-          axios.get("https://chechnya-product.ru/api/products"),
-        ]);
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const [categoriesRes, dishesRes] = await Promise.all([
+        axios.get("https://chechnya-product.ru/api/categories"),
+        axios.get("https://chechnya-product.ru/api/products"),
+      ]);
 
-        const allCategory = { id: "all", name: "Все", sortOrder: -1 };
-        const sortedCategories = [
-          allCategory,
-          ...categoriesRes.data.data.sort(
-            (a, b) => a.sort_order - b.sort_order
-          ),
-        ];
+      const allCategory = { id: "all", name: "Все", sortOrder: -1 };
+      const sortedCategories = [
+        allCategory,
+        ...categoriesRes.data.data.sort((a, b) => a.sort_order - b.sort_order),
+      ];
 
-        setCategories(sortedCategories);
-        setDishes(dishesRes.data.data);
-
-        // Сохраняем в localStorage
-        localStorage.setItem("categories", JSON.stringify(sortedCategories));
-        localStorage.setItem("dishes", JSON.stringify(dishesRes.data.data));
-      } catch (error) {
-        console.error("Ошибка загрузки данных:", error);
-
-        // Если онлайн, но ошибка - пытаемся получить из кеша через Service Worker
-        if (navigator.onLine) {
-          const cachedResponse = await caches.match(
-            "https://chechnya-product.ru/api/products"
-          );
-          if (cachedResponse) {
-            const data = await cachedResponse.json();
-            setDishes(data.data || []);
-          }
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Если оффлайн, сначала проверяем кеш Service Worker
-    if (isOffline) {
-      caches
-        .match("https://chechnya-product.ru/api/products")
-        .then((response) => {
-          if (response) {
-            return response.json();
-          }
-          throw new Error("No cached data");
-        })
-        .then((data) => {
-          setDishes(data.data || []);
-          setLoading(false);
-        })
-        .catch(() => {
-          // Если нет в кеше SW, используем localStorage
-          setLoading(false);
-        });
-    } else {
-      fetchData();
+      setCategories(sortedCategories);
+      setDishes(dishesRes.data.data);
+    } catch (error) {
+      console.error("Ошибка загрузки данных:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [isOffline]);
+  };
 
-  useEffect(() => {
-    const handleOnline = () => {
-      if (isOffline) {
-        // При восстановлении соединения обновляем данные
-        setIsOffline(false);
-        setLoading(true);
-        // Здесь можно добавить логику для фонового обновления данных
-      }
-    };
+  fetchData();
+}, []);
 
-    window.addEventListener("online", handleOnline);
-    return () => window.removeEventListener("online", handleOnline);
-  }, [isOffline]);
+
 
   const getGridTemplateColumns = () => {
     return columnsCount === 2
@@ -218,7 +162,6 @@ const Product = () => {
         );
         const updatedDishes = { ...dishes, items: updatedItems };
         setDishes(updatedDishes);
-        localStorage.setItem("dishes", JSON.stringify(updatedDishes));
         setEditModalVisible(false);
         form.resetFields(); // Дополнительно сбросим форму
       })
@@ -257,7 +200,6 @@ const Product = () => {
       const updatedDishes = { ...dishes, items: updatedItems };
 
       setDishes(updatedDishes);
-      localStorage.setItem("dishes", JSON.stringify(updatedDishes));
       message.success("Товар обновлён");
     } catch (error) {
       if (error.response) {
@@ -285,7 +227,6 @@ const Product = () => {
       const updatedDishes = { ...dishes, items: updatedItems };
 
       setDishes(updatedDishes);
-      localStorage.setItem("dishes", JSON.stringify(updatedDishes));
       message.success("Товар удалён");
     } catch (error) {
       message.error("Ошибка удаления товара");
@@ -449,7 +390,7 @@ const Product = () => {
                     {isUnavailable ? (
                       <div className="product-unavailable-wrapper">
                         <div className="product-unavailable-label">
-                          <StopOutlined className="unavailable-icon"  />
+                          <StopOutlined className="unavailable-icon" />
                         </div>
                         {userRole === "admin" && (
                           <Button

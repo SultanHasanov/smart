@@ -1,17 +1,11 @@
-const CACHE_NAME = "dishes-cache-v1";
 const API_URLS = [
   "https://chechnya-product.ru/api/products",
   "https://chechnya-product.ru/api/categories",
 ];
 
-// Кэширование при установке
+// Установка воркера — ничего не кэшируем
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(API_URLS))
-      .then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
 // Активация воркера
@@ -19,25 +13,14 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Обработка fetch запросов к API
+// Все запросы — напрямую, без кэша
 self.addEventListener("fetch", (event) => {
   if (API_URLS.some((url) => event.request.url.includes(url))) {
-    event.respondWith(
-      caches.match(event.request).then((response) => {
-        if (response) return response;
-
-        return fetch(event.request).then((response) => {
-          const responseClone = response.clone();
-          caches
-            .open(CACHE_NAME)
-            .then((cache) => cache.put(event.request, responseClone));
-          return response;
-        });
-      })
-    );
+    event.respondWith(fetch(event.request));
   }
 });
 
+// Push-уведомления
 self.addEventListener("push", function (event) {
   event.waitUntil(
     (async () => {
@@ -47,7 +30,7 @@ self.addEventListener("push", function (event) {
         try {
           data = event.data.json();
         } catch {
-          const text = await event.data.text(); // ✅ await, т.к. text() — Promise
+          const text = await event.data.text();
           data.body = text;
         }
       }
@@ -62,7 +45,7 @@ self.addEventListener("push", function (event) {
   );
 });
 
-// 👇 Обработка клика по уведомлению
+// Обработка клика по уведомлению
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
 

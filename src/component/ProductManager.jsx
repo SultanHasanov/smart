@@ -48,8 +48,7 @@ const ProductManager = () => {
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState(null);
   const [priceEdits, setPriceEdits] = useState({});
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+ 
   const [activeTab, setActiveTab] = useState("1");
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
