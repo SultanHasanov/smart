@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { Button, Form, Input, message, Radio, Typography } from "antd";
+import { Button, Form, Input, message, Modal, Radio, Typography } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PlusOutlined, ShoppingOutlined } from "@ant-design/icons";
 import AddressInput from "../component/AddressInput";
@@ -29,7 +29,7 @@ const CartPage = () => {
   const token = localStorage.getItem("token");
   const isManuallyChanged = useRef(false);
   const [whatsAppURL, setWhatsAppURL] = useState(null);
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
   useEffect(() => {
     setTest(cart.length !== 0 ? 1 : 2);
   }, [cart.length]);
@@ -74,6 +74,33 @@ const CartPage = () => {
         ? prev.filter((id) => id !== dishId)
         : [...prev, dishId]
     );
+  };
+
+    const showOrderConfirmation = () => {
+    const selectedItems = cart.filter((item) =>
+      selectedIds.includes(item.product_id)
+    );
+
+    if (selectedItems.length === 0) return message.error("Ничего не выбрано!");
+    if (!orderData.name) return message.error("Введите имя!");
+    if (!orderData.paymentType) return message.error("Выберите способ оплаты!");
+    if (!orderData.deliveryType) return message.error("Выберите способ получения!");
+    if (orderData.deliveryType === "delivery" && !query)
+      return message.error("Введите адрес доставки!");
+    if (
+      orderData.paymentType === "cash" &&
+      orderData.deliveryType === "delivery" &&
+      !orderData.changeFor &&
+      !orderData.noChange
+    )
+      return message.error("Введите сумму, с которой нужна сдача, или отметьте 'Без сдачи'!");
+
+    setIsModalVisible(true);
+  };
+
+  const handleConfirmOrder = () => {
+    setIsModalVisible(false);
+    sendOrderToWhatsApp();
   };
 
    const sendOrderToWhatsApp = useCallback(async () => {
@@ -336,7 +363,7 @@ const CartPage = () => {
 //     }
 //   }, [selectedIds, orderData, query, cart, token]);
 
-  const handleClick = () => {
+   const handleClick = () => {
     if (whatsAppURL) {
       const link = document.createElement("a");
       link.href = whatsAppURL;
@@ -347,8 +374,56 @@ const CartPage = () => {
       document.body.removeChild(link);
       setWhatsAppURL(null);
     } else {
-      sendOrderToWhatsApp();
+      showOrderConfirmation();
     }
+  };
+
+  const renderOrderDetails = () => {
+    const selectedItems = cart.filter(item => selectedIds.includes(item.product_id));
+    const total = calculateTotal();
+    
+    return (
+      <>
+        <h3 style={{textAlign: "center"}}>Детали заказа:</h3>
+        <div style={{ marginBottom: 16 }}>
+          <strong>Имя:</strong> {orderData.name}
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <strong>Способ получения:</strong> {orderData.deliveryType === "pickup" ? "Самовывоз" : "Доставка"}
+        </div>
+        {orderData.deliveryType === "delivery" && (
+          <div style={{ marginBottom: 16 }}>
+            <strong>Адрес:</strong> {query}
+          </div>
+        )}
+        <div style={{ marginBottom: 16 }}>
+          <strong>Способ оплаты:</strong> {orderData.paymentType === "cash" ? "Наличными" : "Перевод"}
+        </div>
+        {orderData.paymentType === "cash" && orderData.deliveryType === "delivery" && orderData.changeFor && (
+          <div style={{ marginBottom: 16 }}>
+            <strong>Сдача с:</strong> {orderData.changeFor} ₽
+          </div>
+        )}
+        {orderData.order_comment && (
+          <div style={{ marginBottom: 16 }}>
+            <strong>Комментарий:</strong> {orderData.order_comment}
+          </div>
+        )}
+        
+        <h3 style={{textAlign: "center"}}>Товары:</h3>
+        {selectedItems.map(item => (
+          <div key={item.product_id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span>{item.name} x{item.quantity}</span>
+            <span>{item.price * item.quantity} ₽</span>
+          </div>
+        ))}
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 16, fontSize: 18, fontWeight: 'bold' }}>
+          <span>Итого:</span>
+          <span>{new Intl.NumberFormat("ru-RU").format(total)} ₽</span>
+        </div>
+      </>
+    );
   };
 
   return (
@@ -490,6 +565,17 @@ const CartPage = () => {
           </Button>
         </div>
       )}
+       <Modal
+        title="Подтверждение заказа"
+        visible={isModalVisible}
+        onOk={handleConfirmOrder}
+        onCancel={() => setIsModalVisible(false)}
+        okText="Подтвердить"
+        cancelText="Отменить"
+        width={600}
+      >
+        {renderOrderDetails()}
+      </Modal>
     </div>
   );
 };
