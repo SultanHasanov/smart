@@ -17,6 +17,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ReviewsPage from "./pages/ReviewsPage";
 import OrderManager from "./pages/OrderManager";
 import PWAInstallGuide from "./pages/PWAInstallGuide";
+import CourierOrders from "./component/CourierOrders";
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
     navigator.serviceWorker
@@ -42,6 +43,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/orders" element={<UserOrders />} />
         <Route path="/info" element={<PWAInstallGuide />} />
+        <Route path="/courier" element={<CourierOrders />} />
         <Route
           path="/favorites"
           element={

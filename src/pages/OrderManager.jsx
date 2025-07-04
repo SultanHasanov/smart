@@ -78,7 +78,6 @@ const OrderManager = () => {
     }
   };
 
-  console.log(orders);
 
   const updateOrderStatus = async (id, newStatus) => {
     try {
