@@ -22,6 +22,7 @@ import {
   EnvironmentOutlined,
   ClockCircleOutlined,
   DollarOutlined,
+  CloseCircleFilled,
 } from "@ant-design/icons";
 
 const { Text } = Typography;
@@ -50,6 +51,7 @@ export default function AddressInput({
   suggestions,
   setSuggestions,
   onDropdownOpenChange,
+  setOrderData,
 }) {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,7 +61,6 @@ export default function AddressInput({
   const [showSaveOption, setShowSaveOption] = useState(false);
   const [saveChecked, setSaveChecked] = useState(false);
   const debounceRef = useRef(null);
-  console.log(query)
 
   useEffect(() => {
     fetchDefaultAddress();
@@ -168,6 +169,11 @@ const handleSelect = (value, isDefault = false) => {
     setShowSaveOption(!isDefault);
 
     if (lat && lon) {
+       setOrderData((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lon,
+    }));
       setCoordinates({ lat, lon });
       const dist = calculateDistance(
         WAREHOUSE_COORDS.lat,
@@ -424,16 +430,28 @@ const handleSelect = (value, isDefault = false) => {
             marginBottom: isDropdownOpen ? 210 : 10,
           }}
         >
-          <Input
-            placeholder="Введите адрес"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
+           <Input
+      placeholder="Введите адрес"
+      value={query}
+      onChange={(e) => {
+        setQuery(e.target.value);
+        setHasSelected(false);
+      }}
+      autoComplete="off"
+      size="large"
+      suffix={
+        query ? (
+          <CloseCircleFilled
+            onClick={() => {
+              setQuery("");
               setHasSelected(false);
+              setSelectedAddress("");
             }}
-            autoComplete="off"
-            size="large"
+            style={{ color: "rgba(0,0,0,.45)", cursor: "pointer" }}
           />
+        ) : null
+      }
+    />
         </div>
       </Dropdown>
     </div>

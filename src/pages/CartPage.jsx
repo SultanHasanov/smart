@@ -47,6 +47,8 @@ const CartPage = () => {
     address: query,
     changeFor: "",
     order_comment: "",
+    latitude: "",
+    longitude: "",
   });
 
   console.log(orderData)
@@ -172,6 +174,8 @@ const CartPage = () => {
           delivery_type: orderData.deliveryType,
           payment_type: orderData.paymentType,
           order_comment: orderData.order_comment,
+          longitude: orderData.longitude,
+          latitude: orderData.latitude,
           change_for:
             orderData.paymentType === "cash"
               ? (orderData.changeFor || "").trim() === ""
@@ -219,7 +223,7 @@ const CartPage = () => {
 
       window.open(whatsappURL, "_blank");
 
-      message.success("Заказ отправлен админу и сохранён в системе!");
+      message.success("Заказ отправлен админу!");
 
       setOrderData({
         name: "",
@@ -228,6 +232,8 @@ const CartPage = () => {
         paymentType: "cash",
         changeFor: "",
         order_comment: '',
+         latitude: "",
+    longitude: "",
       });
 
       setSelectedIds([]);

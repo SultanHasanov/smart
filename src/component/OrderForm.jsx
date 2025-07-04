@@ -170,6 +170,7 @@ const OrderForm = ({
             setSuggestions={setSuggestions}
             suggestions={suggestions}
             onDropdownOpenChange={onDropdownOpenChange}
+            setOrderData={setOrderData}
           />
         )}
 
