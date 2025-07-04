@@ -121,7 +121,7 @@ const CourierOrders = () => {
                   key={order.id}
                   style={{
                     backgroundColor: "#fff",
-                    marginBottom: 16,
+                    marginBottom: 6,
                     borderRadius: 8,
                     border: "1px solid #f0f0f0",
                     overflow: "hidden",
@@ -157,7 +157,7 @@ const CourierOrders = () => {
                   </div>
 
                   {expandedOrderId === order.id && (
-                    <div style={{ padding: "0 8px " }}>
+                    <div style={{ }}>
                       <Paragraph style={{ marginTop: 16 }}>
                         <EnvironmentOutlined /> {order.address}
                       </Paragraph>
@@ -172,7 +172,7 @@ const CourierOrders = () => {
                       </div>
 
                       {/* Информация о маршруте */}
-                      <Space direction="vertical" style={{ width: "100%" }}>
+                      <Space direction="vertical" style={{ width: "100%", marginTop: 16  }}>
                         <Text strong>Информация о маршруте:</Text>
                         <div>
                           Расстояние: {routeInfos[order.id]?.car?.distance || '...'} 

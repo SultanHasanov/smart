@@ -111,7 +111,7 @@ const YMap = ({ from, to, onRouteInfo }) => {
   return (
     <div
       id={`map-${from}-${to}`}
-      style={{ width: "100%", height: "100%" }}
+      style={{ height: "250px" }}
     ></div>
   );
 };
