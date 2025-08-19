@@ -64,6 +64,7 @@ const OrderManager = () => {
   const wsRef = useRef(null);
   const navigate = useNavigate();
   const { userRole } = useContext(AuthContext);
+  console.log('---')
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem("token");
