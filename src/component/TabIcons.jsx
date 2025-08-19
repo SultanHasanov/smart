@@ -175,24 +175,7 @@ const TabIcons = () => {
             label: (
               <div style={{ position: "relative" }}>
                 Курьер
-                {newOrdersCount !== 0 && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: -32,
-                      right: -12,
-                      background: "red",
-                      color: "white",
-                      borderRadius: "20%",
-                      padding: "1px 4px",
-                      fontSize: 10,
-                      lineHeight: "12px",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {newOrdersCount}
-                  </span>
-                )}
+                
               </div>
             ),
           },
