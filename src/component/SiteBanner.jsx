@@ -7,29 +7,36 @@ const api = "https://44899c88203381ec.mokky.dev/banner";
 const SiteBanner = () => {
   const [banner, setBanner] = useState(null);
 
-//   useEffect(() => {
-//     const fetchBanner = async () => {
-//       try {
-//         const res = await axios.get(api);
-//         const now = Date.now();
-//         const activeBanners = res.data.filter(
-//           (b) => b.active && now < b.endTime
-//         );
-//         // берём только первый активный баннер, можно сделать и несколько
-//         if (activeBanners.length > 0) {
-//           setBanner(activeBanners[0]);
-//         }
-//       } catch {
-//         console.error("Ошибка загрузки баннера");
-//       }
-//     };
+  useEffect(() => {
+   const fetchBanner = async () => {
+    try {
+      const res = await axios.get(api);
+      console.log("Полученные данные:", res.data);
+      console.log("Статус ответа:", res.status);
+      
+      const now = Date.now();
+      const activeBanners = res.data.filter(
+        (b) => b.active && now < b.endTime
+      );
+      
+      console.log("Активные баннеры:", activeBanners);
+      
+      if (activeBanners.length > 0) {
+        setBanner(activeBanners[0]);
+      } else {
+        console.log("Нет активных баннеров");
+      }
+    } catch (error) {
+      console.error("Ошибка загрузки баннера:", error);
+    }
+  };
 
-//     fetchBanner();
+  fetchBanner();
 
-//     // 🔁 обновлять каждые 30 секунд
-//     const interval = setInterval(fetchBanner, 30 * 1000);
-//     return () => clearInterval(interval);
-//   }, []);
+    // 🔁 обновлять каждые 30 секунд
+    const interval = setInterval(fetchBanner, 30 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (!banner) return null;
 

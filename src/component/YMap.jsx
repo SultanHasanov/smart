@@ -42,7 +42,10 @@ const YMap = ({ from, to, onRouteInfo }) => {
         map.geoObjects.add(toPlacemark);
         
         // Центрируем карту чтобы были видны обе точки
-        map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true });
+       map.setBounds(map.geoObjects.getBounds(), {
+  checkZoomRange: true,
+  zoomMargin: 20 // Отступы от краев карты
+});
 
         // Создаем маршруты
         const [carRoute, pedestrianRoute] = await Promise.all([

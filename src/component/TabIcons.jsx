@@ -10,6 +10,8 @@ import {
 import { AuthContext } from "../store/AuthContext";
 import axios from "axios";
 import { Avatar } from "antd";
+import { MdDeliveryDining } from "react-icons/md";
+
 const WS_URL = "wss://chechnya-product.ru/ws/orders";
 
 const TabIcons = () => {
@@ -165,11 +167,11 @@ const TabIcons = () => {
           },
         ]
       : []),
-    ...(userRole === "courier"
+    ...(userRole === "admin"
       ? [
           {
             to: "/courier",
-            icon: ShoppingOutlined,
+            icon: MdDeliveryDining, // Используем иконку курьера
             label: (
               <div style={{ position: "relative" }}>
                 Курьер
