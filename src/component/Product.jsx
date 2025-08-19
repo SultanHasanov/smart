@@ -72,6 +72,7 @@ const Product = () => {
 
       setCategories(sortedCategories);
       setDishes(dishesRes.data.data);
+      console.log(dishesRes)
     } catch (error) {
       console.error("Ошибка загрузки данных:", error);
     } finally {
@@ -332,10 +333,10 @@ const Product = () => {
                 <Skeleton active title={false} paragraph={{ rows: 2 }} />
               </div>
             ))
-          ) : filteredDishes.length === 0 ? (
+          ) : filteredDishes?.length === 0 ? (
             <div className="product-empty">Ничего не найдено</div>
           ) : (
-            filteredDishes.map((dish) => {
+            filteredDishes?.map((dish) => {
               const currentDish = cart.find(
                 (item) => item.product_id === dish.id
               );
